@@ -1,0 +1,196 @@
+server:
+  port: 8080  # 浏览器不安全端口6660-6669、6699
+  servlet:
+    context-path: /smart-manage-api
+  compression:
+    enabled: true
+  tomcat:
+    max-connections: 100
+    threads:
+      max: 200
+      min-spare: 20
+    accept-count: 10
+    connection-timeout: 20000
+
+spring:
+  web:
+    resources:
+      cache:
+        cachecontrol:
+          max-age: 2592000
+          cache-public: true
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /**
+        cache: true
+      static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      file-size-threshold: 500KB
+      location: E:/tmp
+      resolve-lazily: false
+  task:
+    execution:
+      pool:
+        core-size: 4
+        max-size: 4
+        queue-capacity: 100
+        keep-alive: 60s
+      thread-name-prefix: async-task-
+    scheduling:
+      pool:
+        size: 4
+      thread-name-prefix: scheduling-task-
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    properties:
+      org.quartz.scheduler.instanceName: SmartManageScheduler
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+      org.quartz.threadPool.threadCount: 10
+  datasource:
+    druid:
+      # 连接池核心配置
+      initial-size: 5
+      min-idle: 10
+      max-active: 100
+      max-wait: 30000
+      # 连接有效性检测
+      test-while-idle: true
+      test-on-borrow: true
+      validation-query: SELECT 1
+      validation-query-timeout: 3000
+      # 连接回收策略
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      remove-abandoned: true
+      remove-abandoned-timeout-millis: 300
+      # 连接测试配置
+      test-on-return: true
+      keep-alive: true
+      filters: stat
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 2000
+      web-stat-filter:
+        # 是否启用StatFilter默认值true
+        enabled: true
+        # 添加过滤规则
+        url-pattern: /*
+        # 忽略过滤的格式
+        exclusions: /druid/*,*.js,*.gif,*.jpg,*.png,*.css,*.ico
+      stat-view-servlet:
+        # 是否启用StatViewServlet默认值true
+        enabled: true
+        # 访问路径为/druid时，跳转到StatViewServlet
+        url-pattern: /druid/*
+        # 是否能够重置数据
+        reset-enable: true
+        # 需要账号密码才能访问控制台，默认为root
+        login-username: druid
+        login-password: druid
+        # IP白名单
+        allow: 127.0.0.1
+        # IP黑名单（共同存在时，deny优先于allow）
+        deny:
+  data:
+    # Redis配置
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      password: redis123
+      database: 1
+      timeout: 1000ms
+      jedis:
+        pool:
+          max-active: 100
+          max-idle: 10
+          min-idle: 2
+
+############## JetCache 缓存框架配置 ##############
+jetcache:
+  statIntervalMinutes: 15
+  areaInCacheName: false
+  local:
+    default:
+      type: caffeine
+      keyConvertor: jackson
+      limit: 10000
+      expireAfterWriteInMillis: 1800000
+  remote:
+    default:
+      type: redis
+      keyConvertor: jackson
+
+mybatis-flex:
+  datasource:
+    main_db:
+      type: com.alibaba.druid.pool.DruidDataSource
+      # url: jdbc:mysql://localhost:3306/smart_manage?useServerPreparedStmts=false&rewriteBatchedStatements=true&characterEncoding=UTF-8&useSSL=false&allowMultiQueries=true&serverTimezone=Asia/Shanghai
+      url: jdbc:postgresql://localhost:5432/smart_manage
+      username: postgres
+      password: postgres
+
+
+############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
+sa-token:
+  # token 名称（前端通过 header 传递，不从 cookie 读取）
+  token-name: smtoken
+  # 仅从 header 读取 token，不从 cookie 读取
+  is-read-cookie: false
+  # token 有效期（单位：秒） 默认30天，-1 代表永久有效，设置一天
+  timeout: 86400
+  # token 最低活跃频率（单位：秒），如果 token 超过此时间没有访问系统就会被冻结，默认-1 代表不限制，永不冻结，设置为5小时，一天登录一次
+  active-timeout: 18000
+  # 是否允许同一账号多地同时登录 （为 true 时允许一起登录, 为 false 时新登录挤掉旧登录）
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个 token （为 true 时所有登录共用一个 token, 为 false 时每次登录新建一个 token）
+  is-share: false
+  # token 风格（默认可取值：uuid、simple-uuid、random-32、random-64、random-128、tik）
+  token-style: random-64
+  # 是否输出操作日志
+  is-log: true
+
+############## Actuator 配置 ##############
+management:
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+
+############## Arthas 配置 ##############
+arthas:
+  http-port: 8563
+  telnet-port: 3658
+  ip: 127.0.0.1
+  session-timeout: 1800
+
+smart-manage:
+  framework:
+    # 跨域配置
+    cors:
+      # 通配 dev 端口（Umi 在 8000/8001/8002 等之间切换时无需改配置）
+      allowed-origins:
+        - 'http://localhost:*'
+  system:
+    log:
+      # 日志线程池配置
+      core-pool-size: 10
+      max-pool-size: 20
+      queue-capacity: 1000
+      keep-alive-seconds: 60
+      thread-name-prefix: biz-log-
+  sm2:
+    js:
+      # SM2公私钥对，用于前端加密传输数据，前端使用公钥加密传输数据，后端使用私钥解密
+      private-key: 00dc349799de9b5a3beef8d3d77aa7e3655c5542a10c395cc86670580b6250dfeb
+      # 将公钥复制粘贴到src/system/util/sm2-encrypt.js里
+      public-key: 0405102042204d15e802522ea09eb609358e4c72295e0ca44727eef75faac9afb3eeaa3e9df5af87e205e6ce5cb351e4fb30c37602f32aad969d2b222f05f8fa99

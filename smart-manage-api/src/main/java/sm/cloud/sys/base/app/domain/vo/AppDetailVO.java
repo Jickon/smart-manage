@@ -1,0 +1,51 @@
+package sm.cloud.sys.base.app.domain.vo;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@Schema(description = "应用管理-详情")
+public class AppDetailVO {
+	@Data
+	@Schema(description = "所属云")
+	public static class CloudRef {
+		@Schema(description = "id")
+		private Long id;
+		@Schema(description = "编码")
+		private String number;
+		@Schema(description = "名称")
+		private String name;
+	}
+
+	@Schema(description = "id")
+	private Long id;
+
+	@Schema(description = "编号")
+	private String number;
+
+	@Schema(description = "名称")
+	private String name;
+
+	@Schema(description = "图标")
+	private String icon;
+
+	@Schema(description = "图标颜色（SVG fill）")
+	private String iconColor;
+
+	@Schema(description = "排序")
+	private Integer seq;
+
+	@Schema(description = "描述")
+	private String description;
+
+	private CloudRef cloud;
+
+	@Schema(description = "启用")
+	private Boolean enableFlag;
+
+	private LocalDateTime createTime;
+	private LocalDateTime updateTime;
+}
+

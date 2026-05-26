@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Manage - 登录</title>
+    <!-- SM2 加密库 -->
+    <script src="js/sm2.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      .login-box {
+        width: 400px;
+        padding: 40px;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      .login-title {
+        text-align: center;
+        margin-bottom: 32px;
+        font-size: 24px;
+        font-weight: 600;
+        color: #1d2129;
+      }
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 14px;
+        color: #4e5969;
+      }
+      .form-group input {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px;
+        border: 1px solid #e5e6eb;
+        border-radius: 4px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .form-group input:focus {
+        border-color: #165dff;
+      }
+      .captcha-row {
+        display: flex;
+        gap: 12px;
+      }
+      .captcha-row input {
+        flex: 1;
+      }
+      .captcha-img {
+        width: 120px;
+        height: 40px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 1px solid #e5e6eb;
+      }
+      .login-btn {
+        width: 100%;
+        height: 44px;
+        border: none;
+        border-radius: 4px;
+        background: #165dff;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .login-btn:hover {
+        background: #4080ff;
+      }
+      .login-btn:disabled {
+        background: #94bfff;
+        cursor: not-allowed;
+      }
+      .error-msg {
+        margin-top: 16px;
+        padding: 10px;
+        border-radius: 4px;
+        background: #fff2f0;
+        border: 1px solid #ffccc7;
+        color: #ff4d4f;
+        font-size: 13px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-box">
+      <h1 class="login-title">Smart Manage</h1>
+      <div class="form-group">
+        <label>用户名</label>
+        <input id="username" type="text" placeholder="请输入用户名" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input id="password" type="password" placeholder="请输入密码" autocomplete="current-password" />
+      </div>
+      <div class="form-group">
+        <label>验证码</label>
+        <div class="captcha-row">
+          <input id="captcha" type="text" placeholder="请输入验证码" maxlength="6" autocomplete="off" />
+          <img id="captchaImg" class="captcha-img" src="" alt="验证码" />
+        </div>
+      </div>
+      <button id="loginBtn" class="login-btn" type="button">登 录</button>
+      <div id="errorMsg" class="error-msg"></div>
+    </div>
+
+    <script>
+      // SM2 公钥 — 与后端 application-dev.yml 中配置一致
+      var SM2_PUBLIC_KEY = '0405102042204d15e802522ea09eb609358e4c72295e0ca44727eef75faac9afb3eeaa3e9df5af87e205e6ce5cb351e4fb30c37602f32aad969d2b222f05f8fa99';
+      var API_BASE = '/smart-manage-api';
+
+      var captchaId = '';
+      var captchaImgEl = document.getElementById('captchaImg');
+      var errorMsgEl = document.getElementById('errorMsg');
+      var loginBtnEl = document.getElementById('loginBtn');
+
+      /** 获取 URL 中的 redirect 参数 */
+      function getRedirectUrl() {
+        var params = new URLSearchParams(window.location.search);
+        return params.get('redirect') || '';
+      }
+
+      /** 显示错误信息 */
+      function showError(msg) {
+        errorMsgEl.textContent = msg;
+        errorMsgEl.style.display = 'block';
+      }
+
+      /** 隐藏错误信息 */
+      function hideError() {
+        errorMsgEl.style.display = 'none';
+      }
+
+      /** 加载验证码 */
+      function loadCaptcha() {
+        fetch(API_BASE + '/sys/base/captcha')
+          .then(function (res) { return res.json(); })
+          .then(function (result) {
+            if (result.code === 200) {
+              captchaId = result.data.captchaId;
+              captchaImgEl.src = result.data.imageData;
+            } else {
+              showError(result.msg || '获取验证码失败');
+            }
+          })
+          .catch(function () {
+            showError('网络异常，获取验证码失败');
+          });
+      }
+
+      /** 登录 */
+      function login() {
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('password').value;
+        var captchaText = document.getElementById('captcha').value.trim();
+
+        if (!username) { showError('请输入用户名'); return; }
+        if (!password) { showError('请输入密码'); return; }
+        if (!captchaText) { showError('请输入验证码'); return; }
+
+        hideError();
+        loginBtnEl.disabled = true;
+        loginBtnEl.textContent = '登录中...';
+
+        // SM2 加密密码和验证码（C1C3C2 模式，cipherMode=1）
+        var encryptedPassword = sm2.doEncrypt(password, SM2_PUBLIC_KEY, 1);
+        var encryptedCaptcha = sm2.doEncrypt(captchaText, SM2_PUBLIC_KEY, 1);
+
+        fetch(API_BASE + '/sys/base/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: username,
+            password: encryptedPassword,
+            captcha: encryptedCaptcha,
+            captchaId: captchaId,
+          }),
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (result) {
+            if (result.code === 200) {
+              // 存储 token
+              localStorage.setItem('token', result.data.token);
+              // 跳转到目标页
+              var redirect = getRedirectUrl();
+              if (redirect) {
+                window.location.href = decodeURIComponent(redirect);
+              } else {
+                window.location.href = '/index.html?app=home';
+              }
+            } else {
+              showError(result.msg || '登录失败');
+              loadCaptcha();
+            }
+          })
+          .catch(function () {
+            showError('网络异常，登录失败');
+            loadCaptcha();
+          })
+          .finally(function () {
+            loginBtnEl.disabled = false;
+            loginBtnEl.textContent = '登 录';
+          });
+      }
+
+      // 页面加载：获取验证码
+      loadCaptcha();
+
+      // 点击验证码刷新
+      captchaImgEl.addEventListener('click', loadCaptcha);
+
+      // 登录按钮
+      loginBtnEl.addEventListener('click', login);
+
+      // 回车登录
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') login();
+      });
+    </script>
+  </body>
+</html>

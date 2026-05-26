@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: smart-manage
+  profiles:
+    active: dev
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+
+logging:
+  pattern:
+    dateformat: yyyy-MM-dd HH:mm:ss.SSS
+  file:
+    path: logs
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 30
+      total-size-cap: 5GB
+
+mybatis-flex:
+  global-config:
+    key-config:
+      key-type: Generator
+      value: snowFlakeId
+      before: true
+    version-column: mutex
+
+smart-manage:
+  framework:
+    no-need-login: /login,/captcha,/doc.html,/v3/api-docs/**,/webjars/**,/swagger-ui.html,/swagger-ui/**,/swagger-resources,/swagger-resources/**,/upload/**,/druid/**
+  # 组织配置
+  org:
+    default-id: 1  # 默认组织ID
+  # 安全配置
+  security:
+    argon2:
+      iterations: 2       # Argon2 迭代次数
+      memory: 65536       # Argon2 内存使用量（KB）
+      parallelism: 1      # Argon2 并行度
+  # 验证码配置
+  captcha:
+    width: 160  # 验证码宽度
+    height: 50  # 验证码高度
+    length: 4   # 验证码长度
+    expire: 300 # 验证码有效期（秒）

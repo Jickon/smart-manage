@@ -1,0 +1,32 @@
+// Arco Design CSS 变量覆盖
+// Arco 2.x 通过 CSS 变量控制组件样式，在此处覆盖 body 上的 CSS 变量
+// 本文件被 global.less 导入，加载顺序在 Arco CSS 之后，确保覆盖生效
+// CSS 变量参考：Arco 编译产物或浏览器 DevTools body 上定义的 --color-* / --border-* 等变量
+
+body {
+}
+
+// Menu 菜单 - 浅色背景（默认 #ffffff）//:rgb(193, 202, 220);
+.arco-menu {
+  --color-menu-light-bg: rgb(52, 56, 72);
+  --color-text-2: rgb(193, 202, 220);
+  --color-fill-2: #21242d;
+  font-size: 12px;
+}
+
+.arco-menu-vertical .arco-menu-pop-header {
+  margin-bottom: 0;
+  line-height: 50px;
+}
+
+.arco-menu-pop-header:hover {
+  --color-text-2: #fff;
+}
+
+.arco-menu-vertical .arco-menu-inner {
+  padding: 4px 0;
+  margin-bottom: 0;
+}
+
+
+

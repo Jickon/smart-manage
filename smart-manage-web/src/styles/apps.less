@@ -1,0 +1,332 @@
+/* Apps view */
+.sm-apps {
+  flex: 1;
+  min-height: 0;
+  padding: 24px 32px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+
+  /* 让 Spin 链路传递 flex 上下文，使空状态卡片能撑满 */
+  > .arco-spin {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .arco-spin-children {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+}
+
+.sm-cloud-domain {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+.sm-cloud-name {
+  width: 108px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin-bottom: 12px;
+  margin-right: 12px;
+  color: #fff;
+  font-size: 18px;
+  position: relative;
+  border-radius: 2px;
+  background-color: #2c3e61;
+  overflow: hidden;
+}
+
+.sm-cloud-name-text{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  line-height: 25px;
+  color: #bfc4cd;
+  text-align: center;
+  width: 100px;
+  word-break: break-word;
+}
+
+.sm-cloud-apps {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.sm-app-card {
+  border: 1px solid #fff;
+  width: 284px;
+  height: 100px;
+  margin-right: 12px;
+  margin-bottom: 12px;
+  display: inline-flex;
+  padding: 0 16px;
+  align-items: center;
+  background-color: #fff;
+  box-shadow: 0 4px 12px 0 rgba(134,162,210,.2);
+  border-radius: 2px;
+  box-sizing: border-box;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+
+  &:hover {
+    box-shadow: 0 1px 30px 0 rgba(0,0,0,.2);
+    transform: translate3d(0,1px,-2px);
+    transition-duration: 0.1s;
+  }
+}
+
+.sm-app-card-text {
+  flex: 1;
+  min-height: 48px;
+  height: auto;
+  overflow: hidden;
+  margin-left: 8px;
+
+  .sm-app-card-name{
+    font-size: 16px;
+    margin-bottom: 8px;
+    width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    color: #333;
+    word-break: break-word;
+    word-wrap: break-word;
+  }
+  .sm-app-card-desc{
+    width: 100%;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #999;
+  }
+}
+
+
+
+
+/* App workspace */
+.sm-workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sm-workspace-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 0;
+  flex-shrink: 0;
+  background: rgb(52, 56, 72);
+  box-shadow: 1px 0 0 0 #d9dada;
+  color: rgb(193, 202, 220);
+  align-items: stretch;
+  position: relative;
+  padding: 0;
+  list-style: none;
+  box-sizing: content-box;
+  max-width: 100%;
+  min-width: 50px;
+
+  .sm-workspace-sidebar-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    overflow: hidden;
+    height: 100%;
+    max-width: 259px;
+  }
+
+  .sm-workspace-sidebar-meun {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-direction: column;
+    flex-grow: 1;
+    padding-top: 10px;
+    width: 100%;
+  }
+
+  .sm-sidebar-skeleton {
+    padding: 16px;
+  }
+
+  .sm-workspace-sidebar-switch {
+    display: flex;
+    flex-grow: 0;
+    align-items: center;
+    height: 50px;
+    border-top: 1px solid rgba(218, 222, 237, .1);
+    width: 100%;
+    justify-content: flex-start;
+
+    .sm-workspace-sidebar-switch-btn {
+      width: 50px;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 20px;
+      color: #fff;
+      display: flex;
+      flex-grow: 0;
+      align-items: center;
+      height: 50px;
+    }
+  }
+}
+
+.sm-workspace-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Content tabs bar */
+.sm-content-tabs-bar {
+  display: flex;
+  position: relative;
+  align-items: center;
+  overflow: hidden;
+  flex-grow: 0;
+  flex-shrink: 0;
+}
+
+.sm-content-tabs {
+  display: flex;
+  overflow: hidden;
+  flex-grow: 1;
+  position: relative;
+  user-select: none;
+  text-align: center;
+  max-width: 100%;
+  height: 34px;
+}
+
+
+.sm-content-tab {
+  color: #637da9;
+  margin: 0 12px 0 0;
+  height: 32px;
+  font-size: 14px;
+  transition: color .3s cubic-bezier(.7, 0, .3, 1);
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+
+  &:hover {
+    color: rgb(var(--primary-6));
+  }
+}
+
+.sm-content-tab-home {
+  margin: 0 10px 0 18px;
+  color: #999;
+}
+
+.sm-content-tab--active {
+  color: rgb(var(--primary-6));
+
+  /* active 底部横条指示器 */
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgb(var(--primary-6));
+  }
+}
+
+.sm-content-tab-close {
+  font-size: 12px;
+  opacity: 0;
+  color: #7f93bc;
+  transition: opacity 0.15s;
+  padding: 0 2px;
+
+  &:hover {
+    opacity: 1;
+    color: rgb(var(--primary-6));
+  }
+}
+
+.sm-content-tab:hover .sm-content-tab-close {
+  opacity: 0.6;
+}
+
+/* tabs 右侧操作按钮 */
+.sm-content-tabs-actions {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.sm-content-tabs-action-btn {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+
+  &:hover {
+    color: rgb(var(--primary-6));
+  }
+}
+
+
+/* Content panels */
+.sm-workspace-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sm-content-pane {
+  display: none;
+  height: 100%;
+  overflow-y: auto;
+  padding: 16px;
+  background: #fff;
+}
+
+.sm-content-pane--active {
+  display: block;
+}
+
+/* 空状态占位卡片 — 白色背景占满剩余空间，Empty 居中 */
+.sm-apps-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 4px;
+}
+
+/* Workspace content spin — 工作区首次加载时内容区域 Spin */
+.sm-workspace-spin {
+  flex: 1;
+  min-height: 0;
+}
+

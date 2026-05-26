@@ -1,0 +1,106 @@
+package sm.system.helper;
+
+import cn.hutool.crypto.Mode;
+import cn.hutool.crypto.Padding;
+import cn.hutool.crypto.symmetric.SM4;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import sm.cloud.sys.base.sysparam.service.SysParamService;
+import sm.system.exception.BizException;
+
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Base64;
+
+/**
+ * SM4 加解密工具，密钥从系统参数 SM4_KEY 读取
+ *
+ * @author Chekfu
+ */
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class SM4Helper {
+
+    private static final String PARAM_SM4_KEY = "SM4_KEY";
+    private static final int IV_LENGTH = 16;
+
+    private final SysParamService sysParamService;
+
+    /**
+     * SM4/CBC 加密，随机 IV 拼接在密文前
+     *
+     * @param plainText 明文字符串
+     * @return Base64(IV + 密文)
+     */
+    public String encrypt(String plainText) {
+        byte[] keyBytes = getKeyBytes();
+        byte[] ivBytes = generateIv();
+        byte[] plainBytes = plainText.getBytes(StandardCharsets.UTF_8);
+
+        SM4 sm4 = new SM4(Mode.CBC, Padding.PKCS5Padding, keyBytes, ivBytes);
+        byte[] cipherBytes = sm4.encrypt(plainBytes);
+
+        // IV + 密文 拼接后 Base64 编码
+        byte[] result = new byte[IV_LENGTH + cipherBytes.length];
+        System.arraycopy(ivBytes, 0, result, 0, IV_LENGTH);
+        System.arraycopy(cipherBytes, 0, result, IV_LENGTH, cipherBytes.length);
+
+        return Base64.getEncoder().encodeToString(result);
+    }
+
+    /**
+     * SM4/CBC 解密
+     *
+     * @param cipherBase64 Base64 编码的密文（IV + 密文）
+     * @return 明文字符串
+     */
+    public String decrypt(String cipherBase64) {
+        byte[] keyBytes = getKeyBytes();
+        byte[] rawBytes;
+        try {
+            rawBytes = Base64.getDecoder().decode(cipherBase64);
+        } catch (IllegalArgumentException e) {
+            throw new BizException("密文 Base64 解码失败");
+        }
+
+        if (rawBytes.length < IV_LENGTH + 1) {
+            throw new BizException("密文长度不足，无法解密");
+        }
+
+        // 提取 IV 和密文
+        byte[] ivBytes = new byte[IV_LENGTH];
+        byte[] cipherBytes = new byte[rawBytes.length - IV_LENGTH];
+        System.arraycopy(rawBytes, 0, ivBytes, 0, IV_LENGTH);
+        System.arraycopy(rawBytes, IV_LENGTH, cipherBytes, 0, cipherBytes.length);
+
+        SM4 sm4 = new SM4(Mode.CBC, Padding.PKCS5Padding, keyBytes, ivBytes);
+        byte[] plainBytes = sm4.decrypt(cipherBytes);
+        return new String(plainBytes, StandardCharsets.UTF_8);
+    }
+
+    /** 从系统参数读取 SM4 密钥（Base64 → 16 字节） */
+    private byte[] getKeyBytes() {
+        String keyBase64 = sysParamService.getString(PARAM_SM4_KEY);
+        if (keyBase64 == null || keyBase64.isBlank()) {
+            throw new BizException("系统参数 SM4_KEY 未配置");
+        }
+        try {
+            byte[] keyBytes = Base64.getDecoder().decode(keyBase64.trim());
+            if (keyBytes.length != 16) {
+                throw new BizException("SM4 密钥长度必须为 16 字节");
+            }
+            return keyBytes;
+        } catch (IllegalArgumentException e) {
+            throw new BizException("系统参数 SM4_KEY 不是有效的 Base64 编码");
+        }
+    }
+
+    /** 生成随机 16 字节 IV */
+    private byte[] generateIv() {
+        byte[] iv = new byte[IV_LENGTH];
+        new SecureRandom().nextBytes(iv);
+        return iv;
+    }
+}

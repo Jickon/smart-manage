@@ -1,0 +1,119 @@
+.sm-header {
+  position: relative;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  height: 48px;
+  background: #fff;
+}
+
+.sm-header-logo {
+  flex-shrink: 0;
+  margin:0 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-1);
+}
+
+/* Header tabs */
+.sm-header-tabs {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  font-size: 16px;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.sm-header-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  cursor: pointer;
+  color: var(--color-text-2);
+  white-space: nowrap;
+  user-select: none;
+  transition: color 0.2s, border-color 0.2s;
+
+  &:hover {
+    color: rgb(var(--primary-6));
+    background-color: rgb(var(--primary-1))
+  }
+}
+
+.sm-header-tab--active {
+  color: #fff;
+  background-color: rgb(var(--primary-6));
+
+  &:hover{
+    color: #fff;
+    background-color: rgb(var(--primary-6));
+  }
+}
+
+.sm-header-tab-operate {
+  display: none;
+  height: 48px;
+  width: 17px;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.sm-header-tab:hover .sm-header-tab-operate {
+  display: flex;
+}
+
+.sm-header-tab-operate-close {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 12px;
+  opacity: 0.6;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.sm-header-tab-operate-lock {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  font-size: 12px;
+  opacity: .6;
+}
+
+/* Header right actions */
+.sm-header-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: 16px;
+  margin-right: 16px;
+}
+
+.sm-header-avatar {
+  cursor: pointer;
+  background-color: rgb(var(--primary-6));
+}
+
+.sm-header-action-btn {
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--color-text-2);
+
+  &:hover {
+    color: var(--color-text-1);
+  }
+}

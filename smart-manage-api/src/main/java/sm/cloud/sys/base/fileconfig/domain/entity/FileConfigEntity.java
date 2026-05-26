@@ -1,0 +1,47 @@
+package sm.cloud.sys.base.fileconfig.domain.entity;
+
+import com.mybatisflex.annotation.Id;
+import com.mybatisflex.annotation.KeyType;
+import com.mybatisflex.annotation.Table;
+import com.mybatisflex.core.keygen.KeyGenerators;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import sm.system.entity.BaseEntity;
+
+/**
+ * 文件配置实体
+ *
+ * @author Chekfu
+ */
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Table("t_sys_file_config")
+public class FileConfigEntity extends BaseEntity {
+
+    @Id(keyType = KeyType.Generator, value = KeyGenerators.snowFlakeId)
+    private Long id;
+
+    /** 存储类型：LOCAL / FTP */
+    private String storageType;
+
+    /** 本地目录路径 */
+    private String localDir;
+
+    /** FTP 主机 */
+    private String ftpHost;
+
+    /** FTP 端口 */
+    private Integer ftpPort;
+
+    /** FTP 用户名 */
+    private String ftpUsername;
+
+    /** FTP 密码 */
+    private String ftpPassword;
+
+    /** FTP 远程目录 */
+    private String ftpDir;
+
+    /** FTP 被动模式 */
+    private Boolean ftpPassiveMode;
+}

@@ -1,0 +1,20 @@
+package sm.cloud.sys.base.permission.domain.form;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import sm.system.form.PageForm;
+
+/**
+ * @author Chekfu
+ */
+@Data
+@EqualsAndHashCode(callSuper = true)
+@Schema(title = "权限列表表单")
+public class PermissionListForm extends PageForm {
+	@Schema(description = "按应用筛选")
+	private Long appId;
+
+	@Schema(description = "关键词（名称、编码模糊匹配）")
+	private String keyword;
+}

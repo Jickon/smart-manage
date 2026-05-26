@@ -1,0 +1,28 @@
+package sm.cloud.sys.base.basicdata.domain.vo;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+/**
+ * 基础数据列表项
+ *
+ * @author Chekfu
+ */
+@Data
+@Schema(description = "基础数据列表项")
+public class BasicDataListVO {
+
+    private Long id;
+
+    private String number;
+
+    private String name;
+
+    private String remark;
+
+    private Boolean enableFlag;
+
+    private LocalDateTime createTime;
+}
