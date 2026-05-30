@@ -52,7 +52,7 @@ function renderMenuTree(items: MenuVO[]): React.ReactNode {
     const key = item.path || item.name;
     if (item.routes?.length) {
       return (
-        <Menu.SubMenu key={key} title={renderMenuTitle(item)}>
+        <Menu.SubMenu key={key} title={renderMenuTitle(item)} selectable={false}>
           {renderMenuTree(item.routes)}
         </Menu.SubMenu>
       );

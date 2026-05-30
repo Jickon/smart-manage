@@ -1,15 +1,6 @@
-import request from './request';
-import type {
-  AppCreateNewDataVO,
-  AppDetailVO,
-  AppListForm,
-  AppListVO,
-  AppSaveForm,
-  AppVO,
-  CloudAppsVO,
-  PageResult,
-  Result,
-} from '@/types/api';
+import request from '@/api/request';
+import type { PageResult, Result } from '@/types/api';
+import type { AppCreateNewDataVO, AppDetailVO, AppListForm, AppListVO, AppSaveForm, AppVO, CloudAppsVO } from './types';
 
 export const appApi = {
   listPage: (form: AppListForm) =>

@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { OperationType } from '@/cloud/common/page/types';
 import { createAddNewTabKey, createBillTabKey, createListTabKey } from '@/cloud/common/page/tabKeys';
 import type { PageType } from '@/cloud/common/page/types';
-import type { AppVO, MenuVO } from '@/types/api';
+import type { MenuVO } from '@/types/api';
+import type { AppVO } from '@/cloud/sys/base/app/types';
 
 export interface ContentTabItem {
   key: string;

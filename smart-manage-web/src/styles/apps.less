@@ -141,7 +141,7 @@
   box-sizing: content-box;
   max-width: 100%;
   min-width: 50px;
-  width: 88px;
+  width: 168px;
   transition: width 0.15s ease;
 
   &.sm-workspace-sidebar--collapsed {
@@ -154,7 +154,7 @@
     align-items: flex-start;
     overflow: hidden;
     height: 100%;
-    max-width: 259px;
+    max-width: 168px;
   }
 
   .sm-workspace-sidebar-meun {
@@ -167,30 +167,80 @@
   }
 
   .sm-sidebar-menu-title {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 8px;
     min-width: 0;
+    width: 100%;
+    overflow: hidden;
   }
 
   .sm-sidebar-menu-icon {
-    width: 16px;
+    width: 18px;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
+    color: #8fb3ff;
+    font-size: 18px;
+
+    .arco-icon {
+      width: 18px !important;
+      height: 18px !important;
+      flex-shrink: 0;
+      margin-right: 0 !important;
+      color: #8fb3ff;
+      stroke: currentColor;
+    }
   }
 
   .sm-sidebar-menu-text {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     white-space: nowrap;
-    text-overflow: ellipsis;
+    text-overflow: clip;
+  }
+
+  .arco-menu-pop-header,
+  .arco-menu-item {
+    padding-left: 14px;
+    padding-right: 22px;
+  }
+
+  .arco-menu-icon-suffix {
+    right: 8px;
   }
 
   &.sm-workspace-sidebar--collapsed .sm-sidebar-menu-text {
     display: none;
+  }
+
+  &.sm-workspace-sidebar--collapsed {
+    .sm-workspace-sidebar-content {
+      max-width: 50px;
+    }
+
+    .arco-menu-pop-header,
+    .arco-menu-item {
+      height: 50px;
+      min-height: 50px;
+      line-height: 50px;
+      padding-left: 16px;
+      padding-right: 0;
+      text-overflow: clip;
+    }
+
+    .sm-sidebar-menu-title {
+      height: 50px;
+      align-items: center;
+    }
+
+    .arco-menu-inline-header-suffix,
+    .arco-menu-pop-header-suffix,
+    .arco-menu-icon-suffix {
+      display: none;
+    }
   }
 
   .sm-sidebar-skeleton {

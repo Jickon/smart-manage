@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Empty, Spin } from '@arco-design/web-react';
-import { appApi } from '@/api/app';
+import { appApi } from '@/cloud/sys/base/app/api';
 import { useHeaderTabsStore } from '@/stores/headerTabs';
 import { useAppWorkspaceStore } from '@/stores/appWorkspace';
-import type { AppVO } from '@/types/api';
+import type { AppVO } from '@/cloud/sys/base/app/types';
 import { IconCommon } from '@arco-design/web-react/icon';
 
 const AppsView = () => {

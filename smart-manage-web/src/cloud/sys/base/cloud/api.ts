@@ -1,4 +1,5 @@
-import request from './request';
+import request from '@/api/request';
+import type { PageResult, Result } from '@/types/api';
 import type {
   CloudCreateNewDataVO,
   CloudDetailVO,
@@ -7,9 +8,7 @@ import type {
   CloudSaveForm,
   CloudSelectForm,
   CloudSelectVO,
-  PageResult,
-  Result,
-} from '@/types/api';
+} from './types';
 
 export const cloudApi = {
   listPage: (form: CloudListForm) =>

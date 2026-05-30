@@ -16,6 +16,12 @@ export default definePageRegistration('sys/base/demo', 'LIST', DemoPage);
 
 执行 `pnpm gen:registry` 后会生成 `src/cloud/common/registry/componentRegistry.generated.tsx`。
 
+`pageRegistration.ts` 只声明菜单组件键、页面类型和懒加载入口；`*Page.tsx` 只负责运行时分发列表/编辑/自定义页面。不要把业务列表和编辑实现直接写进注册文件。
+
+## 单据内聚
+
+单据目录内优先放置本单据自己的 `api.ts`、`types.ts`、`*ListPage.tsx`、`*EditPage.tsx`。`src/types/api.ts` 只保留 `Result`、`PageResult`、`PageForm` 等跨模块公共类型，禁止继续堆放具体单据 VO/Form。
+
 ## 页面类型
 
 - `LIST`：标准列表页。
