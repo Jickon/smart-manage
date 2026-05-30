@@ -1,6 +1,7 @@
 export { default as AttachmentPanel } from './AttachmentPanel';
 export { default as CustomPage } from './CustomPage';
 export { default as EditableEntryTable } from './EditableEntryTable';
+export { default as EditModal } from './EditModal';
 export { default as EditPage } from './EditPage';
 export { default as ListFilterBar } from './ListFilterBar';
 export { default as ListPage } from './ListPage';

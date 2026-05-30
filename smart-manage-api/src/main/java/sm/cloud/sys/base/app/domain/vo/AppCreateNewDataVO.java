@@ -10,6 +10,12 @@ import lombok.Data;
 @Schema(title = "应用新增默认值")
 public class AppCreateNewDataVO {
 
+	@Schema(description = "图标")
+	private String icon;
+
+	@Schema(description = "图标颜色")
+	private String iconColor;
+
 	@Schema(description = "排序")
 	private Integer seq;
 

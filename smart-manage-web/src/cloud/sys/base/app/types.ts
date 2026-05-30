@@ -60,6 +60,8 @@ export interface AppDetailVO {
 }
 
 export interface AppCreateNewDataVO {
+  icon?: string;
+  iconColor?: string;
   seq: number;
   enableFlag: boolean;
 }

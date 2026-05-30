@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Form, Input, InputNumber, Message, Select, Spin, Switch } from '@arco-design/web-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { EditPage, OperationType } from '@/cloud/common/page';
+import { getMissingRequiredField, requiredFieldMessage } from '@/cloud/common/page/formValidation';
 import { createBillTabKey } from '@/cloud/common/page/tabKeys';
 import { useAppWorkspaceStore } from '@/stores/appWorkspace';
 import { appApi } from './api';
@@ -26,7 +27,7 @@ interface AppFormState {
 const emptyAppForm = (): AppFormState => ({
   number: '',
   name: '',
-  icon: '',
+  icon: 'app',
   iconColor: '#165dff',
   seq: 99,
   description: '',
@@ -47,7 +48,8 @@ const toAppForm = (detail: Partial<AppDetailVO>): AppFormState => ({
 });
 
 const toAppSaveForm = (formState: AppFormState): AppSaveForm => {
-  if (!formState.cloudId) {
+  const cloudId = formState.cloudId;
+  if (!cloudId) {
     throw new Error('请选择所属云');
   }
   return {
@@ -58,9 +60,22 @@ const toAppSaveForm = (formState: AppFormState): AppSaveForm => {
     iconColor: formState.iconColor?.trim(),
     seq: formState.seq,
     description: formState.description?.trim(),
-    cloudId: formState.cloudId,
+    cloudId,
     enableFlag: formState.enableFlag,
   };
+};
+
+const validateAppForm = (formState: AppFormState) => {
+  const missingField = getMissingRequiredField([
+    { label: '编码', value: formState.number },
+    { label: '名称', value: formState.name },
+    { label: '所属云', value: formState.cloudId },
+  ]);
+  if (missingField) {
+    Message.warning(requiredFieldMessage(missingField));
+    return false;
+  }
+  return true;
 };
 
 const AppEditPage = (props: PageComponentProps) => {
@@ -124,7 +139,11 @@ const AppEditPage = (props: PageComponentProps) => {
   return (
     <EditPage
       {...props}
-      onSave={() => saveMutation.mutate()}
+      onSave={() => {
+        if (validateAppForm(formState)) {
+          saveMutation.mutate();
+        }
+      }}
       onCancel={() => removeContentTab(props.appNumber, props.tabKey)}
       sections={[
         {

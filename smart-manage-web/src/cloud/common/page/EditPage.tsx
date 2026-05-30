@@ -3,7 +3,16 @@ import { Button, Empty } from '@arco-design/web-react';
 import { IconDown, IconUp } from '@arco-design/web-react/icon';
 import type { EditPageProps } from '@/cloud/common/page/types';
 
-const EditPage = ({ sections, attachment, toolbarActions, onSave, onSubmit, onCancel, children }: EditPageProps) => {
+const EditPage = ({
+  sections,
+  attachment,
+  toolbarActions,
+  submitVisible = true,
+  onSave,
+  onSubmit,
+  onCancel,
+  children,
+}: EditPageProps) => {
   const initialCollapsed = () =>
     Object.fromEntries((sections ?? []).map((section) => [section.key, Boolean(section.defaultCollapsed)]));
   const [collapsedMap, setCollapsedMap] = useState<Record<string, boolean>>(initialCollapsed);
@@ -19,9 +28,11 @@ const EditPage = ({ sections, attachment, toolbarActions, onSave, onSubmit, onCa
           <Button type="primary" onClick={onSave}>
             保存
           </Button>
-          <Button type="primary" onClick={onSubmit}>
-            提交
-          </Button>
+          {submitVisible && (
+            <Button type="primary" onClick={onSubmit}>
+              提交
+            </Button>
+          )}
           {toolbarActions}
           <Button type="primary" onClick={onCancel}>
             退出

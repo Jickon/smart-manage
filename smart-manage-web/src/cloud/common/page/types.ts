@@ -73,6 +73,7 @@ export interface EditPageProps extends CommonPageProps {
   sections?: EditPageSection[];
   attachment?: ReactNode;
   toolbarActions?: ReactNode;
+  submitVisible?: boolean;
   onSave?: () => void;
   onSubmit?: () => void;
   onCancel?: () => void;

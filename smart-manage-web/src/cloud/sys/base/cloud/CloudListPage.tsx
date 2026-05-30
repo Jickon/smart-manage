@@ -2,13 +2,22 @@ import { useState } from 'react';
 import { Form, Message, Modal, Select, Table, Tag } from '@arco-design/web-react';
 import { useQuery } from '@tanstack/react-query';
 import { ListPage, OperationType } from '@/cloud/common/page';
-import { useAppWorkspaceStore } from '@/stores/appWorkspace';
+import { createAddNewTabKey, createBillTabKey } from '@/cloud/common/page/tabKeys';
 import { cloudApi } from './api';
+import CloudEditPage from './CloudEditPage';
 import type { PageComponentProps } from '@/cloud/common/page';
 import type { CloudListVO } from './types';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 
 const DEFAULT_PAGE_SIZE = 20;
+
+interface CloudEditModalState {
+  tabKey: string;
+  title: string;
+  operationType: OperationType;
+  billId?: string;
+  temporary?: boolean;
+}
 
 const CloudListPage = (props: PageComponentProps) => {
   const [pageNum, setPageNum] = useState(1);
@@ -16,8 +25,7 @@ const CloudListPage = (props: PageComponentProps) => {
   const [keyword, setKeyword] = useState('');
   const [enableFlag, setEnableFlag] = useState<boolean | undefined>();
   const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
-  const openAddNewTab = useAppWorkspaceStore((store) => store.openAddNewTab);
-  const openBillTab = useAppWorkspaceStore((store) => store.openBillTab);
+  const [editModalState, setEditModalState] = useState<CloudEditModalState>();
 
   const listQuery = useQuery({
     queryKey: ['cloud-list-page', pageNum, pageSize, keyword, enableFlag],
@@ -37,16 +45,25 @@ const CloudListPage = (props: PageComponentProps) => {
       title: '确认删除',
       content: `确定删除已选的 ${selectedRowKeys.length} 条数据吗？`,
       onOk: async () => {
-        await Promise.all(selectedRowKeys.map((id) => cloudApi.delete(id)));
-        setSelectedRowKeys([]);
-        Message.success('删除成功');
-        await listQuery.refetch();
+        try {
+          await Promise.all(selectedRowKeys.map((id) => cloudApi.delete(id)));
+          setSelectedRowKeys([]);
+          Message.success('删除成功');
+          await listQuery.refetch();
+        } catch (error) {
+          Message.error(error instanceof Error ? error.message : '删除失败');
+        }
       },
     });
   };
 
   const openDetail = (record: CloudListVO) => {
-    openBillTab(props.appNumber, props.componentKey, record.name, record.id, OperationType.EDIT);
+    setEditModalState({
+      tabKey: createBillTabKey(props.componentKey, record.id),
+      title: record.name,
+      operationType: OperationType.EDIT,
+      billId: record.id,
+    });
   };
 
   const columns: ColumnProps<CloudListVO>[] = [
@@ -78,70 +95,106 @@ const CloudListPage = (props: PageComponentProps) => {
   ];
 
   return (
-    <ListPage
-      {...props}
-      title="云管理"
-      total={total}
-      selectedCount={selectedRowKeys.length}
-      allSelected={allSelected}
-      pageNum={pageNum}
-      pageSize={pageSize}
-      quickSearchPlaceholder="搜索编码/名称"
-      filterSummary={
-        [
-          keyword ? `关键字：${keyword}` : '',
-          enableFlag === undefined ? '' : `启用状态：${enableFlag ? '启用' : '停用'}`,
-        ]
-          .filter(Boolean)
-          .join('；') || '未设置筛选条件'
-      }
-      filterContent={
-        <Form className="sm-list-filter-form" layout="inline">
-          <Form.Item label="启用状态">
-            <Select
-              allowClear
-              className="sm-list-filter-control"
-              value={enableFlag === undefined ? undefined : String(enableFlag)}
-              placeholder="全部"
-              onChange={(value) => {
-                setEnableFlag(value === 'true' ? true : value === 'false' ? false : undefined);
-                setPageNum(1);
-              }}
-            >
-              <Select.Option value="true">启用</Select.Option>
-              <Select.Option value="false">停用</Select.Option>
-            </Select>
-          </Form.Item>
-        </Form>
-      }
-      onAddNew={() => openAddNewTab(props.appNumber, props.componentKey, '新增云')}
-      onDelete={deleteSelected}
-      onRefresh={() => void listQuery.refetch()}
-      onQuickSearch={(value) => {
-        setKeyword(value.trim());
-        setPageNum(1);
-      }}
-      onToggleSelectAll={(checked) => setSelectedRowKeys(checked ? records.map((record) => record.id) : [])}
-      onPageChange={(nextPageNum, nextPageSize) => {
-        setPageNum(nextPageNum);
-        setPageSize(nextPageSize);
-      }}
-      table={
-        <Table
-          rowKey="id"
-          columns={columns}
-          data={records}
-          loading={listQuery.isFetching}
-          pagination={false}
-          scroll={{ x: 1040 }}
-          rowSelection={{
-            type: 'checkbox',
-            selectedRowKeys,
-            onChange: (keys) => setSelectedRowKeys(keys.map(String)),
+    <>
+      <ListPage
+        {...props}
+        title="云管理"
+        total={total}
+        selectedCount={selectedRowKeys.length}
+        allSelected={allSelected}
+        pageNum={pageNum}
+        pageSize={pageSize}
+        quickSearchPlaceholder="搜索编码/名称"
+        filterSummary={
+          [
+            keyword ? `关键字：${keyword}` : '',
+            enableFlag === undefined ? '' : `启用状态：${enableFlag ? '启用' : '停用'}`,
+          ]
+            .filter(Boolean)
+            .join('；') || '未设置筛选条件'
+        }
+        filterContent={
+          <Form className="sm-list-filter-form" layout="inline">
+            <Form.Item label="启用状态">
+              <Select
+                allowClear
+                className="sm-list-filter-control"
+                value={enableFlag === undefined ? undefined : String(enableFlag)}
+                placeholder="全部"
+                onChange={(value) => {
+                  setEnableFlag(value === 'true' ? true : value === 'false' ? false : undefined);
+                  setPageNum(1);
+                }}
+              >
+                <Select.Option value="true">启用</Select.Option>
+                <Select.Option value="false">停用</Select.Option>
+              </Select>
+            </Form.Item>
+          </Form>
+        }
+        onAddNew={() =>
+          setEditModalState({
+            tabKey: createAddNewTabKey(props.componentKey),
+            title: '新增云',
+            operationType: OperationType.ADDNEW,
+            temporary: true,
+          })
+        }
+        onDelete={deleteSelected}
+        onRefresh={() => void listQuery.refetch()}
+        onQuickSearch={(value) => {
+          setKeyword(value.trim());
+          setPageNum(1);
+        }}
+        onToggleSelectAll={(checked) => setSelectedRowKeys(checked ? records.map((record) => record.id) : [])}
+        onPageChange={(nextPageNum, nextPageSize) => {
+          setPageNum(nextPageNum);
+          setPageSize(nextPageSize);
+        }}
+        table={
+          <Table
+            rowKey="id"
+            columns={columns}
+            data={records}
+            loading={listQuery.isFetching}
+            pagination={false}
+            scroll={{ x: 1040 }}
+            rowSelection={{
+              type: 'checkbox',
+              selectedRowKeys,
+              onChange: (keys) => setSelectedRowKeys(keys.map(String)),
+            }}
+          />
+        }
+      />
+      {editModalState && (
+        <CloudEditPage
+          {...props}
+          modal
+          visible
+          tabKey={editModalState.tabKey}
+          title={editModalState.title}
+          operationType={editModalState.operationType}
+          billId={editModalState.billId}
+          temporary={editModalState.temporary}
+          onClose={() => setEditModalState(undefined)}
+          onSaved={(id) => {
+            setEditModalState((current) =>
+              current
+                ? {
+                    ...current,
+                    tabKey: createBillTabKey(props.componentKey, id),
+                    operationType: OperationType.EDIT,
+                    billId: id,
+                    temporary: false,
+                  }
+                : current,
+            );
+            void listQuery.refetch();
           }}
         />
-      }
-    />
+      )}
+    </>
   );
 };
 

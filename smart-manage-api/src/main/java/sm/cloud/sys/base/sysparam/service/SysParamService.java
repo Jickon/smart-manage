@@ -93,6 +93,9 @@ public class SysParamService {
         entity.setValue(form.getValue());
         entity.setRemark(form.getRemark());
         if (form.getId() == null) {
+            entity.setIsSystem(false);
+        }
+        if (form.getId() == null) {
             mapper.insert(entity);
         } else {
             mapper.update(entity);

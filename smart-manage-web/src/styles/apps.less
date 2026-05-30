@@ -747,6 +747,54 @@
   }
 }
 
+.sm-edit-form--modal {
+  grid-template-columns: minmax(180px, 1fr);
+}
+
+.sm-edit-form--modal-1 {
+  grid-template-columns: minmax(180px, 1fr);
+}
+
+.sm-edit-form--modal-2 {
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+}
+
+.sm-edit-form--modal-3 {
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.sm-edit-modal {
+  width: min(720px, calc(100vw - 48px));
+
+  .arco-modal-header {
+    border-bottom: 1px solid #e5e6eb;
+  }
+
+  .arco-modal-title {
+    text-align: left;
+  }
+
+  .arco-modal-content {
+    padding: 12px 16px;
+    background: #f2f3f8;
+  }
+
+  .arco-modal-footer {
+    border-top: 1px solid #e5e6eb;
+  }
+}
+
+.sm-edit-modal-body {
+  max-height: min(62vh, 560px);
+  overflow: auto;
+}
+
+.sm-edit-modal-footer {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
 .sm-attachment-panel-header {
   justify-content: space-between;
 }

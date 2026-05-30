@@ -41,7 +41,9 @@ function renderGeneratedFile(registrationFiles) {
 
   return `${imports ? `${imports}\n` : ''}import type { PageRegistration } from '@/cloud/common/page/types';
 
-export const generatedPageRegistrations: PageRegistration[] = [${registrationNames.join(', ')}];
+export const generatedPageRegistrations: PageRegistration[] = [
+${registrationNames.map((name) => `  ${name},`).join('\n')}
+];
 `;
 }
 

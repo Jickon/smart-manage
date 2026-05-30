@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import {defineConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
@@ -18,7 +18,11 @@ export default defineConfig({
     },
   },
   build: {
+    // chunkSizeWarningLimit: 700,
     rolldownOptions: {
+      checks: {
+        pluginTimings: false,
+      },
       output: {
         codeSplitting: {
           groups: [
