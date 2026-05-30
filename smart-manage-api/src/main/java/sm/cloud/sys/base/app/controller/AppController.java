@@ -86,7 +86,7 @@ public class AppController {
 
 	@Operation(summary = "按应用编号打开应用", description = "返回当前用户有权限访问的应用信息")
 	@PostMapping("/sys/base/app/openByNumber")
-	public Result<AppVO> openByNumber(@RequestBody AppOpenByNumberForm form) {
+	public Result<AppVO> openByNumber(@RequestBody @Valid AppOpenByNumberForm form) {
 		return Result.success(helper.getUserAppByNumber(UserHelper.getCurrentUserId(), form.getNumber()));
 	}
 }

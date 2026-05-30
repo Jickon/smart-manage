@@ -17,7 +17,9 @@ import sm.cloud.sys.base.app.domain.vo.AppCreateNewDataVO;
 import sm.cloud.sys.base.app.domain.vo.AppDetailVO;
 import sm.cloud.sys.base.app.domain.vo.AppListVO;
 import sm.cloud.sys.base.app.mapper.AppMapper;
+import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -97,11 +99,10 @@ public class AppService {
 
 	/**
 	 * 详情页需要展示所属云信息（编码/名称），避免前端为 label 再请求一次 cloud/detail。
-	 * 返回 null 表示记录不存在。
 	 */
 	public AppDetailVO detail(Long id) {
 		if (id == null) {
-			return null;
+			throw new BizException(ResultEnum.PARAM_ERROR, "应用ID不能为空");
 		}
 		QueryWrapper query = QueryWrapper.create()
 				.select(
@@ -126,7 +127,7 @@ public class AppService {
 				.limit(1);
 		Row row = Db.selectOneByQuery(query);
 		if (row == null) {
-			return null;
+			throw new BizException(ResultEnum.NOT_FOUND, "应用不存在");
 		}
 		AppDetailVO vo = new AppDetailVO();
 		vo.setId(row.getLong("aid"));
@@ -165,7 +166,7 @@ public class AppService {
 		if (form.getId() != null) {
 			e = mapper.selectOneById(form.getId());
 			if (e == null) {
-				return null;
+				throw new BizException(ResultEnum.NOT_FOUND, "应用不存在");
 			}
 		} else {
 			e = new AppEntity();
@@ -191,4 +192,3 @@ public class AppService {
 		mapper.deleteById(id);
 	}
 }
-

@@ -46,7 +46,7 @@ public class UserRoleController {
 	@Operation(summary = "删除用户角色", description = "删除用户角色关联")
 	@PostMapping("/sys/base/userrole/delete")
 	@SaCheckPermission("sys:base:userrole:delete")
-	public Result<String> delete(@RequestBody IdForm form) {
+	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}

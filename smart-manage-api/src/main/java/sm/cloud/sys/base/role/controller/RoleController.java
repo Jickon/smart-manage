@@ -72,7 +72,7 @@ public class RoleController {
 	@Operation(summary = "删除角色", description = "根据ID删除角色")
 	@PostMapping("/sys/base/role/delete")
 	@SaCheckPermission("sys:base:role:delete")
-	public Result<String> delete(@RequestBody IdForm form) {
+	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}

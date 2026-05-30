@@ -9,7 +9,9 @@ import sm.system.form.PageForm;
 @EqualsAndHashCode(callSuper = true)
 @Schema(description = "云管理-分页查询")
 public class CloudListForm extends PageForm {
-	@Schema(description = "关键词（名称、编码模糊匹配）")
+	@Schema(description = "关键字（名称、编码模糊匹配）")
 	private String keyword;
-}
 
+	@Schema(description = "启用状态")
+	private Boolean enableFlag;
+}

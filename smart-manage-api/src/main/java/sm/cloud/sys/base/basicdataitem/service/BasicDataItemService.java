@@ -16,6 +16,8 @@ import sm.cloud.sys.base.basicdataitem.domain.form.BasicDataItemSaveForm;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataItemListVO;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataOptionVO;
 import sm.cloud.sys.base.basicdataitem.mapper.BasicDataItemMapper;
+import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -83,7 +85,7 @@ public class BasicDataItemService {
         if (form.getId() != null) {
             entity = mapper.selectOneById(form.getId());
             if (entity == null) {
-                return null;
+                throw new BizException(ResultEnum.NOT_FOUND, "基础数据项不存在");
             }
         } else {
             entity = new BasicDataItemEntity();
@@ -103,11 +105,15 @@ public class BasicDataItemService {
 
     @Transactional(rollbackFor = Exception.class)
     public void deleteById(Long id) {
-        BasicDataItemEntity entity = mapper.selectOneById(id);
-        if (entity != null) {
-            mapper.deleteById(id);
-            // 缓存 key 依赖方法内部加载的数据，使用编程方式清除
-            cache.remove(CACHE_PREFIX + entity.getTypeNumber());
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "基础数据项ID不能为空");
         }
+        BasicDataItemEntity entity = mapper.selectOneById(id);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "基础数据项不存在");
+        }
+        mapper.deleteById(id);
+        // 缓存 key 依赖方法内部加载的数据，使用编程方式清除
+        cache.remove(CACHE_PREFIX + entity.getTypeNumber());
     }
 }

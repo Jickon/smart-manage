@@ -15,6 +15,7 @@ import sm.cloud.sys.base.attachment.domain.vo.AttachmentVO;
 import sm.cloud.sys.base.attachment.mapper.AttachmentMapper;
 import sm.cloud.sys.base.attachment.mapper.BizAttachmentMapper;
 import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 import sm.system.storage.FileStorageService;
 import sm.system.storage.FileStorageServiceFactory;
 import sm.system.storage.FileStoreResult;
@@ -106,8 +107,13 @@ public class AttachmentService {
     /** 删除附件（物理文件 + 映射 + 元数据） */
     @Transactional(rollbackFor = Exception.class)
     public void delete(Long id) throws IOException {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "附件 id 不能为空");
+        }
         AttachmentEntity entity = mapper.selectOneById(id);
-        if (entity == null) return;
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "附件不存在：" + id);
+        }
         FileStorageService storage = storageFactory.getService();
         storage.delete(entity.getStoredPath());
         // 删除业务映射

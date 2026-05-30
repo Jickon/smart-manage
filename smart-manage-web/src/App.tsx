@@ -4,11 +4,11 @@ import { ConfigProvider } from '@arco-design/web-react';
 import zhCN from '@arco-design/web-react/es/locale/zh-CN';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import routes from '@/router';
-import { useUserStore } from '@/stores/user';
-import { useHeaderTabsStore } from '@/stores/headerTabs';
-import { useAppWorkspaceStore } from '@/stores/appWorkspace';
-import { userApi } from '@/api/user';
 import { appApi } from '@/api/app';
+import { userApi } from '@/api/user';
+import { useAppWorkspaceStore } from '@/stores/appWorkspace';
+import { useHeaderTabsStore } from '@/stores/headerTabs';
+import { useUserStore } from '@/stores/user';
 
 function getInitialAppParam(): string {
   const params = new URLSearchParams(window.location.search);
@@ -38,37 +38,42 @@ const App = () => {
     [initialPath],
   );
 
-  const setUserInfo = useUserStore((s) => s.setUserInfo);
-  const addAppTab = useHeaderTabsStore((s) => s.addAppTab);
-  const initWorkspace = useAppWorkspaceStore((s) => s.initWorkspace);
+  const setUserInfo = useUserStore((store) => store.setUserInfo);
+  const addAppTab = useHeaderTabsStore((store) => store.addAppTab);
+  const initWorkspace = useAppWorkspaceStore((store) => store.initWorkspace);
 
-  // 启动时获取用户信息
   useEffect(() => {
-    userApi.info().then((info) => {
-      setUserInfo({
-        id: String(info.id),
-        username: info.username,
-        nickname: info.nickname,
+    userApi
+      .info()
+      .then((info) => {
+        setUserInfo({
+          id: String(info.id),
+          username: info.username,
+          nickname: info.nickname,
+        });
+        if (info.themeColor) {
+          document.documentElement.style.setProperty('--primary-6', info.themeColor);
+        }
+      })
+      .catch(() => {
+        // 用户信息失败不阻塞应用初始化，登录拦截由 request 统一处理。
       });
-      // 应用主题色（后续 ConfigProvider 切换用）
-      if (info.themeColor) {
-        document.documentElement.style.setProperty('--primary-6', info.themeColor);
-      }
-    }).catch(() => {
-      // 获取失败不阻塞，可能是未登录状态
-    });
   }, [setUserInfo]);
 
-  // 如果 URL 携带非 home 的 app 参数，自动打开对应应用工作台
   useEffect(() => {
     const appParam = getInitialAppParam();
-    if (appParam === 'home' || appParam === 'apps') return;
-    appApi.openByNumber(appParam).then((appInfo) => {
-      initWorkspace(appParam, appInfo);
-      addAppTab(appParam, appInfo.name);
-    }).catch(() => {
-      // 应用不存在或无权访问，保持首页
-    });
+    if (appParam === 'home' || appParam === 'apps') {
+      return;
+    }
+    appApi
+      .openByNumber(appParam)
+      .then((appInfo) => {
+        initWorkspace(appParam, appInfo);
+        addAppTab(appParam, appInfo.name);
+      })
+      .catch(() => {
+        // 应用不存在或无权访问时保持默认页。
+      });
   }, [addAppTab, initWorkspace]);
 
   return (

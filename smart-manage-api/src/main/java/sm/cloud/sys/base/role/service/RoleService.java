@@ -18,6 +18,7 @@ import sm.cloud.sys.base.role.domain.vo.RoleSelectVO;
 import sm.cloud.sys.base.role.mapper.RoleMapper;
 import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -85,8 +86,14 @@ public class RoleService {
 	}
 
 	public RoleDetailVO getDetail(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "角色ID不能为空");
+		}
 		RoleEntity entity = mapper.selectOneById(id);
-		return entity == null ? null : toDetailVo(entity);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "角色不存在");
+		}
+		return toDetailVo(entity);
 	}
 
 	private RoleDetailVO toDetailVo(RoleEntity e) {
@@ -140,9 +147,12 @@ public class RoleService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "角色ID不能为空");
+		}
 		RoleEntity role = mapper.selectOneById(id);
 		if (role == null) {
-			throw new BizException("角色不存在");
+			throw new BizException(ResultEnum.NOT_FOUND, "角色不存在");
 		}
 		mapper.deleteById(id);
 	}

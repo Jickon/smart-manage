@@ -29,6 +29,7 @@ import sm.cloud.sys.base.userrole.domain.entity.table.UserRoleTable;
 import sm.cloud.sys.common.enums.MenuLevelEnum;
 import sm.cloud.sys.common.helper.UserHelper;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -265,9 +266,12 @@ public class MenuService {
 	}
 
 	public MenuDetailVO getDetail(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "菜单ID不能为空");
+		}
 		MenuEntity entity = mapper.selectOneById(id);
 		if (entity == null) {
-			return null;
+			throw new BizException(ResultEnum.NOT_FOUND, "菜单不存在");
 		}
 		MenuDetailVO vo = toDetailVo(entity);
 		// 填充父菜单信息
@@ -319,17 +323,17 @@ public class MenuService {
 		if (form.getId() != null) {
 			e = mapper.selectOneById(form.getId());
 			if (e == null) {
-				return null;
+				throw new BizException(ResultEnum.NOT_FOUND, "菜单不存在");
 			}
 		}
 		e.setNumber(form.getNumber());
 		e.setName(form.getName());
 		if (form.getLevel() == null) {
-			return null;
+			throw new BizException(ResultEnum.PARAM_ERROR, "菜单层级不能为空");
 		}
 		// 菜单层级收敛为两级：分组/页面
 		if (!(form.getLevel().equals(MenuLevelEnum.CATEGORY) || form.getLevel().equals(MenuLevelEnum.PAGE))) {
-			return null;
+			throw new BizException(ResultEnum.PARAM_ERROR, "菜单层级只能是分组或页面");
 		}
 		// 页面层级必须指定权限和路径；分组层级不需要路径和组件，但保留权限用于菜单可见性控制
 		if (form.getLevel().equals(MenuLevelEnum.PAGE)) {
@@ -364,6 +368,13 @@ public class MenuService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "菜单ID不能为空");
+		}
+		MenuEntity entity = mapper.selectOneById(id);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "菜单不存在");
+		}
 		mapper.deleteById(id);
 	}
 }

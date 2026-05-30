@@ -16,7 +16,9 @@ import sm.cloud.sys.base.cloud.domain.vo.CloudDetailVO;
 import sm.cloud.sys.base.cloud.domain.vo.CloudListVO;
 import sm.cloud.sys.base.cloud.domain.vo.CloudSelectVO;
 import sm.cloud.sys.base.cloud.mapper.CloudMapper;
+import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,6 +34,9 @@ public class CloudService {
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String kw = "%" + form.getKeyword().trim() + "%";
 			qw.and(CloudTable.CLOUD.NAME.like(kw).or(CloudTable.CLOUD.NUMBER.like(kw)));
+		}
+		if (form.getEnableFlag() != null) {
+			qw.and(CloudTable.CLOUD.ENABLE_FLAG.eq(form.getEnableFlag()));
 		}
 		qw.orderBy(CloudTable.CLOUD.SEQ, true).orderBy(CloudTable.CLOUD.ID, true);
 		Page<CloudEntity> page = Page.of(form.getPageNum(), form.getPageSize());
@@ -82,8 +87,14 @@ public class CloudService {
 	}
 
 	public CloudDetailVO getDetail(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "云ID不能为空");
+		}
 		CloudEntity entity = mapper.selectOneById(id);
-		return entity == null ? null : toDetailVo(entity);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "云不存在");
+		}
+		return toDetailVo(entity);
 	}
 
 	private CloudDetailVO toDetailVo(CloudEntity e) {
@@ -113,7 +124,7 @@ public class CloudService {
 		if (form.getId() != null) {
 			e = mapper.selectOneById(form.getId());
 			if (e == null) {
-				return null;
+				throw new BizException(ResultEnum.NOT_FOUND, "云不存在");
 			}
 		} else {
 			e = new CloudEntity();
@@ -132,7 +143,13 @@ public class CloudService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "云ID不能为空");
+		}
+		CloudEntity entity = mapper.selectOneById(id);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "云不存在");
+		}
 		mapper.deleteById(id);
 	}
 }
-

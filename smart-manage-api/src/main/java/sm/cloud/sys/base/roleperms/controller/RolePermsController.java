@@ -46,7 +46,7 @@ public class RolePermsController {
 	@Operation(summary = "删除角色权限", description = "删除角色权限关联")
 	@PostMapping("/sys/base/roleperms/delete")
 	@SaCheckPermission("sys:base:roleperms:delete")
-	public Result<String> delete(@RequestBody IdForm form) {
+	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}

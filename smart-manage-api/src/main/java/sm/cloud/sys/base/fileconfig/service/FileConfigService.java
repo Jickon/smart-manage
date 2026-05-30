@@ -15,7 +15,9 @@ import sm.cloud.sys.base.fileconfig.domain.form.FileConfigListForm;
 import sm.cloud.sys.base.fileconfig.domain.form.FileConfigSaveForm;
 import sm.cloud.sys.base.fileconfig.domain.vo.FileConfigDetailVO;
 import sm.cloud.sys.base.fileconfig.mapper.FileConfigMapper;
+import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -50,8 +52,14 @@ public class FileConfigService {
     }
 
     public FileConfigDetailVO getDetail(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "文件配置ID不能为空");
+        }
         FileConfigEntity entity = mapper.selectOneById(id);
-        return entity == null ? null : toDetailVo(entity);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
+        }
+        return toDetailVo(entity);
     }
 
     /** 获取活跃配置（Caffeine 本地缓存） */
@@ -89,7 +97,7 @@ public class FileConfigService {
         if (form.getId() != null) {
             entity = mapper.selectOneById(form.getId());
             if (entity == null) {
-                return null;
+                throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
             }
         } else {
             entity = new FileConfigEntity();
@@ -113,6 +121,13 @@ public class FileConfigService {
     @Transactional(rollbackFor = Exception.class)
     @CacheInvalidate(name = "common", key = "'file:config'")
     public void deleteById(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "文件配置ID不能为空");
+        }
+        FileConfigEntity entity = mapper.selectOneById(id);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
+        }
         mapper.deleteById(id);
     }
 }

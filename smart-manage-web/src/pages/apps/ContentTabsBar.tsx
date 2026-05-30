@@ -1,5 +1,5 @@
-import {IconClose, IconHome, IconBulb, IconQuestionCircle, IconFullscreen} from '@arco-design/web-react/icon';
-import {useAppWorkspaceStore} from '@/stores/appWorkspace';
+import { IconClose, IconHome, IconBulb, IconQuestionCircle, IconFullscreen } from '@arco-design/web-react/icon';
+import { useAppWorkspaceStore } from '@/stores/appWorkspace';
 
 interface Props {
   appNumber: string;
@@ -20,33 +20,44 @@ const ContentTabsBar = ({ appNumber }: Props) => {
   };
 
   return (
-      <div className="sm-content-tabs-bar">
-        <div className="sm-content-tabs">
-          {contentTabs.map((tab) => {
-            const isHome = tab.key === '__home__';
-            return (
-                <div
-                    key={tab.key}
-                    className={`sm-content-tab ${isHome ? 'sm-content-tab-home' : ''} ${activeContentTabKey === tab.key ? 'sm-content-tab--active' : ''}`}
-                    onClick={() => activateContentTab(appNumber, tab.key)}
-                >
-                  {isHome ? <IconHome/> : (
-                      <>
-                        <span>{tab.label}</span>
-                        {tab.closable && (
-                            <IconClose className="sm-content-tab-close" onClick={(e) => handleRemove(e, tab.key)}/>
-                        )}
-                      </>
+    <div className="sm-content-tabs-bar">
+      <div className="sm-content-tabs">
+        {contentTabs.map((tab) => {
+          const isHome = tab.key === '__home__';
+          return (
+            <div
+              key={tab.key}
+              className={`sm-content-tab ${isHome ? 'sm-content-tab-home' : ''} ${activeContentTabKey === tab.key ? 'sm-content-tab--active' : ''}`}
+              onClick={() => activateContentTab(appNumber, tab.key)}
+            >
+              {isHome ? (
+                <>
+                  <IconHome />
+                  <span>{tab.label}</span>
+                </>
+              ) : (
+                <>
+                  <span>{tab.label}</span>
+                  {tab.closable && (
+                    <IconClose className="sm-content-tab-close" onClick={(e) => handleRemove(e, tab.key)} />
                   )}
-                </div>
-            );
-          })}
-        </div>
-        <div className="sm-content-tabs-actions">
-          <span className="sm-content-tabs-action-btn"><IconBulb /></span>
-          <span className="sm-content-tabs-action-btn"><IconQuestionCircle /></span>
-          <span className="sm-content-tabs-action-btn"><IconFullscreen /></span>
-        </div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="sm-content-tabs-actions">
+        <span className="sm-content-tabs-action-btn">
+          <IconBulb />
+        </span>
+        <span className="sm-content-tabs-action-btn">
+          <IconQuestionCircle />
+        </span>
+        <span className="sm-content-tabs-action-btn">
+          <IconFullscreen />
+        </span>
+      </div>
     </div>
   );
 };

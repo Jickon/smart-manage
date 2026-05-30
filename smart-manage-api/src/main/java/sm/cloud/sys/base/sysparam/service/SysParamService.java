@@ -18,6 +18,7 @@ import sm.cloud.sys.base.sysparam.domain.vo.SysParamVO;
 import sm.cloud.sys.base.sysparam.mapper.SysParamMapper;
 import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.HashMap;
 import java.util.List;
@@ -53,8 +54,14 @@ public class SysParamService {
 
     /** 详情 */
     public SysParamVO getById(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "系统参数ID不能为空");
+        }
         SysParamEntity entity = mapper.selectOneById(id);
-        return entity != null ? toVo(entity) : null;
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
+        }
+        return toVo(entity);
     }
 
     /** 新增默认值 */
@@ -70,7 +77,7 @@ public class SysParamService {
         if (form.getId() != null) {
             entity = mapper.selectOneById(form.getId());
             if (entity == null) {
-                return null;
+                throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
             }
             // 系统内置参数只允许修改 value
             if (Boolean.TRUE.equals(entity.getIsSystem())) {
@@ -97,9 +104,12 @@ public class SysParamService {
     @Transactional(rollbackFor = Exception.class)
     @CacheInvalidate(name = "sys-params", key = "'all'")
     public void deleteById(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "系统参数ID不能为空");
+        }
         SysParamEntity entity = mapper.selectOneById(id);
         if (entity == null) {
-            return;
+            throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
         }
         if (Boolean.TRUE.equals(entity.getIsSystem())) {
             throw new BizException("系统内置参数不可删除");

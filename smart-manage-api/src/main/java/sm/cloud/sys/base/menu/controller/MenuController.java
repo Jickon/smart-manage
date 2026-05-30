@@ -86,7 +86,7 @@ public class MenuController {
 	@PostMapping("/sys/base/menu/delete")
 	@Operation(summary = "删除菜单", description = "按ID删除菜单")
 	@SaCheckPermission("sys:base:menu:delete")
-	public Result<String> delete(@RequestBody IdForm form) {
+	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}

@@ -1,10 +1,18 @@
 import { create } from 'zustand';
+import { OperationType } from '@/cloud/common/page/types';
+import { createAddNewTabKey, createBillTabKey, createListTabKey } from '@/cloud/common/page/tabKeys';
+import type { PageType } from '@/cloud/common/page/types';
 import type { AppVO, MenuVO } from '@/types/api';
 
 export interface ContentTabItem {
   key: string;
   label: string;
   closable: boolean;
+  componentKey?: string;
+  pageType?: PageType;
+  operationType?: OperationType;
+  billId?: string;
+  temporary?: boolean;
 }
 
 interface WorkspaceState {
@@ -13,6 +21,7 @@ interface WorkspaceState {
   menuLoading: boolean;
   contentTabs: ContentTabItem[];
   activeContentTabKey: string;
+  activeContentTabHistory: string[];
 }
 
 interface AppWorkspaceState {
@@ -21,6 +30,16 @@ interface AppWorkspaceState {
   setMenuTree: (appNumber: string, menuTree: MenuVO) => void;
   setMenuLoading: (appNumber: string, loading: boolean) => void;
   addContentTab: (appNumber: string, tab: ContentTabItem) => void;
+  openListTab: (appNumber: string, componentKey: string, label: string) => void;
+  openAddNewTab: (appNumber: string, componentKey: string, label: string) => void;
+  openBillTab: (
+    appNumber: string,
+    componentKey: string,
+    label: string,
+    billId: string,
+    operationType: OperationType,
+  ) => void;
+  replaceContentTab: (appNumber: string, oldTabKey: string, nextTab: ContentTabItem) => void;
   removeContentTab: (appNumber: string, tabKey: string) => void;
   activateContentTab: (appNumber: string, tabKey: string) => void;
 }
@@ -30,9 +49,14 @@ function defaultWorkspace(appInfo: AppVO): WorkspaceState {
     appInfo,
     menuTree: null,
     menuLoading: false,
-    contentTabs: [{ key: '__home__', label: '', closable: false }],
+    contentTabs: [{ key: '__home__', label: '应用首页', closable: false }],
     activeContentTabKey: '__home__',
+    activeContentTabHistory: ['__home__'],
   };
+}
+
+function pushContentHistory(history: string[], key: string) {
+  return [...history.filter((item) => item !== key), key];
 }
 
 export const useAppWorkspaceStore = create<AppWorkspaceState>((set, get) => ({
@@ -77,7 +101,11 @@ export const useAppWorkspaceStore = create<AppWorkspaceState>((set, get) => ({
       set({
         workspaces: {
           ...workspaces,
-          [appNumber]: { ...ws, activeContentTabKey: tab.key },
+          [appNumber]: {
+            ...ws,
+            activeContentTabKey: tab.key,
+            activeContentTabHistory: pushContentHistory(ws.activeContentTabHistory, tab.key),
+          },
         },
       });
       return;
@@ -89,7 +117,60 @@ export const useAppWorkspaceStore = create<AppWorkspaceState>((set, get) => ({
           ...ws,
           contentTabs: [...ws.contentTabs, tab],
           activeContentTabKey: tab.key,
+          activeContentTabHistory: pushContentHistory(ws.activeContentTabHistory, tab.key),
         },
+      },
+    });
+  },
+
+  openListTab: (appNumber, componentKey, label) => {
+    get().addContentTab(appNumber, {
+      key: createListTabKey(componentKey),
+      label,
+      closable: true,
+      componentKey,
+      pageType: 'LIST',
+    });
+  },
+
+  openAddNewTab: (appNumber, componentKey, label) => {
+    get().addContentTab(appNumber, {
+      key: createAddNewTabKey(componentKey),
+      label,
+      closable: true,
+      componentKey,
+      pageType: 'EDIT',
+      operationType: OperationType.ADDNEW,
+      temporary: true,
+    });
+  },
+
+  openBillTab: (appNumber, componentKey, label, billId, operationType) => {
+    get().addContentTab(appNumber, {
+      key: createBillTabKey(componentKey, billId),
+      label,
+      closable: true,
+      componentKey,
+      pageType: 'EDIT',
+      operationType,
+      billId,
+    });
+  },
+
+  replaceContentTab: (appNumber, oldTabKey, nextTab) => {
+    const { workspaces } = get();
+    const ws = workspaces[appNumber];
+    if (!ws) return;
+    const contentTabs = ws.contentTabs.map((tab) => (tab.key === oldTabKey ? nextTab : tab));
+    const activeContentTabKey = ws.activeContentTabKey === oldTabKey ? nextTab.key : ws.activeContentTabKey;
+    const activeContentTabHistory = pushContentHistory(
+      ws.activeContentTabHistory.filter((key) => key !== oldTabKey),
+      activeContentTabKey,
+    );
+    set({
+      workspaces: {
+        ...workspaces,
+        [appNumber]: { ...ws, contentTabs, activeContentTabKey, activeContentTabHistory },
       },
     });
   },
@@ -99,16 +180,23 @@ export const useAppWorkspaceStore = create<AppWorkspaceState>((set, get) => ({
     const { workspaces } = get();
     const ws = workspaces[appNumber];
     if (!ws) return;
-    const idx = ws.contentTabs.findIndex((t) => t.key === tabKey);
     const newTabs = ws.contentTabs.filter((t) => t.key !== tabKey);
+    const remainingKeys = new Set(newTabs.map((tab) => tab.key));
+    const nextHistory = ws.activeContentTabHistory.filter((key) => key !== tabKey);
     let newActiveKey = ws.activeContentTabKey;
     if (ws.activeContentTabKey === tabKey) {
-      newActiveKey = newTabs[Math.min(idx - 1, newTabs.length - 1)].key;
+      newActiveKey =
+        [...ws.activeContentTabHistory].reverse().find((key) => key !== tabKey && remainingKeys.has(key)) ?? '__home__';
     }
     set({
       workspaces: {
         ...workspaces,
-        [appNumber]: { ...ws, contentTabs: newTabs, activeContentTabKey: newActiveKey },
+        [appNumber]: {
+          ...ws,
+          contentTabs: newTabs,
+          activeContentTabKey: newActiveKey,
+          activeContentTabHistory: pushContentHistory(nextHistory, newActiveKey),
+        },
       },
     });
   },
@@ -120,7 +208,11 @@ export const useAppWorkspaceStore = create<AppWorkspaceState>((set, get) => ({
     set({
       workspaces: {
         ...workspaces,
-        [appNumber]: { ...ws, activeContentTabKey: tabKey },
+        [appNumber]: {
+          ...ws,
+          activeContentTabKey: tabKey,
+          activeContentTabHistory: pushContentHistory(ws.activeContentTabHistory, tabKey),
+        },
       },
     });
   },

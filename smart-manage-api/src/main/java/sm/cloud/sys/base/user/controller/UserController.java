@@ -16,9 +16,11 @@ import sm.cloud.sys.base.user.domain.vo.UserCreateNewDataVO;
 import sm.cloud.sys.base.user.domain.vo.UserInfoVO;
 import sm.cloud.sys.base.user.domain.vo.UserListVO;
 import sm.cloud.sys.base.user.service.UserService;
+import sm.system.exception.BizException;
 import sm.system.form.IdForm;
 import sm.system.response.PageResult;
 import sm.system.response.Result;
+import sm.system.response.ResultEnum;
 import sm.system.util.BeanUtil;
 
 import java.util.List;
@@ -57,11 +59,11 @@ public class UserController {
 	@SaCheckPermission("sys:base:user:detail")
 	@PostMapping("/sys/base/user/detail")
 	public Result<UserInfoVO> detail(@RequestBody @Valid IdForm form) {
-		var u = service.getById(form.getId());
-		if (u == null) {
-			return Result.success(null);
+		var user = service.getById(form.getId());
+		if (user == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "用户不存在");
 		}
-		return Result.success(BeanUtil.copyProperties(u, UserInfoVO.class));
+		return Result.success(BeanUtil.copyProperties(user, UserInfoVO.class));
 	}
 
 	@PostMapping("/sys/base/user/save")
@@ -74,7 +76,7 @@ public class UserController {
 	@PostMapping("/sys/base/user/delete")
 	@Operation(summary = "删除用户", description = "按ID删除用户")
 	@SaCheckPermission("sys:base:user:delete")
-	public Result<String> deleteUser(@RequestBody IdForm form) {
+	public Result<String> deleteUser(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}

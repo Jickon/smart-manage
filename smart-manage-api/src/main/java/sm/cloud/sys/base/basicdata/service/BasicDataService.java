@@ -23,7 +23,9 @@ import sm.cloud.sys.base.basicdata.domain.vo.BasicDataCreateNewDataVO;
 import sm.cloud.sys.base.basicdata.domain.vo.BasicDataDetailVO;
 import sm.cloud.sys.base.basicdata.domain.vo.BasicDataListVO;
 import sm.cloud.sys.base.basicdata.mapper.BasicDataMapper;
+import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,9 +74,12 @@ public class BasicDataService {
 
     /** 详情（含明细 entrys，一次请求） */
     public BasicDataDetailVO getById(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "基础数据ID不能为空");
+        }
         BasicDataEntity entity = mapper.selectOneById(id);
         if (entity == null) {
-            return null;
+            throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
         }
         BasicDataDetailVO vo = new BasicDataDetailVO();
         vo.setId(entity.getId());
@@ -115,7 +120,7 @@ public class BasicDataService {
         if (form.getId() != null) {
             entity = mapper.selectOneById(form.getId());
             if (entity == null) {
-                return null;
+                throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
             }
         } else {
             entity = new BasicDataEntity();
@@ -155,6 +160,13 @@ public class BasicDataService {
 
     @Transactional(rollbackFor = Exception.class)
     public void deleteById(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "基础数据ID不能为空");
+        }
+        BasicDataEntity entity = mapper.selectOneById(id);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
+        }
         mapper.deleteById(id);
     }
 }

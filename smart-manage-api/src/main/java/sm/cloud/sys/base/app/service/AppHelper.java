@@ -12,6 +12,8 @@ import sm.cloud.sys.base.cloud.domain.entity.table.CloudTable;
 import sm.cloud.sys.base.menu.domain.entity.table.MenuTable;
 import sm.cloud.sys.base.roleperms.domain.entity.table.RolePermsTable;
 import sm.cloud.sys.base.userrole.domain.entity.table.UserRoleTable;
+import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -118,11 +120,13 @@ public class AppHelper {
 
 	/**
 	 * 按应用编号（number）获取当前用户有权限访问的应用。
-	 * 返回 null 表示应用不存在或无权限。
 	 */
 	public AppVO getUserAppByNumber(Long userId, String appNumber) {
-		if (userId == null || appNumber == null || appNumber.isBlank()) {
-			return null;
+		if (userId == null) {
+			throw new BizException(ResultEnum.UNAUTHORIZED);
+		}
+		if (appNumber == null || appNumber.isBlank()) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "应用编码不能为空");
 		}
 		QueryWrapper query = QueryWrapper.create()
 				.select(
@@ -145,7 +149,7 @@ public class AppHelper {
 				.limit(1);
 		List<Row> rows = Db.selectListByQuery(query);
 		if (rows == null || rows.isEmpty()) {
-			return null;
+			throw new BizException(ResultEnum.NOT_FOUND, "应用不存在或无权访问");
 		}
 		Row row = rows.get(0);
 		AppVO app = new AppVO();

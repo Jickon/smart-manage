@@ -1,0 +1,52 @@
+import { useState } from 'react';
+import { Button, Input } from '@arco-design/web-react';
+import { IconDown, IconSearch, IconUp } from '@arco-design/web-react/icon';
+import type { ReactNode } from 'react';
+
+interface ListFilterBarProps {
+  title: string;
+  filterContent?: ReactNode;
+  filterSummary?: ReactNode;
+  quickSearchPlaceholder?: string;
+  onQuickSearch?: (value: string) => void;
+}
+
+const Search = Input.Search;
+
+const ListFilterBar = ({
+  title,
+  filterContent,
+  filterSummary,
+  quickSearchPlaceholder = '快速搜索',
+  onQuickSearch,
+}: ListFilterBarProps) => {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className="sm-list-filter">
+      <div className="sm-list-filter-main">
+        <h2 className="sm-list-filter-title">{title}</h2>
+        <div className="sm-list-filter-summary">{!expanded && filterSummary}</div>
+        <div className="sm-list-filter-search">
+          <Search
+            allowClear
+            searchButton={<IconSearch />}
+            placeholder={quickSearchPlaceholder}
+            onSearch={(value) => onQuickSearch?.(value)}
+          />
+        </div>
+        <Button
+          className="sm-list-filter-toggle"
+          type="text"
+          icon={expanded ? <IconUp /> : <IconDown />}
+          onClick={() => setExpanded((current) => !current)}
+        >
+          {expanded ? '收起过滤' : '展开过滤'}
+        </Button>
+      </div>
+      {expanded && <div className="sm-list-filter-panel">{filterContent}</div>}
+    </div>
+  );
+};
+
+export default ListFilterBar;

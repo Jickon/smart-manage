@@ -17,6 +17,36 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /node_modules[\\/](react|react-dom|react-router-dom)[\\/]/,
+              priority: 30,
+            },
+            {
+              name: 'arco-vendor',
+              test: /node_modules[\\/]@arco-design[\\/]/,
+              priority: 20,
+            },
+            {
+              name: 'query-vendor',
+              test: /node_modules[\\/]@tanstack[\\/]react-query[\\/]/,
+              priority: 10,
+            },
+            {
+              name: 'vendor',
+              test: /node_modules[\\/]/,
+              priority: 0,
+            },
+          ],
+        },
+      },
+    },
+  },
   server: {
     port: 8000,
     proxy: {

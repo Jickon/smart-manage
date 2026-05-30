@@ -14,6 +14,7 @@ public enum ResultEnum {
 	FORBIDDEN(403, "请求过于频繁，请稍后再试"),
 	NOT_FOUND(404, "资源不存在"),
 	PARAM_ERROR(405, "参数异常"),
+	BILL_STATUS_ERROR(406, "单据状态不允许当前操作"),
 	SERVER_ERROR(500, "系统异常，请稍候再试"),
 	SQL_ERROR(501, "SQL异常，请联系管理员处理"),
 	CONFIG_ERROR(502, "系统配置异常，请联系管理员处理"),

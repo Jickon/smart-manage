@@ -70,7 +70,7 @@ public class PermissionController {
 	@PostMapping("/sys/base/permission/delete")
 	@Operation(summary = "删除权限", description = "按ID删除权限")
 	@SaCheckPermission("sys:base:permission:delete")
-	public Result<String> delete(@RequestBody IdForm form) {
+	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}

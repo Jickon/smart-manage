@@ -20,7 +20,9 @@ import sm.cloud.sys.base.permission.domain.vo.PermissionSelectVO;
 import sm.cloud.sys.base.permission.mapper.PermissionMapper;
 import sm.cloud.sys.base.roleperms.domain.entity.table.RolePermsTable;
 import sm.cloud.sys.base.userrole.domain.entity.table.UserRoleTable;
+import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -130,8 +132,14 @@ public class PermissionService {
 	}
 
 	public PermissionDetailVO getDetail(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "权限ID不能为空");
+		}
 		PermissionEntity entity = mapper.selectOneById(id);
-		return entity == null ? null : toDetailVo(entity);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
+		}
+		return toDetailVo(entity);
 	}
 
 	private PermissionDetailVO toDetailVo(PermissionEntity e) {
@@ -157,7 +165,7 @@ public class PermissionService {
 		if (form.getId() != null) {
 			e = mapper.selectOneById(form.getId());
 			if (e == null) {
-				return null;
+				throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
 			}
 		} else {
 			e = new PermissionEntity();
@@ -175,6 +183,13 @@ public class PermissionService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "权限ID不能为空");
+		}
+		PermissionEntity entity = mapper.selectOneById(id);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
+		}
 		mapper.deleteById(id);
 	}
 }

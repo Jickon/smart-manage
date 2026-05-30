@@ -11,7 +11,9 @@ import sm.cloud.sys.monitor.operatelog.domain.form.OperateLogListForm;
 import sm.cloud.sys.monitor.operatelog.domain.vo.OperateLogDetailVO;
 import sm.cloud.sys.monitor.operatelog.domain.vo.OperateLogListVO;
 import sm.cloud.sys.monitor.operatelog.mapper.OperateLogMapper;
+import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.stream.Collectors;
 
@@ -45,11 +47,14 @@ public class OperateLogQueryService {
 	}
 
 	public OperateLogDetailVO getById(Long id) {
-		OperateLogEntity e = mapper.selectOneById(id);
-		if (e == null) {
-			return null;
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "操作日志ID不能为空");
 		}
-		return toDetail(e);
+		OperateLogEntity entity = mapper.selectOneById(id);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "操作日志不存在");
+		}
+		return toDetail(entity);
 	}
 
 	private OperateLogListVO toListVo(OperateLogEntity e) {

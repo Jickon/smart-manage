@@ -1,18 +1,18 @@
-import { Layout, Badge, Avatar, Dropdown, Menu } from '@arco-design/web-react';
-import {IconSearch, IconNotification, IconClose, IconUser, IconLock} from '@arco-design/web-react/icon';
+import { Avatar, Badge, Dropdown, Layout, Menu } from '@arco-design/web-react';
+import { IconClose, IconLock, IconNotification, IconSearch, IconUser } from '@arco-design/web-react/icon';
 import { useHeaderTabsStore } from '@/stores/headerTabs';
 import { useUserStore } from '@/stores/user';
 
 const ShellHeader = () => {
-  const tabs = useHeaderTabsStore((s) => s.tabs);
-  const activeKey = useHeaderTabsStore((s) => s.activeKey);
-  const activate = useHeaderTabsStore((s) => s.activate);
-  const removeAppTab = useHeaderTabsStore((s) => s.removeAppTab);
-  const userInfo = useUserStore((s) => s.userInfo);
-  const logout = useUserStore((s) => s.logout);
+  const tabs = useHeaderTabsStore((store) => store.tabs);
+  const activeKey = useHeaderTabsStore((store) => store.activeKey);
+  const activate = useHeaderTabsStore((store) => store.activate);
+  const removeAppTab = useHeaderTabsStore((store) => store.removeAppTab);
+  const userInfo = useUserStore((store) => store.userInfo);
+  const logout = useUserStore((store) => store.logout);
 
-  const handleRemove = (e: React.MouseEvent, key: string) => {
-    e.stopPropagation();
+  const handleRemove = (event: React.MouseEvent, key: string) => {
+    event.stopPropagation();
     removeAppTab(key);
   };
 
@@ -33,10 +33,10 @@ const ShellHeader = () => {
           >
             <span>{tab.label}</span>
             {tab.closable && (
-                <div className="sm-header-tab-operate">
-                    <IconClose className="sm-header-tab-operate-close" onClick={(e) => handleRemove(e, tab.key)} />
-                    <IconLock className="sm-header-tab-operate-lock"/>
-                </div>
+              <div className="sm-header-tab-operate">
+                <IconClose className="sm-header-tab-operate-close" onClick={(event) => handleRemove(event, tab.key)} />
+                <IconLock className="sm-header-tab-operate-lock" />
+              </div>
             )}
           </div>
         ))}

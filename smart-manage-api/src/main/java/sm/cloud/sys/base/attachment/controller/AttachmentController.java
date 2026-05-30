@@ -15,7 +15,9 @@ import sm.cloud.sys.base.attachment.domain.form.AttachmentPromoteForm;
 import sm.cloud.sys.base.attachment.domain.vo.AttachmentVO;
 import sm.cloud.sys.base.attachment.service.AttachmentService;
 import sm.system.form.IdForm;
+import sm.system.exception.BizException;
 import sm.system.response.Result;
+import sm.system.response.ResultEnum;
 import sm.system.storage.FileStorageService;
 import sm.system.storage.FileStorageServiceFactory;
 
@@ -75,7 +77,7 @@ public class AttachmentController {
     public ResponseEntity<byte[]> download(@RequestBody @Valid IdForm form) throws IOException {
         AttachmentEntity entity = service.getById(form.getId());
         if (entity == null) {
-            return ResponseEntity.notFound().build();
+            throw new BizException(ResultEnum.NOT_FOUND, "附件不存在：" + form.getId());
         }
         FileStorageService storage = storageFactory.getService();
         byte[] bytes = storage.getBytes(entity.getStoredPath());

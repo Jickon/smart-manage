@@ -11,6 +11,8 @@ import sm.cloud.sys.base.userrole.domain.entity.table.UserRoleTable;
 import sm.cloud.sys.base.userrole.domain.form.UserRoleSaveForm;
 import sm.cloud.sys.base.userrole.domain.vo.UserRoleVO;
 import sm.cloud.sys.base.userrole.mapper.UserRoleMapper;
+import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +46,6 @@ public class UserRoleService {
 				.leftJoin(RoleTable.ROLE).on(UserRoleTable.USER_ROLE.ROLE_ID.eq(RoleTable.ROLE.ID))
 				.where(UserRoleTable.USER_ROLE.USER_ID.eq(userId))
 				.and(UserRoleTable.USER_ROLE.ORG_ID.eq(orgId));
-
-		List<UserRoleEntity> entities = mapper.selectListByQuery(qw);
 
 		// 由于使用了关联查询，需要手动映射
 		return mapper.selectListByQueryAs(qw, UserRoleVO.class);
@@ -81,6 +81,13 @@ public class UserRoleService {
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "用户角色关联ID不能为空");
+		}
+		UserRoleEntity entity = mapper.selectOneById(id);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "用户角色关联不存在");
+		}
 		mapper.deleteById(id);
 	}
 

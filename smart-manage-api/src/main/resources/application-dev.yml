@@ -13,6 +13,10 @@ server:
     connection-timeout: 20000
 
 spring:
+  arthas:
+    # 开发环境默认不自动 attach Arthas，避免 3658/8563 端口被占用时阻塞后端启动。
+    # 需要诊断时可临时改为 true，或通过启动参数覆盖：--spring.arthas.enabled=true
+    enabled: false
   web:
     resources:
       cache:
@@ -129,6 +133,16 @@ jetcache:
     default:
       type: redis
       keyConvertor: jackson
+      host: 127.0.0.1
+      port: 6379
+      password: redis123
+      database: 1
+      timeout: 1000
+      # JetCache 使用 Jedis + commons-pool2，不会复用 spring.data.redis.jedis.pool 配置。
+      poolConfig:
+        maxTotal: 100
+        maxIdle: 10
+        minIdle: 2
 
 mybatis-flex:
   datasource:

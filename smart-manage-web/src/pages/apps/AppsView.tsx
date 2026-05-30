@@ -1,10 +1,10 @@
-import {useQuery} from '@tanstack/react-query';
-import {Empty, Spin} from '@arco-design/web-react';
-import {appApi} from '@/api/app';
-import {useHeaderTabsStore} from '@/stores/headerTabs';
-import {useAppWorkspaceStore} from '@/stores/appWorkspace';
-import type {AppVO} from '@/types/api';
-import {IconCommon} from "@arco-design/web-react/icon";
+import { useQuery } from '@tanstack/react-query';
+import { Empty, Spin } from '@arco-design/web-react';
+import { appApi } from '@/api/app';
+import { useHeaderTabsStore } from '@/stores/headerTabs';
+import { useAppWorkspaceStore } from '@/stores/appWorkspace';
+import type { AppVO } from '@/types/api';
+import { IconCommon } from '@arco-design/web-react/icon';
 
 const AppsView = () => {
   const { data, isLoading } = useQuery({
@@ -44,15 +44,13 @@ const AppsView = () => {
       <Spin loading={isLoading}>
         {data?.map((cloud) => (
           <div key={cloud.number} className="sm-cloud-domain">
-            <div className="sm-cloud-name"><div className="sm-cloud-name-text">{cloud.name}</div></div>
+            <div className="sm-cloud-name">
+              <div className="sm-cloud-name-text">{cloud.name}</div>
+            </div>
             <div className="sm-cloud-apps">
               {cloud.appList?.map((app) => (
-                <div
-                  key={app.number}
-                  className="sm-app-card"
-                  onClick={() => handleAppClick(app)}
-                >
-                  <IconCommon style={{fontSize:48}}/>
+                <div key={app.number} className="sm-app-card" onClick={() => handleAppClick(app)}>
+                  <IconCommon className="sm-app-card-icon" />
                   <div className="sm-app-card-text">
                     <div className="sm-app-card-name">{app.name}</div>
                     <div className="sm-app-card-desc">{app.description}</div>
@@ -63,9 +61,9 @@ const AppsView = () => {
           </div>
         ))}
         {!isLoading && (!data || data.length === 0) && (
-            <div className="sm-apps-empty">
-              <Empty description="暂无可用应用"/>
-            </div>
+          <div className="sm-apps-empty">
+            <Empty description="暂无可用应用" />
+          </div>
         )}
       </Spin>
     </div>

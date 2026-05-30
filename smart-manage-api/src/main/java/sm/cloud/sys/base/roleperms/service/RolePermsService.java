@@ -11,6 +11,8 @@ import sm.cloud.sys.base.roleperms.domain.entity.table.RolePermsTable;
 import sm.cloud.sys.base.roleperms.domain.form.RolePermsSaveForm;
 import sm.cloud.sys.base.roleperms.domain.vo.RolePermsVO;
 import sm.cloud.sys.base.roleperms.mapper.RolePermsMapper;
+import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,6 +75,13 @@ public class RolePermsService {
 	 */
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "角色权限关联ID不能为空");
+		}
+		RolePermsEntity entity = mapper.selectOneById(id);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "角色权限关联不存在");
+		}
 		mapper.deleteById(id);
 	}
 

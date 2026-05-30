@@ -10,7 +10,9 @@ import sm.cloud.sys.monitor.loginlog.domain.entity.table.LoginLogTable;
 import sm.cloud.sys.monitor.loginlog.domain.form.LoginLogListForm;
 import sm.cloud.sys.monitor.loginlog.domain.vo.LoginLogListVO;
 import sm.cloud.sys.monitor.loginlog.mapper.LoginLogMapper;
+import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.stream.Collectors;
 
@@ -42,11 +44,14 @@ public class LoginLogQueryService {
 	}
 
 	public LoginLogListVO getById(Long id) {
-		LoginLogEntity e = loginLogMapper.selectOneById(id);
-		if (e == null) {
-			return null;
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "登录日志ID不能为空");
 		}
-		return toVo(e);
+		LoginLogEntity entity = loginLogMapper.selectOneById(id);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "登录日志不存在");
+		}
+		return toVo(entity);
 	}
 
 	private LoginLogListVO toVo(LoginLogEntity e) {

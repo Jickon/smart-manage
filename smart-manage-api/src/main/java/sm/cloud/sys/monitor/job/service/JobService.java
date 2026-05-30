@@ -22,6 +22,7 @@ import sm.cloud.sys.monitor.job.mapper.JobLogMapper;
 import sm.cloud.sys.monitor.job.mapper.JobMapper;
 import sm.system.exception.BizException;
 import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -65,9 +66,12 @@ public class JobService {
 	}
 
 	public JobDetailVO getById(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "任务ID不能为空");
+		}
 		JobEntity entity = mapper.selectOneById(id);
 		if (entity == null) {
-			return null;
+			throw new BizException(ResultEnum.NOT_FOUND, "任务不存在");
 		}
 		return toDetailVo(entity);
 	}
@@ -154,9 +158,12 @@ public class JobService {
 
 	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "任务ID不能为空");
+		}
 		JobEntity entity = mapper.selectOneById(id);
 		if (entity == null) {
-			return;
+			throw new BizException(ResultEnum.NOT_FOUND, "任务不存在");
 		}
 		if (Boolean.TRUE.equals(entity.getIsSystem())) {
 			throw new BizException("系统内置任务不可删除");
