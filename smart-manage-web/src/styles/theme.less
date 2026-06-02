@@ -27,3 +27,30 @@ body {
   padding: 4px 0;
   margin-bottom: 0;
 }
+
+// 子菜单弹窗深色主题
+// pop mode 子菜单通过 Dropdown 渲染到 Portal 时，Dropdown 会将 Menu 的 prefixCls
+// 替换为 arco-dropdown-menu，因此不会被 .arco-menu 的 CSS 变量覆盖，需要单独设置
+.arco-dropdown-menu {
+  background-color: rgb(52, 56, 72);
+  border-color: rgba(218, 222, 237, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+
+  .arco-dropdown-menu-pop-header,
+  .arco-dropdown-menu-item {
+    color: rgb(193, 202, 220);
+    background-color: transparent;
+
+    &:hover {
+      color: #fff;
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+
+  .arco-dropdown-menu-pop-header .arco-icon,
+  .arco-dropdown-menu-item .arco-icon {
+    color: #8fb3ff;
+  }
+}
