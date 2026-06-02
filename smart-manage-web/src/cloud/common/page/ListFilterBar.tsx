@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Button, Input } from '@arco-design/web-react';
-import { IconDown, IconSearch, IconUp } from '@arco-design/web-react/icon';
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
+import {useState} from 'react';
+import {Button, Input} from '@arco-design/web-react';
+import {IconDown, IconUp} from '@arco-design/web-react/icon';
 
 interface ListFilterBarProps {
   title: string;
@@ -30,7 +30,6 @@ const ListFilterBar = ({
         <div className="sm-list-filter-search">
           <Search
             allowClear
-            searchButton={<IconSearch />}
             placeholder={quickSearchPlaceholder}
             onSearch={(value) => onQuickSearch?.(value)}
           />

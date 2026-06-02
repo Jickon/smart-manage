@@ -1,7 +1,7 @@
-import { Button, ResizeBox } from '@arco-design/web-react';
+import {Button, ResizeBox} from '@arco-design/web-react';
 import ListFilterBar from './ListFilterBar';
 import ListTableShell from './ListTableShell';
-import type { ListPageProps } from '@/cloud/common/page/types';
+import type {ListPageProps} from '@/cloud/common/page/types';
 
 const ListPage = ({
   title,
@@ -30,24 +30,26 @@ const ListPage = ({
 }: ListPageProps) => {
   const mainContent = (
     <div className="sm-list-main">
-      <ListFilterBar
-        title={title}
-        filterContent={filterContent}
-        filterSummary={filterSummary}
-        quickSearchPlaceholder={quickSearchPlaceholder}
-        onQuickSearch={onQuickSearch}
-      />
-      <div className="sm-list-toolbar">
-        <Button type="primary" onClick={onAddNew}>
-          新增
-        </Button>
-        <Button type="primary" onClick={onDelete}>
-          删除
-        </Button>
-        <Button type="primary" onClick={onRefresh}>
-          刷新
-        </Button>
-        {toolbarActions}
+      <div className="sm-list-top">
+        <ListFilterBar
+            title={title}
+            filterContent={filterContent}
+            filterSummary={filterSummary}
+            quickSearchPlaceholder={quickSearchPlaceholder}
+            onQuickSearch={onQuickSearch}
+        />
+        <div className="sm-list-toolbar">
+          <Button type="primary" onClick={onAddNew}>
+            新增
+          </Button>
+          <Button type="primary" onClick={onDelete}>
+            删除
+          </Button>
+          <Button type="primary" onClick={onRefresh}>
+            刷新
+          </Button>
+          {toolbarActions}
+        </div>
       </div>
       <ListTableShell
         table={table ?? children}
