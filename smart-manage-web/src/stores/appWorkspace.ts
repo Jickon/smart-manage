@@ -28,6 +28,7 @@ interface WorkspaceState {
 interface AppWorkspaceState {
   workspaces: Record<string, WorkspaceState>;
   initWorkspace: (appNumber: string, appInfo: AppVO) => void;
+  destroyWorkspace: (appNumber: string) => void;
   setMenuTree: (appNumber: string, menuTree: MenuVO) => void;
   setMenuLoading: (appNumber: string, loading: boolean) => void;
   addContentTab: (appNumber: string, tab: ContentTabItem) => void;
@@ -67,6 +68,14 @@ export const useAppWorkspaceStore = create<AppWorkspaceState>((set, get) => ({
     const { workspaces } = get();
     if (workspaces[appNumber]) return;
     set({ workspaces: { ...workspaces, [appNumber]: defaultWorkspace(appInfo) } });
+  },
+
+  destroyWorkspace: (appNumber) => {
+    const { workspaces } = get();
+    if (!workspaces[appNumber]) return;
+    const next = { ...workspaces };
+    delete next[appNumber];
+    set({ workspaces: next });
   },
 
   setMenuTree: (appNumber, menuTree) => {

@@ -1,6 +1,7 @@
 import { Avatar, Badge, Dropdown, Layout, Menu } from '@arco-design/web-react';
 import { IconClose, IconLock, IconNotification, IconSearch, IconUser } from '@arco-design/web-react/icon';
 import { useHeaderTabsStore } from '@/stores/headerTabs';
+import { useAppWorkspaceStore } from '@/stores/appWorkspace';
 import { useUserStore } from '@/stores/user';
 
 const ShellHeader = () => {
@@ -8,12 +9,14 @@ const ShellHeader = () => {
   const activeKey = useHeaderTabsStore((store) => store.activeKey);
   const activate = useHeaderTabsStore((store) => store.activate);
   const removeAppTab = useHeaderTabsStore((store) => store.removeAppTab);
+  const destroyWorkspace = useAppWorkspaceStore((store) => store.destroyWorkspace);
   const userInfo = useUserStore((store) => store.userInfo);
   const logout = useUserStore((store) => store.logout);
 
   const handleRemove = (event: React.MouseEvent, key: string) => {
     event.stopPropagation();
     removeAppTab(key);
+    destroyWorkspace(key);
   };
 
   const handleLogout = () => {
