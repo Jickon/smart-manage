@@ -86,7 +86,7 @@ const AppListPage = (props: PageComponentProps) => {
       width: 100,
       render: (value) => <Tag color={value ? 'green' : 'gray'}>{value ? '启用' : '停用'}</Tag>,
     },
-    { title: '描述', dataIndex: 'description', width: 260 },
+    { title: '描述', dataIndex: 'description' },
   ];
 
   return (

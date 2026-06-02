@@ -77,7 +77,7 @@ const SysParamListPage = (props: PageComponentProps) => {
       width: 120,
       render: (value) => <Tag color={value ? 'arcoblue' : 'green'}>{value ? '系统' : '自定义'}</Tag>,
     },
-    { title: '备注', dataIndex: 'remark', width: 320 },
+    { title: '备注', dataIndex: 'remark' },
   ];
 
   return (

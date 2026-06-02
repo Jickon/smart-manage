@@ -1,3 +1,4 @@
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { Checkbox, Empty, Pagination, ResizeBox } from '@arco-design/web-react';
 import type { ReactNode } from 'react';
 
@@ -31,6 +32,39 @@ const ListTableShell = ({
   treePanelMin = '220px',
   treePanelMax = '420px',
 }: ListTableShellProps) => {
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [bodyHeight, setBodyHeight] = useState(0);
+
+  const measureBody = useCallback(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    setBodyHeight(el.clientHeight);
+  }, []);
+
+  useLayoutEffect(() => {
+    measureBody();
+    const observer = new ResizeObserver(measureBody);
+    const el = bodyRef.current;
+    if (el) observer.observe(el);
+    return () => observer.disconnect();
+  }, [measureBody]);
+
+  // 将动态计算的高度注入 table 的 scroll.y
+  const tableWithScrollY =
+    bodyHeight > 0 && table && typeof table === 'object' && 'props' in table
+      ? (() => {
+          const element = table as React.ReactElement<{ scroll?: Record<string, unknown> }>;
+          const existingScroll = (element.props as Record<string, unknown>).scroll as Record<string, unknown> | undefined;
+          return {
+            ...element,
+            props: {
+              ...(element.props as Record<string, unknown>),
+              scroll: { ...existingScroll, y: bodyHeight - 47 /* 减去表头高度 */ },
+            },
+          } as React.ReactElement;
+        })()
+      : table;
+
   const rightContent = (
     <div className="sm-list-table-content">
       <div className="sm-list-table-meta">
@@ -50,7 +84,9 @@ const ListTableShell = ({
           onChange={(nextPageNum, nextPageSize) => onPageChange?.(nextPageNum, nextPageSize)}
         />
       </div>
-      <div className="sm-list-table-body">{table ?? <Empty description="暂无列表配置" />}</div>
+      <div className="sm-list-table-body" ref={bodyRef}>
+        {tableWithScrollY ?? <Empty description="暂无列表配置" />}
+      </div>
     </div>
   );
 

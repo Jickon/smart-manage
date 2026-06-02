@@ -78,7 +78,7 @@ const CloudListPage = (props: PageComponentProps) => {
       render: (value) => <Tag color={value ? 'green' : 'gray'}>{value ? '启用' : '停用'}</Tag>,
     },
     { title: '创建时间', dataIndex: 'createTime', width: 180 },
-    { title: '更新时间', dataIndex: 'updateTime', width: 180 },
+    { title: '更新时间', dataIndex: 'updateTime' },
   ];
 
   return (
