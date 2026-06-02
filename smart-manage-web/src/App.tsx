@@ -40,7 +40,13 @@ const App = () => {
 
   const setUserInfo = useUserStore((store) => store.setUserInfo);
   const addAppTab = useHeaderTabsStore((store) => store.addAppTab);
+  const activate = useHeaderTabsStore((store) => store.activate);
   const initWorkspace = useAppWorkspaceStore((store) => store.initWorkspace);
+
+  // 根据 URL 参数激活对应的 header tab
+  useEffect(() => {
+    activate(getInitialAppParam());
+  }, [activate]);
 
   useEffect(() => {
     userApi

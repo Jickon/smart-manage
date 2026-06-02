@@ -56,6 +56,7 @@ const CloudListPage = (props: PageComponentProps) => {
     {
       title: '#',
       width: 56,
+      fixed: 'left' as const,
       render: (_value, _record, index) => (pageNum - 1) * pageSize + index + 1,
     },
     {
@@ -147,6 +148,7 @@ const CloudListPage = (props: PageComponentProps) => {
             scroll={{ x: 1040 }}
             rowSelection={{
               type: 'checkbox',
+              fixed: true,
               selectedRowKeys,
               onChange: (keys) => setSelectedRowKeys(keys.map(String)),
             }}

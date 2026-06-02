@@ -604,6 +604,19 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
+
+  /* 防止 ResizeBox 的 pane 产生额外的滚动条，并确保内部 flex 高度链不断裂 */
+  .arco-resizebox-split-pane {
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 左侧树面板用 flex: 1 替代 height: 100%，适配 pane 的 flex 列布局 */
+  .arco-resizebox-split-pane:first-child .sm-list-tree-panel {
+    flex: 1;
+    height: auto;
+  }
 }
 
 /* 分割右侧：meta + body */
@@ -643,12 +656,10 @@
 
   > .arco-table {
     flex: 1;
-    min-width: 0;
   }
 
   .arco-table-container {
     border-top: 0;
-    height: 100%;
   }
 
   .arco-table-th {
