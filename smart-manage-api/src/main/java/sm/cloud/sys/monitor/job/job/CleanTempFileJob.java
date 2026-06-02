@@ -2,6 +2,7 @@ package sm.cloud.sys.monitor.job.job;
 
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
+import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -19,20 +20,16 @@ import java.time.temporal.ChronoUnit;
  */
 @Component
 @Slf4j
-public class CleanTempFileJob implements BaseJob {
+public class CleanTempFileJob extends QuartzJobBean {
 
-    /**
-     * 默认临时文件目录
-     */
+    /** 默认临时文件目录 */
     private static final String DEFAULT_TEMP_DIR = "E:/upload/temp";
 
-    /**
-     * 默认保留天数
-     */
+    /** 默认保留天数 */
     private static final int DEFAULT_KEEP_DAYS = 7;
 
     @Override
-    public void execute(JobExecutionContext context) {
+    protected void executeInternal(JobExecutionContext context) {
         String tempDir = context.getMergedJobDataMap().getString("tempDir");
         if (tempDir == null || tempDir.isBlank()) {
             tempDir = DEFAULT_TEMP_DIR;

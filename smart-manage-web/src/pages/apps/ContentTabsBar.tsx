@@ -1,5 +1,5 @@
-import { IconClose, IconHome, IconBulb, IconQuestionCircle, IconFullscreen } from '@arco-design/web-react/icon';
-import { useAppWorkspaceStore } from '@/stores/appWorkspace';
+import {IconBulb, IconClose, IconFullscreen, IconHome, IconQuestionCircle} from '@arco-design/web-react/icon';
+import {useAppWorkspaceStore} from '@/stores/appWorkspace';
 
 interface Props {
   appNumber: string;
@@ -32,8 +32,8 @@ const ContentTabsBar = ({ appNumber }: Props) => {
             >
               {isHome ? (
                 <>
-                  <IconHome />
-                  <span>{tab.label}</span>
+                  <IconHome style={{fontSize: '18px'}}/>
+                  {/*<span>{tab.label}</span>*/}
                 </>
               ) : (
                 <>

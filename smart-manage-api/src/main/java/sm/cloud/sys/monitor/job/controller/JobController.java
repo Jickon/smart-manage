@@ -88,7 +88,7 @@ public class JobController {
     }
 
     @PostMapping("/sys/monitor/job/classes")
-    @Operation(summary = "可用Job类", description = "获取所有实现了 BaseJob 接口的类列表")
+    @Operation(summary = "可用Job类", description = "获取所有实现了 org.quartz.Job 接口的类列表")
     @SaCheckPermission("sys:monitor:job:save")
     public Result<List<Map<String, String>>> classes() {
         return Result.success(service.getAvailableJobClasses());

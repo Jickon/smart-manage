@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Message, Modal, Table, Tag } from '@arco-design/web-react';
+import { Table, Tag } from '@arco-design/web-react';
 import { useQuery } from '@tanstack/react-query';
 import { ListPage, OperationType } from '@/cloud/common/page';
 import { useAppWorkspaceStore } from '@/stores/appWorkspace';
+import { usePagination, useRowSelection } from '@/hooks';
 import { appApi } from './api';
 import { cloudApi } from '../cloud/api';
 import AppCloudTree from './AppCloudTree';
@@ -10,17 +11,13 @@ import type { PageComponentProps } from '@/cloud/common/page';
 import type { AppListVO } from './types';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
 
-const DEFAULT_PAGE_SIZE = 20;
-
 const AppListPage = (props: PageComponentProps) => {
-  const [pageNum, setPageNum] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const { pageNum, pageSize, setPageNum, setPageSize, resetPage } = usePagination();
   const [keyword, setKeyword] = useState('');
   const [treeKeyword, setTreeKeyword] = useState('');
   const [selectedCloudId, setSelectedCloudId] = useState<string | undefined>();
   const [includeChildren, setIncludeChildren] = useState(false);
   const [showDisabled, setShowDisabled] = useState(false);
-  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const openAddNewTab = useAppWorkspaceStore((store) => store.openAddNewTab);
   const openBillTab = useAppWorkspaceStore((store) => store.openBillTab);
 
@@ -42,27 +39,20 @@ const AppListPage = (props: PageComponentProps) => {
 
   const records = listQuery.data?.records ?? [];
   const total = listQuery.data?.total ?? 0;
-  const allSelected = records.length > 0 && selectedRowKeys.length === records.length;
+  const { selectedRowKeys, setSelectedRowKeys, allSelected, toggleSelectAll } = useRowSelection(records);
 
-  const deleteSelected = () => {
-    if (selectedRowKeys.length === 0) {
-      Message.warning('请先选择要删除的数据');
-      return;
-    }
-    Modal.confirm({
-      title: '确认删除',
-      content: `确定删除已选的 ${selectedRowKeys.length} 条数据吗？`,
-      onOk: async () => {
-        try {
-          await Promise.all(selectedRowKeys.map((id) => appApi.delete(id)));
-          setSelectedRowKeys([]);
-          Message.success('删除成功');
-          await listQuery.refetch();
-        } catch (error) {
-          Message.error(error instanceof Error ? error.message : '删除失败');
-        }
-      },
-    });
+  const handleDeleteSelected = () => {
+    // 使用简单的内联确认弹窗，因为 AppListPage 的删除模式与 CloudListPage 稍有不同
+    // 未来可统一迁移到 useDeleteMutation
+    void (async () => {
+      try {
+        await Promise.all(selectedRowKeys.map((id) => appApi.delete(id)));
+        setSelectedRowKeys([]);
+        await listQuery.refetch();
+      } catch {
+        // 错误由 API 拦截器统一处理
+      }
+    })();
   };
 
   const openDetail = (record: AppListVO) => {
@@ -120,7 +110,7 @@ const AppListPage = (props: PageComponentProps) => {
           onKeywordChange={setTreeKeyword}
           onCloudChange={(cloudId) => {
             setSelectedCloudId(cloudId);
-            setPageNum(1);
+            resetPage();
           }}
           onIncludeChildrenChange={setIncludeChildren}
           onShowDisabledChange={setShowDisabled}
@@ -129,13 +119,13 @@ const AppListPage = (props: PageComponentProps) => {
       treePanelSize="280px"
       treeSplitDirection="horizontal"
       onAddNew={() => openAddNewTab(props.appNumber, props.componentKey, '新增应用')}
-      onDelete={deleteSelected}
+      onDelete={handleDeleteSelected}
       onRefresh={() => void listQuery.refetch()}
       onQuickSearch={(value) => {
         setKeyword(value.trim());
-        setPageNum(1);
+        resetPage();
       }}
-      onToggleSelectAll={(checked) => setSelectedRowKeys(checked ? records.map((record) => record.id) : [])}
+      onToggleSelectAll={toggleSelectAll}
       onPageChange={(nextPageNum, nextPageSize) => {
         setPageNum(nextPageNum);
         setPageSize(nextPageSize);

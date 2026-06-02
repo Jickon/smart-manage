@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { Form, Message, Modal, Select, Table, Tag } from '@arco-design/web-react';
+import { Form, Select, Table, Tag } from '@arco-design/web-react';
 import { useQuery } from '@tanstack/react-query';
 import { ListPage, OperationType } from '@/cloud/common/page';
 import { createAddNewTabKey, createBillTabKey } from '@/cloud/common/page/tabKeys';
+import { usePagination, useRowSelection } from '@/hooks';
 import { cloudApi } from './api';
 import CloudEditPage from './CloudEditPage';
 import type { PageComponentProps } from '@/cloud/common/page';
 import type { CloudListVO } from './types';
 import type { ColumnProps } from '@arco-design/web-react/es/Table/interface';
-
-const DEFAULT_PAGE_SIZE = 20;
 
 interface CloudEditModalState {
   tabKey: string;
@@ -20,11 +19,9 @@ interface CloudEditModalState {
 }
 
 const CloudListPage = (props: PageComponentProps) => {
-  const [pageNum, setPageNum] = useState(1);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const { pageNum, pageSize, setPageNum, setPageSize, resetPage } = usePagination();
   const [keyword, setKeyword] = useState('');
   const [enableFlag, setEnableFlag] = useState<boolean | undefined>();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<string[]>([]);
   const [editModalState, setEditModalState] = useState<CloudEditModalState>();
 
   const listQuery = useQuery({
@@ -34,27 +31,16 @@ const CloudListPage = (props: PageComponentProps) => {
 
   const records = listQuery.data?.records ?? [];
   const total = listQuery.data?.total ?? 0;
-  const allSelected = records.length > 0 && selectedRowKeys.length === records.length;
+  const { selectedRowKeys, setSelectedRowKeys, allSelected, toggleSelectAll } = useRowSelection(records);
 
-  const deleteSelected = () => {
-    if (selectedRowKeys.length === 0) {
-      Message.warning('请先选择要删除的数据');
-      return;
+  const deleteSelected = async () => {
+    try {
+      await Promise.all(selectedRowKeys.map((id) => cloudApi.delete(id)));
+      setSelectedRowKeys([]);
+      await listQuery.refetch();
+    } catch {
+      // 错误由 API 拦截器和调用方统一处理
     }
-    Modal.confirm({
-      title: '确认删除',
-      content: `确定删除已选的 ${selectedRowKeys.length} 条数据吗？`,
-      onOk: async () => {
-        try {
-          await Promise.all(selectedRowKeys.map((id) => cloudApi.delete(id)));
-          setSelectedRowKeys([]);
-          Message.success('删除成功');
-          await listQuery.refetch();
-        } catch (error) {
-          Message.error(error instanceof Error ? error.message : '删除失败');
-        }
-      },
-    });
   };
 
   const openDetail = (record: CloudListVO) => {
@@ -123,7 +109,7 @@ const CloudListPage = (props: PageComponentProps) => {
                 placeholder="全部"
                 onChange={(value) => {
                   setEnableFlag(value === 'true' ? true : value === 'false' ? false : undefined);
-                  setPageNum(1);
+                  resetPage();
                 }}
               >
                 <Select.Option value="true">启用</Select.Option>
@@ -140,13 +126,13 @@ const CloudListPage = (props: PageComponentProps) => {
             temporary: true,
           })
         }
-        onDelete={deleteSelected}
+        onDelete={() => void deleteSelected()}
         onRefresh={() => void listQuery.refetch()}
         onQuickSearch={(value) => {
           setKeyword(value.trim());
-          setPageNum(1);
+          resetPage();
         }}
-        onToggleSelectAll={(checked) => setSelectedRowKeys(checked ? records.map((record) => record.id) : [])}
+        onToggleSelectAll={toggleSelectAll}
         onPageChange={(nextPageNum, nextPageSize) => {
           setPageNum(nextPageNum);
           setPageSize(nextPageSize);
