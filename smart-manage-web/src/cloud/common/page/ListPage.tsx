@@ -1,4 +1,4 @@
-import {Button, ResizeBox} from '@arco-design/web-react';
+import {Button} from '@arco-design/web-react';
 import ListFilterBar from './ListFilterBar';
 import ListTableShell from './ListTableShell';
 import type {ListPageProps} from '@/cloud/common/page/types';
@@ -13,7 +13,6 @@ const ListPage = ({
   treePanelSize = '270px',
   treePanelMin = '220px',
   treePanelMax = '420px',
-  treeSplitDirection = 'horizontal',
   total,
   selectedCount,
   allSelected,
@@ -28,15 +27,15 @@ const ListPage = ({
   onPageChange,
   children,
 }: ListPageProps) => {
-  const mainContent = (
-    <div className="sm-list-main">
+  return (
+    <section className="sm-common-page sm-list-page">
       <div className="sm-list-top">
         <ListFilterBar
-            title={title}
-            filterContent={filterContent}
-            filterSummary={filterSummary}
-            quickSearchPlaceholder={quickSearchPlaceholder}
-            onQuickSearch={onQuickSearch}
+          title={title}
+          filterContent={filterContent}
+          filterSummary={filterSummary}
+          quickSearchPlaceholder={quickSearchPlaceholder}
+          onQuickSearch={onQuickSearch}
         />
         <div className="sm-list-toolbar">
           <Button type="primary" onClick={onAddNew}>
@@ -51,33 +50,22 @@ const ListPage = ({
           {toolbarActions}
         </div>
       </div>
-      <ListTableShell
-        table={table ?? children}
-        total={total}
-        selectedCount={selectedCount}
-        allSelected={allSelected}
-        pageNum={pageNum}
-        pageSize={pageSize}
-        onToggleSelectAll={onToggleSelectAll}
-        onPageChange={onPageChange}
-      />
-    </div>
-  );
-
-  return (
-    <section className="sm-common-page sm-list-page">
-      {treePanel ? (
-        <ResizeBox.Split
-          className="sm-list-split"
-          direction={treeSplitDirection}
-          size={treePanelSize}
-          min={treePanelMin}
-          max={treePanelMax}
-          panes={[<aside className="sm-list-tree-panel">{treePanel}</aside>, mainContent]}
+      <div className="sm-list-main">
+        <ListTableShell
+          table={table ?? children}
+          total={total}
+          selectedCount={selectedCount}
+          allSelected={allSelected}
+          pageNum={pageNum}
+          pageSize={pageSize}
+          onToggleSelectAll={onToggleSelectAll}
+          onPageChange={onPageChange}
+          treePanel={treePanel}
+          treePanelSize={treePanelSize}
+          treePanelMin={treePanelMin}
+          treePanelMax={treePanelMax}
         />
-      ) : (
-        mainContent
-      )}
+      </div>
     </section>
   );
 };

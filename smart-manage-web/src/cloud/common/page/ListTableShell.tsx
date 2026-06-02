@@ -1,4 +1,4 @@
-import { Checkbox, Empty, Pagination } from '@arco-design/web-react';
+import { Checkbox, Empty, Pagination, ResizeBox } from '@arco-design/web-react';
 import type { ReactNode } from 'react';
 
 interface ListTableShellProps {
@@ -10,6 +10,11 @@ interface ListTableShellProps {
   pageSize?: number;
   onToggleSelectAll?: (checked: boolean) => void;
   onPageChange?: (pageNum: number, pageSize: number) => void;
+  /** 左侧树面板（有值时内部左右分割：左树，右 meta+body） */
+  treePanel?: ReactNode;
+  treePanelSize?: number | string;
+  treePanelMin?: number | string;
+  treePanelMax?: number | string;
 }
 
 const ListTableShell = ({
@@ -21,9 +26,13 @@ const ListTableShell = ({
   pageSize = 20,
   onToggleSelectAll,
   onPageChange,
+  treePanel,
+  treePanelSize = '270px',
+  treePanelMin = '220px',
+  treePanelMax = '420px',
 }: ListTableShellProps) => {
-  return (
-    <div className="sm-list-table-shell">
+  const rightContent = (
+    <div className="sm-list-table-content">
       <div className="sm-list-table-meta">
         <div className="sm-list-table-count">
           <span>共 {total} 条</span>
@@ -42,6 +51,23 @@ const ListTableShell = ({
         />
       </div>
       <div className="sm-list-table-body">{table ?? <Empty description="暂无列表配置" />}</div>
+    </div>
+  );
+
+  return (
+    <div className="sm-list-table-shell">
+      {treePanel ? (
+        <ResizeBox.Split
+          className="sm-list-table-split"
+          direction="horizontal"
+          size={treePanelSize}
+          min={treePanelMin}
+          max={treePanelMax}
+          panes={[<aside className="sm-list-tree-panel">{treePanel}</aside>, rightContent]}
+        />
+      ) : (
+        rightContent
+      )}
     </div>
   );
 };
