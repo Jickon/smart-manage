@@ -6,11 +6,12 @@
 body {
 }
 
-// Menu 菜单 - 浅色背景（默认 #ffffff）//:rgb(193, 202, 220);
+// Menu 菜单 - 深色主题
 .arco-menu {
   --color-menu-light-bg: rgb(52, 56, 72);
   --color-text-2: rgb(193, 202, 220);
-  --color-fill-2: #21242d;
+  --color-text-3: rgb(193, 202, 220);
+  --color-fill-2: rgba(255, 255, 255, 0.08);
   font-size: 12px;
 }
 
@@ -23,6 +24,20 @@ body {
   --color-text-2: #fff;
 }
 
+// 去掉选中态的主题色，保持与普通文字一致
+.arco-menu-light .arco-menu-pop-header.arco-menu-selected,
+.arco-menu-light .arco-menu-item.arco-menu-selected {
+  color: rgb(193, 202, 220);
+
+  .arco-icon {
+    color: inherit;
+  }
+
+  &:hover {
+    color: #ffffff;
+  }
+}
+
 .arco-menu-vertical .arco-menu-inner {
   padding: 4px 0;
   margin-bottom: 0;
@@ -33,15 +48,21 @@ body {
 // 替换为 arco-dropdown-menu，因此不会被 .arco-menu 的 CSS 变量覆盖，需要单独设置
 .arco-dropdown-menu {
   background-color: rgb(52, 56, 72);
-  border-color: rgba(218, 222, 237, 0.1);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  border: none;
+  box-shadow: none;
   max-height: calc(100vh - 80px);
   overflow-y: auto;
+  padding: 0;
+  border-radius: 0;
 
   .arco-dropdown-menu-pop-header,
   .arco-dropdown-menu-item {
     color: rgb(193, 202, 220);
     background-color: transparent;
+    height: 50px;
+    line-height: 50px;
+    padding-left: 16px;
+    padding-right: 24px;
 
     &:hover {
       color: #fff;
@@ -53,4 +74,22 @@ body {
   .arco-dropdown-menu-item .arco-icon {
     color: #8fb3ff;
   }
+}
+
+// 子菜单弹窗隐藏菱形箭头指示器，并收紧与主菜单的间距
+// Arco 默认 translateX(8px) + alignRight(4px) = 12px 间隙，这里覆盖为仅保留 4px
+.arco-menu-pop-trigger {
+  .arco-trigger-arrow {
+    display: none;
+  }
+}
+
+.arco-menu-pop-trigger.arco-trigger[trigger-placement='rt'] {
+  transform: translateX(0);
+  margin-left: -4px;
+}
+
+.arco-menu-pop-trigger.arco-trigger[trigger-placement='lt'] {
+  transform: translateX(0);
+  margin-left: 4px;
 }
