@@ -11,6 +11,7 @@ import {
 import { useUserStore } from '@/stores/user';
 import { useAppStore } from '@/stores/app';
 import type { TabItem } from '@/stores/app';
+import './MainLayout.css';
 
 const { Header, Sider, Content } = Layout;
 
@@ -67,22 +68,10 @@ export default function MainLayout() {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout className="sm-main-layout">
       {/* 左侧导航 */}
       <Sider trigger={null} collapsible collapsed={collapsed} theme="dark" width={220}>
-        <div
-          style={{
-            height: 48,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontSize: collapsed ? 14 : 18,
-            fontWeight: 600,
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-          }}
-        >
+        <div className={collapsed ? 'sm-layout-logo sm-layout-logo-collapsed' : 'sm-layout-logo'}>
           {collapsed ? 'SM' : 'Smart Manage'}
         </div>
         <Menu
@@ -99,23 +88,14 @@ export default function MainLayout() {
 
       <Layout>
         {/* 顶部 Header */}
-        <Header
-          style={{
-            padding: '0 16px',
-            background: '#fff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid #f0f0f0',
-          }}
-        >
+        <Header className="sm-layout-header">
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
           />
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space style={{ cursor: 'pointer' }}>
+            <Space className="sm-layout-user">
               <Avatar size="small" icon={<UserOutlined />} />
               <span>{userInfo?.nickname ?? userInfo?.username ?? '用户'}</span>
             </Space>
@@ -135,12 +115,12 @@ export default function MainLayout() {
               label: tab.title,
               closable: tab.closable,
             }))}
-            style={{ padding: '0 16px', marginBottom: 0, background: '#fff' }}
+            className="sm-layout-tabs"
           />
         )}
 
         {/* 内容区 */}
-        <Content style={{ margin: 16, padding: 24, background: '#fff', borderRadius: 6 }}>
+        <Content className="sm-layout-content">
           <Outlet />
         </Content>
       </Layout>

@@ -1,0 +1,45 @@
+.sm-main-layout {
+  min-height: 100vh;
+}
+
+.sm-layout-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  overflow: hidden;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sm-layout-logo-collapsed {
+  font-size: 14px;
+}
+
+.sm-layout-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.sm-layout-user {
+  cursor: pointer;
+}
+
+.sm-layout-tabs {
+  padding: 0 16px;
+  margin-bottom: 0;
+  background: #ffffff;
+}
+
+.sm-layout-content {
+  margin: 16px;
+  padding: 24px;
+  background: #ffffff;
+  border-radius: 6px;
+}
