@@ -26,6 +26,7 @@ target/
 
 ### files ###
 logs
+smart-manage-web-old
 
 ### AI ###
 .claude

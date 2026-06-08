@@ -16,7 +16,7 @@
 | 层级                        | 技术                                                                |
 |---------------------------|-------------------------------------------------------------------|
 | **后端** (smart-manage-api) | Spring Boot 3, Java 17, MyBatis-Flex, Druid, Sa-Token, PostgreSQL |
-| **前端** (smart-manage-web) | Vite 8, React 19, TypeScript, Arco Design                         |
+| **前端** (smart-manage-web) | Vite, React 19, TypeScript, Ant Design, TanStack Query, Zustand, Zod |
 
 ## 后端约定 (smart-manage-api)
 
@@ -85,8 +85,8 @@
 cd smart-manage-web
 
 pnpm dev        # 开发（localhost:8000，代理 /smart-manage-api → localhost:8080）
-pnpm build      # 生成组件注册表 + tsc 类型检查 + vite build，默认 base=/，部署到 /ierp 时加 --base=/ierp/
-pnpm gen:registry # 扫描 src/cloud/**/pageRegistration.ts 或 .tsx 生成组件注册表
+pnpm build      # tsc 类型检查 + vite build
+pnpm preview    # 预览构建产物
 pnpm lint       # ESLint 检查（max-warnings 0）
 pnpm lint:fix   # ESLint 自动修复
 pnpm format     # Prettier 格式化
@@ -98,8 +98,7 @@ pnpm format:check # Prettier 格式校验
 ```
 src/
 ├── api/            # 接口层（axios 实例 + 拦截器）
-├── components/     # 公共组件
-├── hooks/          # 自定义 hooks
+├── assets/         # 静态文件
 ├── layouts/        # 布局组件（MainLayout → Sider + Header + Content）
 ├── cloud/          # 领域/应用/单据页面（如 cloud/sys/base/user）
 │   └── common/     # 前端领域公共能力（页面框架、组件注册表等）
@@ -107,11 +106,11 @@ src/
 │   └── errors/     # 错误页面（404 等）
 ├── router/         # 路由配置（MemoryRouter，路由表）
 ├── stores/         # Zustand 状态（user：用户/token，app：侧边栏/当前模块）
-├── styles/         # 样式（theme.less：Arco Less 变量覆盖，global.less：全局重置）
+├── styles/         # 样式（global.css：全局重置）
 ├── types/          # TypeScript 类型（Result<T>、PageResult<T> 等后端响应类型）
 ├── utils/          # 工具函数
-├── App.tsx         # 根组件（ConfigProvider + QueryClient + MemoryRouter）
-└── main.tsx        # 入口（挂载 React + Arco Less + 全局样式）
+├── App.tsx         # 根组件（ConfigProvider + QueryClient + RouterProvider）
+└── main.tsx        # 入口（挂载 React + 全局样式）
 ```
 
 ### 核心设计模式
@@ -127,9 +126,9 @@ src/
 **状态管理：** `Zustand` 管理客户端状态（用户信息、token、侧边栏折叠、当前模块）；`TanStack Query` 管理服务端状态（请求缓存、loading/error 自动化）。
 
 **主题定制：**
-- `ConfigProvider`（Arco Design）— 运行时主题色切换，不使用暗黑模式
-- Less `modifyVars` — 编译时组件级样式定制。vite.config.ts 中 `additionalData` 全局注入 `theme.less`，覆盖 Arco Less 变量即可影响所有组件样式
-- 入口 `main.tsx` 引入 `@arco-design/web-react/dist/css/index.less`（非 arco.css），确保 Less 变量覆盖生效
+- `ConfigProvider`（Ant Design）— 运行时通过 `theme.token` 定制主题色、圆角等全局样式，不使用暗黑模式
+- Ant Design 5 使用 CSS-in-JS（`@ant-design/cssinjs`），无需 Less 变量覆盖
+- 入口 `main.tsx` 无需额外引入样式文件，antd 组件自动按需加载样式
 
 **SM2 加密：** 前端仅涉及 SM2 加密（公钥加密密码和验证码），不引入 SM4。公钥硬编码在 `login.html` 中（与后端 application-dev.yml 的 `smart-manage.sm2.js.public-key` 一致）。加密库使用 npm 包 `sm-crypto`，复制 `dist/sm2.js` 到 `public/js/` 供 login.html 使用。React 应用内部需要 SM2 时可直接 `import` 该 npm 包。
 
@@ -144,7 +143,7 @@ src/
   - `CustomPage`：非标准列表/编辑形态的业务页面兜底，例如文件存储配置、图表报表、监控页、SQL 控制台、复杂操作页。页面类型值使用 `CUSTOM`，避免与应用工作台概念混淆。
 - `OperationType` 统一使用正确拼写，基础值为 `ADDNEW`、`EDIT`、`VIEW`。禁止使用错误拼写 `OpearteType`。
 - 列表页默认第一列为可点击列，优先使用 `number` 字段；日志等没有 `number` 的页面可使用 `id` 或更合适的业务标识。
-- 列表页可按需启用左树右表形态：左侧树面板作为 `ListPage` 的 `treePanel` 传入，右侧继续使用过滤区、按钮区和表格区。左右分割必须使用 Arco Design `ResizeBox.Split`，并通过 `direction` 控制分割方向。
+- 列表页可按需启用左树右表形态：左侧树面板作为 `ListPage` 的 `treePanel` 传入，右侧继续使用过滤区、按钮区和表格区。左右分割可使用 Ant Design 的 `Splitter` 组件或自定义分隔条。
 - 列表页原则上不提供独立“编辑/查看”按钮。点击单据后，根据单据状态推导 `OperationType`：暂存状态进入 `EDIT`；已提交、审核通过等状态进入 `VIEW`。字段可见性、锁定性、顶部按钮显隐由单据状态和 `OperationType` 共同决定。
 - 业务单据默认应具备单据状态字段，用于驱动编辑页能力控制。日志、监控记录、单条配置等非业务单据不强制加入单据状态，避免把所有表都套进单据模型。单据状态建议使用 `char(1)` 存储：`A` 暂存（`SAVED`）、`B` 已提交（`SUBMITTED`）、`C` 审核通过（`AUDITED`）、`D` 已关闭（`CLOSED`）。注意使用正确英文拼写 `SUBMITTED`，不要使用 `SUBMITED`。
 - 前端 `EditPage` 需要区分“保存”和“提交”两个按钮。保存仅保存暂存数据，单据保持 `SAVED`，后续仍可修改；提交将单据状态改为 `SUBMITTED`，提交后不可再普通保存或编辑，后续可扩展消息通知、审批流程等业务动作。
@@ -161,7 +160,7 @@ src/
 
 - 使用 pnpm 进行包管理
 - 使用 `@/` 别名引用 `src`
-- UI 组件仅使用 Arco Design，禁止引入其它 UI 库
+- UI 组件仅使用 Ant Design，禁止引入其它 UI 库
 - `id` 必须用字符串存储（后端 Long 雪花 ID 会丢失精度）
 - 列表页第一列（number 字段）可点击进入查看详情
 - `package.json` 声明 `"type": "module"`，ESLint 使用 ES module 格式
@@ -178,12 +177,6 @@ src/
 - 禁止单字母变量名
 - 页面组件目录：PascalCase（如 `pages/UserList.tsx`）
 - 工具/Hook 文件：camelCase（如 `hooks/usePage.ts`）
-
-### Arco Design 参考基线
-
-- Arco Design 官网：https://arco.design/react/docs/start
-- Arco Design 主题定制：https://arco.design/react/docs/theme
-- VChart 图表库：https://www.visactor.io/vchart/guide/tutorial_docs/VChart_Website_Guide
 
 ### playwright-cli 测试
 

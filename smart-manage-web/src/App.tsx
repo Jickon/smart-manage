@@ -1,94 +1,36 @@
-import { useEffect, useMemo } from 'react';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
-import { ConfigProvider } from '@arco-design/web-react';
-import zhCN from '@arco-design/web-react/es/locale/zh-CN';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ConfigProvider, App as AntApp } from 'antd';
+import zhCN from 'antd/locale/zh_CN';
+import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import routes from '@/router';
-import { userApi } from '@/api/user';
-import { appApi } from '@/cloud/sys/base/app/api';
-import { useAppWorkspaceStore } from '@/stores/appWorkspace';
-import { useHeaderTabsStore } from '@/stores/headerTabs';
-import { useUserStore } from '@/stores/user';
-
-function getInitialAppParam(): string {
-  const params = new URLSearchParams(window.location.search);
-  return params.get('app') || 'home';
-}
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false,
+      retry: 1,
       refetchOnWindowFocus: false,
     },
   },
 });
 
-const App = () => {
-  const initialPath = useMemo(() => {
-    const app = getInitialAppParam();
-    return `/${app}`;
-  }, []);
+/** 主题色配置 — 后续可通过用户偏好动态调整 */
+const themeConfig = {
+  token: {
+    colorPrimary: '#1677ff',
+    borderRadius: 6,
+  },
+};
 
-  const router = useMemo(
-    () =>
-      createMemoryRouter(routes, {
-        initialEntries: [initialPath],
-      }),
-    [initialPath],
-  );
+const router = createMemoryRouter(routes);
 
-  const setUserInfo = useUserStore((store) => store.setUserInfo);
-  const addAppTab = useHeaderTabsStore((store) => store.addAppTab);
-  const activate = useHeaderTabsStore((store) => store.activate);
-  const initWorkspace = useAppWorkspaceStore((store) => store.initWorkspace);
-
-  // 根据 URL 参数激活对应的 header tab
-  useEffect(() => {
-    activate(getInitialAppParam());
-  }, [activate]);
-
-  useEffect(() => {
-    userApi
-      .info()
-      .then((info) => {
-        setUserInfo({
-          id: String(info.id),
-          username: info.username,
-          nickname: info.nickname,
-        });
-        if (info.themeColor) {
-          document.documentElement.style.setProperty('--primary-6', info.themeColor);
-        }
-      })
-      .catch(() => {
-        // 用户信息失败不阻塞应用初始化，登录拦截由 request 统一处理。
-      });
-  }, [setUserInfo]);
-
-  useEffect(() => {
-    const appParam = getInitialAppParam();
-    if (appParam === 'home' || appParam === 'apps') {
-      return;
-    }
-    appApi
-      .openByNumber(appParam)
-      .then((appInfo) => {
-        initWorkspace(appParam, appInfo);
-        addAppTab(appParam, appInfo.name);
-      })
-      .catch(() => {
-        // 应用不存在或无权访问时保持默认页。
-      });
-  }, [addAppTab, initWorkspace]);
-
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider locale={zhCN}>
-        <RouterProvider router={router} />
+      <ConfigProvider theme={themeConfig} locale={zhCN}>
+        <AntApp>
+          <RouterProvider router={router} />
+        </AntApp>
       </ConfigProvider>
     </QueryClientProvider>
   );
-};
-
-export default App;
+}

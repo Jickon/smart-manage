@@ -1,47 +1,149 @@
-import { lazy, Suspense } from 'react';
-import type { ReactNode } from 'react';
-import { Layout, Spin } from '@arco-design/web-react';
-import ShellHeader from './Header';
-import { useHeaderTabsStore } from '@/stores/headerTabs';
+import { useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { Layout, Menu, Tabs, Button, Dropdown, Avatar, Space } from 'antd';
+import type { MenuProps } from 'antd';
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  UserOutlined,
+  LogoutOutlined,
+} from '@ant-design/icons';
+import { useUserStore } from '@/stores/user';
+import { useAppStore } from '@/stores/app';
+import type { TabItem } from '@/stores/app';
 
-const Content = Layout.Content;
-const Home = lazy(() => import('@/pages/Home'));
-const AppsView = lazy(() => import('@/pages/apps/AppsView'));
-const AppWorkspace = lazy(() => import('@/pages/apps/AppWorkspace'));
+const { Header, Sider, Content } = Layout;
 
-const renderLazyPage = (node: ReactNode) => (
-  <Suspense
-    fallback={
-      <div className="sm-view-loading">
-        <Spin />
-      </div>
+export default function MainLayout() {
+  const [collapsed, setCollapsed] = useState(false);
+  const userInfo = useUserStore((s) => s.userInfo);
+  const clearUser = useUserStore((s) => s.clearUser);
+  const tabs = useAppStore((s) => s.tabs);
+  const activeTabKey = useAppStore((s) => s.activeTabKey);
+  const openTab = useAppStore((s) => s.openTab);
+  const closeTab = useAppStore((s) => s.closeTab);
+  const setActiveTab = useAppStore((s) => s.setActiveTab);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    clearUser();
+    window.location.href = '/login.html';
+  };
+
+  const userMenuItems: MenuProps['items'] = [
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '退出登录',
+      onClick: handleLogout,
+    },
+  ];
+
+  /** 处理 tab 切换 */
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+  };
+
+  /** 处理 tab 关闭 */
+  const handleTabEdit = (
+    targetKey: React.MouseEvent | React.KeyboardEvent | string,
+    action: 'add' | 'remove',
+  ) => {
+    if (action === 'remove' && typeof targetKey === 'string') {
+      closeTab(targetKey);
     }
-  >
-    {node}
-  </Suspense>
-);
+  };
 
-const MainLayout = () => {
-  const tabs = useHeaderTabsStore((s) => s.tabs);
-  const activeKey = useHeaderTabsStore((s) => s.activeKey);
-  const appTabs = tabs.filter((t) => t.closable);
+  /** 左侧菜单点击 — 打开新 tab */
+  const handleMenuClick: MenuProps['onClick'] = (info) => {
+    const tab: TabItem = {
+      key: info.key,
+      title: info.domEvent.currentTarget?.textContent ?? info.key,
+      component: info.key,
+      closable: true,
+    };
+    openTab(tab);
+    navigate(`/${info.key}`);
+  };
 
   return (
-    <Layout className="sm-layout">
-      <ShellHeader />
-      <Content className="sm-content">
-        <ol className="sm-views">
-          <li className={`sm-view ${activeKey === 'home' ? 'sm-view--active' : ''}`}>{renderLazyPage(<Home />)}</li>
-          <li className={`sm-view ${activeKey === 'apps' ? 'sm-view--active' : ''}`}>{renderLazyPage(<AppsView />)}</li>
-          {appTabs.map((tab) => (
-            <li key={tab.key} className={`sm-view ${activeKey === tab.key ? 'sm-view--active' : ''}`}>
-              {renderLazyPage(<AppWorkspace appNumber={tab.key} />)}
-            </li>
-          ))}
-        </ol>
-      </Content>
+    <Layout style={{ minHeight: '100vh' }}>
+      {/* 左侧导航 */}
+      <Sider trigger={null} collapsible collapsed={collapsed} theme="dark" width={220}>
+        <div
+          style={{
+            height: 48,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontSize: collapsed ? 14 : 18,
+            fontWeight: 600,
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {collapsed ? 'SM' : 'Smart Manage'}
+        </div>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[activeTabKey]}
+          onClick={handleMenuClick}
+          items={[
+            { key: 'home', icon: <UserOutlined />, label: '首页' },
+            // 业务菜单由后端动态加载后合并
+          ]}
+        />
+      </Sider>
+
+      <Layout>
+        {/* 顶部 Header */}
+        <Header
+          style={{
+            padding: '0 16px',
+            background: '#fff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #f0f0f0',
+          }}
+        >
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+          />
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <Space style={{ cursor: 'pointer' }}>
+              <Avatar size="small" icon={<UserOutlined />} />
+              <span>{userInfo?.nickname ?? userInfo?.username ?? '用户'}</span>
+            </Space>
+          </Dropdown>
+        </Header>
+
+        {/* 工作台 Tabs */}
+        {tabs.length > 0 && (
+          <Tabs
+            type="editable-card"
+            hideAdd
+            activeKey={activeTabKey}
+            onChange={handleTabChange}
+            onEdit={handleTabEdit}
+            items={tabs.map((tab) => ({
+              key: tab.key,
+              label: tab.title,
+              closable: tab.closable,
+            }))}
+            style={{ padding: '0 16px', marginBottom: 0, background: '#fff' }}
+          />
+        )}
+
+        {/* 内容区 */}
+        <Content style={{ margin: 16, padding: 24, background: '#fff', borderRadius: 6 }}>
+          <Outlet />
+        </Content>
+      </Layout>
     </Layout>
   );
-};
-
-export default MainLayout;
+}

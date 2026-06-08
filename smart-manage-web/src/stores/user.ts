@@ -1,28 +1,23 @@
 import { create } from 'zustand';
-
-interface UserInfo {
-  id: string;
-  username: string;
-  nickname: string;
-}
+import type { UserInfoVO } from '@/types/api';
 
 interface UserState {
   token: string | null;
-  userInfo: UserInfo | null;
+  userInfo: UserInfoVO | null;
   setToken: (token: string) => void;
-  setUserInfo: (info: UserInfo) => void;
-  logout: () => void;
+  setUserInfo: (info: UserInfoVO) => void;
+  clearUser: () => void;
 }
 
 export const useUserStore = create<UserState>((set) => ({
   token: localStorage.getItem('token'),
   userInfo: null,
-  setToken: (token) => {
+  setToken: (token: string) => {
     localStorage.setItem('token', token);
     set({ token });
   },
-  setUserInfo: (userInfo) => set({ userInfo }),
-  logout: () => {
+  setUserInfo: (userInfo: UserInfoVO) => set({ userInfo }),
+  clearUser: () => {
     localStorage.removeItem('token');
     set({ token: null, userInfo: null });
   },
