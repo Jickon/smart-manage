@@ -15,6 +15,32 @@ import './MainLayout.css';
 
 const { Header, Sider, Content } = Layout;
 
+/** 递归提取 Ant Design Menu items 的 key → label 映射 */
+function buildMenuLabelMap(
+  items: MenuProps['items'],
+  map = new Map<string, string>(),
+): Map<string, string> {
+  if (!items) return map;
+  for (const item of items) {
+    if (!item) continue;
+    if ('key' in item && item.key && 'label' in item) {
+      map.set(item.key as string, String(item.label));
+    }
+    if ('children' in item && item.children) {
+      buildMenuLabelMap(item.children, map);
+    }
+  }
+  return map;
+}
+
+/** 侧边栏菜单项 — 静态配置，后续由后端动态菜单替换 */
+const sidebarMenuItems: MenuProps['items'] = [
+  { key: 'home', icon: <UserOutlined />, label: '首页' },
+];
+
+/** 菜单 key → label 映射 — 模块级静态计算，不随渲染重建 */
+const menuLabelMap = buildMenuLabelMap(sidebarMenuItems);
+
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const userInfo = useUserStore((s) => s.userInfo);
@@ -55,11 +81,11 @@ export default function MainLayout() {
     }
   };
 
-  /** 左侧菜单点击 — 打开新 tab */
+  /** 左侧菜单点击 — 从菜单数据取 label 作为 tab 标题，不依赖 DOM */
   const handleMenuClick: MenuProps['onClick'] = (info) => {
     const tab: TabItem = {
       key: info.key,
-      title: info.domEvent.currentTarget?.textContent ?? info.key,
+      title: menuLabelMap.get(info.key) ?? info.key,
       component: info.key,
       closable: true,
     };
@@ -79,10 +105,7 @@ export default function MainLayout() {
           mode="inline"
           selectedKeys={[activeTabKey]}
           onClick={handleMenuClick}
-          items={[
-            { key: 'home', icon: <UserOutlined />, label: '首页' },
-            // 业务菜单由后端动态加载后合并
-          ]}
+          items={sidebarMenuItems}
         />
       </Sider>
 

@@ -41,12 +41,12 @@ export default defineConfig({
             return 'antd';
           }
           if (
-            id.includes('node_modules/@tanstack/react-query') ||
+            id.includes('node_modules/@tanstack/') ||
             id.includes('node_modules/axios') ||
             id.includes('node_modules/zustand') ||
             id.includes('node_modules/zod')
           ) {
-            return 'query';
+            return 'vendors';
           }
         },
       },
