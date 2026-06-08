@@ -34,11 +34,22 @@ const ListTableShell = ({
 }: ListTableShellProps) => {
   const bodyRef = useRef<HTMLDivElement>(null);
   const [bodyHeight, setBodyHeight] = useState(0);
+  // 动态测量 Arco 表头实际高度，避免硬编码导致底部留白
+  const [headerHeight, setHeaderHeight] = useState<number | null>(null);
 
   const measureBody = useCallback(() => {
     const el = bodyRef.current;
     if (!el) return;
     setBodyHeight(el.clientHeight);
+
+    // 测量 Arco 表头的真实渲染高度（仅当固定表头 DOM 存在时）
+    const headerEl = el.querySelector<HTMLElement>('.arco-table-header');
+    if (headerEl) {
+      const measured = headerEl.clientHeight;
+      if (measured > 0) {
+        setHeaderHeight(measured);
+      }
+    }
   }, []);
 
   useLayoutEffect(() => {
@@ -48,6 +59,9 @@ const ListTableShell = ({
     if (el) observer.observe(el);
     return () => observer.disconnect();
   }, [measureBody]);
+
+  // 表头高度：优先使用实测值，未测量到时回退 47px（Arco 默认单行表头约 41px + 余量）
+  const effectiveHeaderHeight = headerHeight ?? 47;
 
   // 将动态计算的高度注入 table 的 scroll.y
   const tableWithScrollY =
@@ -59,7 +73,7 @@ const ListTableShell = ({
             ...element,
             props: {
               ...(element.props as Record<string, unknown>),
-              scroll: { ...existingScroll, y: bodyHeight - 47 /* 减去表头高度 */ },
+              scroll: { ...existingScroll, y: bodyHeight - effectiveHeaderHeight },
             },
           } as React.ReactElement;
         })()
@@ -84,7 +98,15 @@ const ListTableShell = ({
           onChange={(nextPageNum, nextPageSize) => onPageChange?.(nextPageNum, nextPageSize)}
         />
       </div>
-      <div className="sm-list-table-body" ref={bodyRef}>
+      <div
+        className="sm-list-table-body"
+        ref={bodyRef}
+        style={
+          bodyHeight > 0
+            ? ({ '--sm-table-body-height': `${bodyHeight - effectiveHeaderHeight}px` } as React.CSSProperties)
+            : undefined
+        }
+      >
         {tableWithScrollY ?? <Empty description="暂无列表配置" />}
       </div>
     </div>
