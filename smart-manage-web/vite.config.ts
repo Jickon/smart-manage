@@ -33,10 +33,21 @@ export default defineConfig({
     chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
-        manualChunks: {
-          react: ['react', 'react-dom', 'react-router-dom'],
-          antd: ['antd', '@ant-design/icons'],
-          query: ['@tanstack/react-query', 'axios', 'zustand', 'zod'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-router-dom')) {
+            return 'react';
+          }
+          if (id.includes('node_modules/antd') || id.includes('node_modules/@ant-design/icons')) {
+            return 'antd';
+          }
+          if (
+            id.includes('node_modules/@tanstack/react-query') ||
+            id.includes('node_modules/axios') ||
+            id.includes('node_modules/zustand') ||
+            id.includes('node_modules/zod')
+          ) {
+            return 'query';
+          }
         },
       },
     },

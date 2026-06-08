@@ -1,8 +1,6 @@
-import { lazy, Suspense } from 'react';
 import type { RouteObject } from 'react-router-dom';
 import MainLayout from '@/layouts/MainLayout';
-
-const NotFound = lazy(() => import('@/pages/errors/NotFound'));
+import NotFound from '@/pages/errors/NotFound';
 
 const routes: RouteObject[] = [
   {
@@ -14,11 +12,7 @@ const routes: RouteObject[] = [
   },
   {
     path: '*',
-    element: (
-      <Suspense fallback={null}>
-        <NotFound />
-      </Suspense>
-    ),
+    element: <NotFound />,
   },
 ];
 
