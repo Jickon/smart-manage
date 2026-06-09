@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Spin } from 'antd';
 import { useWorkbenchStore } from '@/stores/workbench';
 import type { MenuVO } from '@/types/api';
+import { getUserMenusByAppNumber } from '@/cloud/sys/menu/api';
 import AppSidebar from './AppSidebar';
 import ContentTabsBar from './ContentTabsBar';
 import PageRenderer from './PageRenderer';
@@ -24,9 +25,13 @@ const Workbench = ({ appNumber }: Props) => {
   useEffect(() => {
     if (!ws || ws.menuTree || ws.menuLoading) return;
     setMenuLoading(appNumber, true);
-    // TODO: 调用 menuApi.getUserMenusByAppNumber(appNumber) 加载菜单
-    // 当前 API 未就绪，直接标记加载完成
-    setMenuTree(appNumber, { name: '', path: '', component: '', icon: '', level: 0, routes: [] });
+    getUserMenusByAppNumber(appNumber)
+      .then((tree) => {
+        setMenuTree(appNumber, tree);
+      })
+      .catch(() => {
+        setMenuLoading(appNumber, false);
+      });
   }, [appNumber, ws, setMenuTree, setMenuLoading]);
 
   if (!ws) return null;
