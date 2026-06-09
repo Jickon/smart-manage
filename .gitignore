@@ -23,6 +23,7 @@ target/
 **/dist
 **/node_modules
 **/.vscode
+*.tsbuildinfo
 
 ### files ###
 logs
