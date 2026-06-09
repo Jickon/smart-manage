@@ -79,7 +79,7 @@
 
 ## 前端约定 (smart-manage-web)
 
-- 当前前端项目处于从零开始重构阶段，以下的说明时以前的，可能与已有的代码不匹配。
+- 当前前端项目处于从零开始重构阶段，以下的说明是以前的，可能与已有的代码不匹配。
 
 ### 构建与运行
 
@@ -121,7 +121,8 @@ src/
 **ERP 双页签：** 前端参考金蝶苍穹/星瀚设计理念，采用两层 tabs。Header tabs 用于切换应用（app）；应用工作台内部 tabs 用于切换业务单据/页面。已打开 tab 不卸载 DOM，只通过显隐控制，保留查询条件、表单状态、滚动位置等现场。
 **登录页：** `public/login.html` 为独立 HTML 页面，零框架依赖，加载速度快。页面初始化时调用 `/sys/base/captcha` 获取图文验证码，登录时 SM2 加密密码和验证码（C1C3C2 模式，cipherMode=1），调用 `/sys/base/login`。成功后存储 token 到 localStorage 并跳转目标页。支持 `?redirect=` 参数控制登录后跳转地址。
 **请求拦截：** axios 实例（`src/api/request.ts`）统一处理：
-- 请求拦截器：注入 `satoken` header 从 localStorage
+
+- 请求拦截器：注入 `smtoken` header 从 localStorage
 - 响应拦截器：`code !== 200` 视为业务错误；`code === 401` 跳转 `/login.html?redirect=...`
 - 后端统一响应体对应 `types/api.ts` 中的 `Result<T>` / `PageResult<T>`
 
