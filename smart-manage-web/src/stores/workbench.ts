@@ -6,14 +6,7 @@ import {
 } from '@/cloud/common/page/tabKeys';
 import { OperationType } from '@/cloud/common/page/types';
 import type { MenuVO } from '@/types/api';
-
-/** 应用简要信息（后续迁移到 types/api.ts） */
-export interface AppVO {
-  id: string;
-  number: string;
-  name: string;
-  description?: string;
-}
+import type { AppVO } from '@/cloud/sys/app/types';
 
 export interface ContentTabItem {
   key: string;

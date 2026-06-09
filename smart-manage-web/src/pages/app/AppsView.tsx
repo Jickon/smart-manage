@@ -3,21 +3,9 @@ import { Empty, Spin } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import { useHeaderTabsStore } from '@/stores/headerTabs';
 import { useWorkbenchStore } from '@/stores/workbench';
-import type { AppVO } from '@/stores/workbench';
+import { fetchApps } from '@/cloud/sys/app/api';
+import type { AppVO } from '@/cloud/sys/app/types';
 import './AppsView.css';
-
-/** 按领域分组的应用列表响应（临时类型，后续对接真实 API） */
-interface CloudVO {
-  number: string;
-  name: string;
-  appList: AppVO[];
-}
-
-/** 获取可用应用列表 — 后续替换为真实 API */
-async function fetchApps(): Promise<CloudVO[]> {
-  // TODO: 对接后端 /sys/base/cloud/apps 接口
-  return [];
-}
 
 const AppsView = () => {
   const { data, isLoading } = useQuery({

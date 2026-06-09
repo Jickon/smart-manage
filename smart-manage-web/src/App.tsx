@@ -9,6 +9,7 @@ import { getCurrentUser } from '@/api/user';
 import { useHeaderTabsStore } from '@/stores/headerTabs';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { useUserStore } from '@/stores/user';
+import { openByNumber } from '@/cloud/sys/app/api';
 
 /** 从 URL 提取 app 参数 */
 function getInitialAppParam(): string {
@@ -73,15 +74,14 @@ export default function App() {
     const { addAppTab } = useHeaderTabsStore.getState();
     const { initWorkspace } = useWorkbenchStore.getState();
 
-    // TODO: 对接后端 appApi.openByNumber(appParam) 获取应用信息
-    // 当前 API 未就绪，使用占位数据初始化
-    const appInfo = {
-      id: '',
-      number: appParam,
-      name: appParam,
-    };
-    initWorkspace(appParam, appInfo);
-    addAppTab(appParam, appInfo.name);
+    openByNumber(appParam)
+      .then((appInfo) => {
+        initWorkspace(appParam, appInfo);
+        addAppTab(appParam, appInfo.name);
+      })
+      .catch(() => {
+        // 应用不存在或无权访问时保持默认页
+      });
   }, []);
 
   return (
