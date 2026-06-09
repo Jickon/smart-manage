@@ -3,6 +3,7 @@ import { ConfigProvider, App as AntApp } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import routes from '@/router';
+import themeConfig from '@/styles/theme';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -12,14 +13,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
-/** 主题色配置 — 后续可通过用户偏好动态调整 */
-const themeConfig = {
-  token: {
-    colorPrimary: '#1677ff',
-    borderRadius: 6,
-  },
-};
 
 const router = createMemoryRouter(routes);
 

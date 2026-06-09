@@ -130,7 +130,7 @@ src/
 
 **主题定制：**
 - `ConfigProvider`（Ant Design）— 运行时通过 `theme.token` 定制主题色、圆角等全局样式，不使用暗黑模式
-- Ant Design 5 使用 CSS-in-JS（`@ant-design/cssinjs`），无需 Less 变量覆盖
+- Ant Design 6 使用 CSS-in-JS（`@ant-design/cssinjs`），无需 Less 变量覆盖
 - 入口 `main.tsx` 无需额外引入样式文件，antd 组件自动按需加载样式
 
 **SM2 加密：** 前端仅涉及 SM2 加密（公钥加密密码和验证码），不引入 SM4。公钥硬编码在 `login.html` 中（与后端 application-dev.yml 的 `smart-manage.sm2.js.public-key` 一致）。加密库使用 npm 包 `sm-crypto`，复制 `dist/sm2.js` 到 `public/js/` 供 login.html 使用。React 应用内部需要 SM2 时可直接 `import` 该 npm 包。
