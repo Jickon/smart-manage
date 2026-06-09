@@ -143,9 +143,10 @@ src/
   - `ListPage`：列表页，负责查询、分页、过滤、行操作、打开单据页。
   - `EditPage`：单据新增、编辑、查看页，由 `OperationType` 控制页面能力。
   - `CustomPage`：非标准列表/编辑形态的业务页面兜底，例如文件存储配置、图表报表、监控页、SQL 控制台、复杂操作页。页面类型值使用 `CUSTOM`，避免与应用工作台概念混淆。
-- `OperationType` 统一使用正确拼写，基础值为 `ADDNEW`、`EDIT`、`VIEW`。禁止使用错误拼写 `OpearteType`。
+- `OperationType` 统一使用正确拼写，基础值为 `ADDNEW`、`EDIT`、`VIEW`。
 - 列表页默认第一列为可点击列，优先使用 `number` 字段；日志等没有 `number` 的页面可使用 `id` 或更合适的业务标识。
-- 列表页可按需启用左树右表形态：左侧树面板作为 `ListPage` 的 `treePanel` 传入，右侧继续使用过滤区、按钮区和表格区。左右分割可使用 Ant Design 的 `Splitter` 组件或自定义分隔条。
+- 列表页可按需启用左树右表形态：左侧树面板作为 `ListPage` 的 `treePanel` 传入，右侧继续使用过滤区、按钮区和表格区。左右分割可使用
+  Ant Design 的 `Splitter` 组件。
 - 列表页原则上不提供独立“编辑/查看”按钮。点击单据后，根据单据状态推导 `OperationType`：暂存状态进入 `EDIT`；已提交、审核通过等状态进入 `VIEW`。字段可见性、锁定性、顶部按钮显隐由单据状态和 `OperationType` 共同决定。
 - 业务单据默认应具备单据状态字段，用于驱动编辑页能力控制。日志、监控记录、单条配置等非业务单据不强制加入单据状态，避免把所有表都套进单据模型。单据状态建议使用 `char(1)` 存储：`A` 暂存（`SAVED`）、`B` 已提交（`SUBMITTED`）、`C` 审核通过（`AUDITED`）、`D` 已关闭（`CLOSED`）。注意使用正确英文拼写 `SUBMITTED`，不要使用 `SUBMITED`。
 - 前端 `EditPage` 需要区分“保存”和“提交”两个按钮。保存仅保存暂存数据，单据保持 `SAVED`，后续仍可修改；提交将单据状态改为 `SUBMITTED`，提交后不可再普通保存或编辑，后续可扩展消息通知、审批流程等业务动作。
@@ -155,7 +156,7 @@ src/
 - tab key 规则：列表页单实例；编辑页按单据 id 多实例；新增页每次打开新的临时实例。编辑/查看同一单据必须共用同一个 tab key，不能出现同一单据同时打开编辑和查看两个 tab。
 - 新增页使用前端生成的 uuid 作为临时 tab key。`createNewData` 不返回 id；保存成功后，后端返回真实 id，前端立即调用 `detail(id)` 回显完整数据，并把临时 tab key 替换为真实单据 tab key。保存成功后不关闭 `EditPage`，继续留在当前单据页面。
 - 常规 `EditPage` 挂在业务单据 tab 中。字段很少的单据可采用居中 Modal 编辑形态：顶部左侧标题、右侧关闭，中间内容，底部取消和保存按钮。
-- `ListPage`、`EditPage`、`CustomPage` 后续需要抽取通用界面。需要具体 UI 设计时，必须停下来让用户打开参考网站，再按参考网站设计生成。
+- `ListPage`、`EditPage` 需要抽取通用界面。
 - `t_sys_cloud`、`t_sys_app` 是当前标准列表/编辑页面的示例单据；其中 `t_sys_app` 用作左树右表示例。
 
 ### 技术规范
@@ -164,9 +165,9 @@ src/
 - 使用 `@/` 别名引用 `src`
 - UI 组件仅使用 Ant Design，禁止引入其它 UI 库
 - `id` 必须用字符串存储（后端 Long 雪花 ID 会丢失精度）
-- 列表页第一列（number 字段）可点击进入查看详情
 - `package.json` 声明 `"type": "module"`，ESLint 使用 ES module 格式
 - 修改前端代码后至少执行 `pnpm lint`、`pnpm format:check`、`pnpm build`。只有需要自动修复格式或用户明确要求时，才执行 `pnpm lint:fix` 或 `pnpm format`。
+- eslint报错时，只有在用户允许的情况下才可以使用注释跳过校验和修改eslint.config.js文件
 
 ### 样式规范
 
