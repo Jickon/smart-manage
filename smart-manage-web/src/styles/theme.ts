@@ -1,4 +1,4 @@
-import {theme} from "antd";
+import { theme } from 'antd';
 
 /** Ant Design ConfigProvider 主题配置 — 全局设计令牌 */
 const themeConfig = {

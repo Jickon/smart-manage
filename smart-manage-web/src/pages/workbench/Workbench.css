@@ -1,0 +1,205 @@
+/* === 应用工作台 === */
+
+.sm-workspace {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* === 侧边栏 === */
+
+.sm-workspace-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 0;
+  flex-shrink: 0;
+  width: 220px;
+  background: rgb(52, 56, 72);
+  color: rgb(193, 202, 220);
+  transition: width 0.15s ease;
+  overflow: hidden;
+}
+
+.sm-workspace-sidebar--collapsed {
+  width: 50px;
+}
+
+.sm-workspace-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 菜单滚动区 */
+.sm-workspace-sidebar-menu {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 10px;
+}
+
+.sm-sidebar-skeleton {
+  padding: 16px;
+}
+
+/* 折叠按钮区 */
+.sm-workspace-sidebar-switch {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  border-top: 1px solid rgba(218, 222, 237, 0.1);
+  flex-grow: 0;
+}
+
+.sm-workspace-sidebar-switch-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  color: #fff;
+  font-size: 18px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+/* === 右侧主体 === */
+
+.sm-workspace-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* === Content Tabs Bar === */
+
+.sm-content-tabs-bar {
+  display: flex;
+  align-items: center;
+  flex-grow: 0;
+  flex-shrink: 0;
+  height: 34px;
+  background-color: #f6f7f9;
+  border-top: 1px solid hsla(0, 0%, 89%, 0.9);
+  border-bottom: 1px solid hsla(0, 0%, 89%, 0.9);
+  overflow: hidden;
+}
+
+.sm-content-tabs {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+}
+
+.sm-content-tab {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 32px;
+  margin-right: 12px;
+  font-size: 14px;
+  color: #637da9;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s;
+}
+
+.sm-content-tab:hover {
+  color: #1677ff;
+}
+
+.sm-content-tab-home {
+  margin: 0 16px;
+  color: #999;
+}
+
+.sm-content-tab--active {
+  color: #1677ff;
+}
+
+/* 激活态底部指示器 */
+.sm-content-tab--active::after {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #1677ff;
+}
+
+/* 关闭按钮 — hover 显示 */
+.sm-content-tab-close {
+  font-size: 12px;
+  opacity: 0;
+  color: #7f93bc;
+  transition: opacity 0.15s;
+  padding: 0 2px;
+}
+
+.sm-content-tab:hover .sm-content-tab-close {
+  opacity: 0.6;
+}
+
+.sm-content-tab-close:hover {
+  color: #1677ff;
+  opacity: 1;
+}
+
+/* tabs 右侧操作按钮 */
+.sm-content-tabs-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 0 4px;
+  gap: 4px;
+}
+
+.sm-content-tabs-action-btn {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  font-size: 16px;
+  color: #666;
+  cursor: pointer;
+}
+
+.sm-content-tabs-action-btn:hover {
+  color: #1677ff;
+}
+
+/* === Content Panels（ol/li 显隐） === */
+
+.sm-workspace-content {
+  flex: 1;
+  min-height: 0;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sm-content-pane {
+  display: none;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sm-content-pane--active {
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页面空状态 */
+.sm-page-renderer-empty {
+  height: 100%;
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

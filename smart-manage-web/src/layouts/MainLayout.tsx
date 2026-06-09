@@ -1,152 +1,62 @@
-import { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
-import { Layout, Menu, Tabs, Button, Dropdown, Avatar, Space } from 'antd';
-import type { MenuProps } from 'antd';
-import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  UserOutlined,
-  LogoutOutlined,
-} from '@ant-design/icons';
-import { useUserStore } from '@/stores/user';
-import { useAppStore } from '@/stores/app';
-import type { TabItem } from '@/stores/app';
+import { lazy, Suspense } from 'react';
+import type { ReactNode } from 'react';
+import { Layout, Spin } from 'antd';
+import Header from './Header';
+import { useHeaderTabsStore } from '@/stores/headerTabs';
 import './MainLayout.css';
 
-const { Header, Sider, Content } = Layout;
+const { Content } = Layout;
 
-/** 递归提取 Ant Design Menu items 的 key → label 映射 */
-function buildMenuLabelMap(
-  items: MenuProps['items'],
-  map = new Map<string, string>(),
-): Map<string, string> {
-  if (!items) return map;
-  for (const item of items) {
-    if (!item) continue;
-    if ('key' in item && item.key && 'label' in item) {
-      map.set(item.key as string, String(item.label));
+const Home = lazy(() => import('@/pages/home/Home'));
+const AppsView = lazy(() => import('@/pages/app/AppsView'));
+const Workbench = lazy(() => import('@/pages/workbench/Workbench'));
+
+/** Suspense fallback — 页面懒加载时显示 */
+const renderLazyPage = (node: ReactNode) => (
+  <Suspense
+    fallback={
+      <div className="sm-view-loading">
+        <Spin />
+      </div>
     }
-    if ('children' in item && item.children) {
-      buildMenuLabelMap(item.children, map);
-    }
-  }
-  return map;
-}
+  >
+    {node}
+  </Suspense>
+);
 
-/** 侧边栏菜单项 — 静态配置，后续由后端动态菜单替换 */
-const sidebarMenuItems: MenuProps['items'] = [
-  { key: 'home', icon: <UserOutlined />, label: '首页' },
-];
-
-/** 菜单 key → label 映射 — 模块级静态计算，不随渲染重建 */
-const menuLabelMap = buildMenuLabelMap(sidebarMenuItems);
-
-export default function MainLayout() {
-  const [collapsed, setCollapsed] = useState(false);
-  const userInfo = useUserStore((s) => s.userInfo);
-  const clearUser = useUserStore((s) => s.clearUser);
-  const tabs = useAppStore((s) => s.tabs);
-  const activeTabKey = useAppStore((s) => s.activeTabKey);
-  const openTab = useAppStore((s) => s.openTab);
-  const closeTab = useAppStore((s) => s.closeTab);
-  const setActiveTab = useAppStore((s) => s.setActiveTab);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    clearUser();
-    window.location.href = '/login.html';
-  };
-
-  const userMenuItems: MenuProps['items'] = [
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      label: '退出登录',
-      onClick: handleLogout,
-    },
-  ];
-
-  /** 处理 tab 切换 */
-  const handleTabChange = (key: string) => {
-    setActiveTab(key);
-  };
-
-  /** 处理 tab 关闭 */
-  const handleTabEdit = (
-    targetKey: React.MouseEvent | React.KeyboardEvent | string,
-    action: 'add' | 'remove',
-  ) => {
-    if (action === 'remove' && typeof targetKey === 'string') {
-      closeTab(targetKey);
-    }
-  };
-
-  /** 左侧菜单点击 — 从菜单数据取 label 作为 tab 标题，不依赖 DOM */
-  const handleMenuClick: MenuProps['onClick'] = (info) => {
-    const tab: TabItem = {
-      key: info.key,
-      title: menuLabelMap.get(info.key) ?? info.key,
-      component: info.key,
-      closable: true,
-    };
-    openTab(tab);
-    navigate(`/${info.key}`);
-  };
+const MainLayout = () => {
+  const tabs = useHeaderTabsStore((s) => s.tabs);
+  const activeKey = useHeaderTabsStore((s) => s.activeKey);
+  const appTabs = tabs.filter((tab) => tab.closable);
 
   return (
-    <Layout className="sm-main-layout">
-      {/* 左侧导航 */}
-      <Sider trigger={null} collapsible collapsed={collapsed} theme="dark" width={220}>
-        <div className={collapsed ? 'sm-layout-logo sm-layout-logo-collapsed' : 'sm-layout-logo'}>
-          {collapsed ? 'SM' : 'Smart Manage'}
-        </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[activeTabKey]}
-          onClick={handleMenuClick}
-          items={sidebarMenuItems}
-        />
-      </Sider>
+    <Layout className="sm-layout">
+      <Header />
+      <Content className="sm-layout-content">
+        <ol className="sm-views">
+          {/* 首页 */}
+          <li className={`sm-view ${activeKey === 'home' ? 'sm-view--active' : ''}`}>
+            {renderLazyPage(<Home />)}
+          </li>
 
-      <Layout>
-        {/* 顶部 Header */}
-        <Header className="sm-layout-header">
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-          />
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-            <Space className="sm-layout-user">
-              <Avatar size="small" icon={<UserOutlined />} />
-              <span>{userInfo?.nickname ?? userInfo?.username ?? '用户'}</span>
-            </Space>
-          </Dropdown>
-        </Header>
+          {/* 应用选择页 */}
+          <li className={`sm-view ${activeKey === 'apps' ? 'sm-view--active' : ''}`}>
+            {renderLazyPage(<AppsView />)}
+          </li>
 
-        {/* 工作台 Tabs */}
-        {tabs.length > 0 && (
-          <Tabs
-            type="editable-card"
-            hideAdd
-            activeKey={activeTabKey}
-            onChange={handleTabChange}
-            onEdit={handleTabEdit}
-            items={tabs.map((tab) => ({
-              key: tab.key,
-              label: tab.title,
-              closable: tab.closable,
-            }))}
-            className="sm-layout-tabs"
-          />
-        )}
-
-        {/* 内容区 */}
-        <Content className="sm-layout-content">
-          <Outlet />
-        </Content>
-      </Layout>
+          {/* 动态应用工作台 — 每个已打开的应用一个 li */}
+          {appTabs.map((tab) => (
+            <li
+              key={tab.key}
+              className={`sm-view ${activeKey === tab.key ? 'sm-view--active' : ''}`}
+            >
+              {renderLazyPage(<Workbench appNumber={tab.key} />)}
+            </li>
+          ))}
+        </ol>
+      </Content>
     </Layout>
   );
-}
+};
+
+export default MainLayout;

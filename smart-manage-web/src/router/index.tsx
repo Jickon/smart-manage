@@ -1,18 +1,11 @@
 import type { RouteObject } from 'react-router-dom';
 import MainLayout from '@/layouts/MainLayout';
-import NotFound from '@/pages/errors/NotFound';
 
+/** 路由仅包含 MainLayout 作为根布局，所有视图切换由 headerTabsStore 驱动 */
 const routes: RouteObject[] = [
   {
-    path: '/',
     element: <MainLayout />,
-    children: [
-      // 业务路由按领域/应用/单据动态注册，此处只定义基础路由占位
-    ],
-  },
-  {
-    path: '*',
-    element: <NotFound />,
+    children: [{ path: '*', element: null }],
   },
 ];
 

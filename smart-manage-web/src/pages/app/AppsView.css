@@ -1,0 +1,107 @@
+/* === 应用选择页 === */
+
+.sm-apps {
+  flex: 1;
+  min-height: 0;
+  padding: 24px 32px;
+  overflow-y: auto;
+  background: #f5f6f8;
+}
+
+/* 领域分组 */
+.sm-cloud-domain {
+  display: flex;
+  flex-wrap: nowrap;
+  width: 100%;
+  margin-bottom: 28px;
+}
+
+.sm-cloud-name {
+  width: 108px;
+  flex-grow: 0;
+  flex-shrink: 0;
+  margin-right: 12px;
+  border-radius: 2px;
+  background-color: #2c3e61;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sm-cloud-name-text {
+  color: #bfc4cd;
+  font-size: 18px;
+  text-align: center;
+  padding: 12px;
+  word-break: break-word;
+}
+
+.sm-cloud-apps {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* 应用卡片 */
+.sm-app-card {
+  display: inline-flex;
+  align-items: center;
+  width: 284px;
+  height: 100px;
+  margin-right: 12px;
+  margin-bottom: 12px;
+  padding: 0 16px;
+  border: 1px solid #fff;
+  border-radius: 2px;
+  background-color: #fff;
+  box-shadow: 0 4px 12px 0 rgba(134, 162, 210, 0.2);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+}
+
+.sm-app-card:hover {
+  box-shadow: 0 1px 30px 0 rgba(0, 0, 0, 0.2);
+  transform: translate3d(0, 1px, -2px);
+  transition-duration: 0.1s;
+}
+
+.sm-app-card-icon {
+  font-size: 48px;
+  flex-shrink: 0;
+}
+
+.sm-app-card-text {
+  flex: 1;
+  min-height: 48px;
+  margin-left: 8px;
+  overflow: hidden;
+}
+
+.sm-app-card-name {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #333;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.sm-app-card-desc {
+  font-size: 12px;
+  color: #999;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* 空状态 */
+.sm-apps-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border-radius: 4px;
+}
