@@ -43,10 +43,10 @@ public class UserController {
 		return Result.success(service.listPage(form));
 	}
 
-	@GetMapping("/sys/base/user/info")
+	@GetMapping("/sys/base/user/current")
 	@Operation(summary = "用户信息", description = "获取当前登录用户信息")
-	public Result<UserInfoVO> info() {
-		return Result.success(service.info());
+	public Result<UserInfoVO> current() {
+		return Result.success(service.current());
 	}
 
 	@PostMapping("/sys/base/user/permissions")

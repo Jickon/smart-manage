@@ -5,7 +5,9 @@ import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.login.domain.vo.LoginVO;
 import sm.cloud.sys.base.menu.service.MenuService;
 import sm.cloud.sys.base.permission.service.PermissionService;
@@ -20,10 +22,8 @@ import sm.cloud.sys.base.user.mapper.UserMapper;
 import sm.cloud.sys.common.constat.UserConst;
 import sm.cloud.sys.common.helper.UserHelper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
 import sm.system.helper.Argon2Helper;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.transaction.annotation.Transactional;
+import sm.system.response.PageResult;
 import sm.system.util.BeanUtil;
 
 import java.util.List;
@@ -154,7 +154,7 @@ public class UserService {
 		return vo;
 	}
 
-	public UserInfoVO info() {
+	public UserInfoVO current() {
 		UserEntity userEntity = manage.getById(UserHelper.getCurrentUserId());
 		UserInfoVO userInfoVO = BeanUtil.copyProperties(userEntity, UserInfoVO.class);
 		return userInfoVO;
