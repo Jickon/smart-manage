@@ -26,7 +26,14 @@ export async function openApp(appNumber: string): Promise<void> {
 
   // 内置应用：直接激活
   if (appNumber === 'home' || appNumber === 'apps') {
-    if (seq !== requestSeq) return;
+    useHeaderTabsStore.getState().activate(appNumber);
+    return;
+  }
+
+  // 已打开的 Workspace 直接激活，不重复请求
+  const existingWs = useWorkbenchStore.getState().workspaces[appNumber];
+  const existingTab = useHeaderTabsStore.getState().tabs.find((t) => t.key === appNumber);
+  if (existingWs && existingTab) {
     useHeaderTabsStore.getState().activate(appNumber);
     return;
   }
