@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Empty, Pagination } from 'antd';
+import { Empty, Pagination, Splitter } from 'antd';
 
 interface ListTableShellProps {
   table?: ReactNode;
@@ -53,10 +53,12 @@ const ListTableShell = ({
   return (
     <div className="sm-list-table-shell">
       {treePanel ? (
-        <div className="sm-list-table-split">
-          <aside className="sm-list-tree-panel">{treePanel}</aside>
-          {rightContent}
-        </div>
+        <Splitter className="sm-list-table-split">
+          <Splitter.Panel defaultSize={220} min={180} max="40%">
+            <aside className="sm-list-tree-panel">{treePanel}</aside>
+          </Splitter.Panel>
+          <Splitter.Panel>{rightContent}</Splitter.Panel>
+        </Splitter>
       ) : (
         rightContent
       )}

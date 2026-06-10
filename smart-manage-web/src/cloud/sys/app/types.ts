@@ -1,3 +1,5 @@
+import type { PageForm } from '@/types/api';
+
 /** 应用 VO */
 export interface AppVO {
   id: string;
@@ -17,4 +19,58 @@ export interface CloudAppsVO {
   number: string;
   seq: number;
   appList: AppVO[];
+}
+
+/** 应用列表查询 */
+export interface AppListForm extends PageForm {
+  cloudId?: number;
+  keyword?: string;
+}
+
+/** 应用列表项 */
+export interface AppListVO {
+  id: string;
+  name: string;
+  number: string;
+  icon: string;
+  iconColor: string;
+  seq: number;
+  description: string;
+  cloudId: string;
+  cloudName: string;
+  enableFlag: boolean;
+  createTime?: string;
+  updateTime?: string;
+}
+
+/** 应用详情 */
+export interface AppDetailVO {
+  id: string;
+  name: string;
+  number: string;
+  icon: string;
+  iconColor: string;
+  seq: number;
+  description: string;
+  cloud: {
+    id: string;
+    number: string;
+    name: string;
+  };
+  enableFlag: boolean;
+  createTime?: string;
+  updateTime?: string;
+}
+
+/** 应用保存 */
+export interface AppSaveForm {
+  id?: number;
+  name: string;
+  number: string;
+  icon?: string;
+  iconColor?: string;
+  seq?: number;
+  description?: string;
+  cloudId: number;
+  enableFlag: boolean;
 }

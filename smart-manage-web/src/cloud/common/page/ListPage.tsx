@@ -79,15 +79,14 @@ function ListPage<T>({
   selectedRowKeys,
   onSelectChange,
 }: ListPageProps<T>) {
-  const rowSelection: TableRowSelection<T> | undefined =
-    selectMode
-      ? {
-          type: selectMode,
-          selectedRowKeys,
-          onChange: (keys) => onSelectChange?.(keys),
-          columnWidth: 36,
-        }
-      : undefined;
+  const rowSelection: TableRowSelection<T> | undefined = selectMode
+    ? {
+        type: selectMode,
+        selectedRowKeys,
+        onChange: (keys) => onSelectChange?.(keys),
+        columnWidth: 36,
+      }
+    : undefined;
 
   // 注入序号列 + 业务列
   const fullColumns: ColumnsType<T> = [
@@ -164,12 +163,15 @@ function ListPage<T>({
           <ListTableShell
             table={
               <Table<T>
+                className="sm-list-table"
                 rowKey={rowKey}
                 rowSelection={rowSelection}
                 columns={fullColumns}
                 dataSource={dataSource}
                 size="small"
                 pagination={false}
+                sticky
+                scroll={{ x: 'max-content', y: 1 }}
               />
             }
             total={total}

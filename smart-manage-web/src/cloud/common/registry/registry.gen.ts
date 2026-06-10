@@ -3,6 +3,9 @@
  * 每次构建前自动重新生成。
  */
 
+// src\cloud\sys\app\pageRegistration.ts → sys/base/app
+import '../../sys/app/pageRegistration';
+
 // src\cloud\sys\cloud\pageRegistration.ts → sys/base/cloud
 import '../../sys/cloud/pageRegistration';
 

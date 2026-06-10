@@ -85,6 +85,14 @@
   flex-direction: column;
 }
 
+.sm-list-main > .ant-spin,
+.sm-list-main > .ant-spin > .ant-spin-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 /* === 表格外壳 === */
 
 .sm-list-table-shell {
@@ -94,6 +102,7 @@
   flex-direction: column;
   margin: 10px;
   background-color: #fff;
+  overflow: hidden;
 }
 
 /* === 左右分割（树 + 表格） === */
@@ -101,7 +110,11 @@
 .sm-list-table-split {
   flex: 1;
   min-height: 0;
-  display: flex;
+}
+
+.sm-list-table-split > .ant-splitter-panel {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sm-list-tree-panel {
@@ -110,13 +123,20 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-right: 1px solid #e5e6eb;
   background: #fff;
+}
+
+.sm-list-tree-panel-inner {
+  height: 100%;
+  overflow: auto;
+  padding: 10px 12px;
+  min-width: 160px;
 }
 
 /* === 表格内容区（右侧） === */
 
 .sm-list-table-content {
+  height: 100%;
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -154,6 +174,33 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* Table 的表头固定，数据区独立滚动并占满剩余高度。 */
+.sm-list-table,
+.sm-list-table > .ant-spin,
+.sm-list-table > .ant-spin > .ant-spin-container,
+.sm-list-table .ant-table,
+.sm-list-table .ant-table-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sm-list-table .ant-table-header {
+  flex-shrink: 0;
+}
+
+.sm-list-table .ant-table-body {
+  flex: 1;
+  min-height: 0;
+  max-height: none !important;
+  overflow: auto !important;
+}
+
+.sm-list-table .ant-table-sticky-scroll {
+  bottom: 0;
 }
 
 /* 可点击列链接样式 */
