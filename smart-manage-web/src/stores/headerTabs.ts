@@ -11,8 +11,11 @@ interface HeaderTabsState {
   activeKey: string;
   /** 切换历史 — 关闭 tab 时智能回到上一个激活的 tab */
   activeHistory: string[];
+  /** 纯状态切换 — 不操作 URL，由 navigationService 统一控制 URL 同步 */
   activate: (key: string) => void;
+  /** 纯状态添加 — 不操作 URL */
   addAppTab: (key: string, label: string) => void;
+  /** 纯状态移除 — 不操作 URL */
   removeAppTab: (key: string) => void;
 }
 

@@ -1,28 +1,30 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Table, Tag } from 'antd';
+import { Table, Tag, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ListPage from '@/cloud/common/page/ListPage';
+import { useListPageQuery } from '@/cloud/common/page/useListPageQuery';
 import { cloudApi } from './api';
 import type { CloudListVO } from './types';
 import type { PageComponentProps } from '@/cloud/common/page/types';
 
 /** 云管理列表页 */
 const CloudListPage = (props: PageComponentProps) => {
-  const [pageNum, setPageNum] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [keyword, setKeyword] = useState('');
-
-  const listQuery = useQuery({
-    queryKey: ['cloud-list', pageNum, pageSize, keyword],
-    queryFn: () => cloudApi.listPage({ pageNum, pageSize, keyword: keyword || undefined }),
-  });
-
-  const records = listQuery.data?.records ?? [];
-  const total = listQuery.data?.total ?? 0;
+  const { records, total, pageNum, pageSize, keyword, query, onSearch, onPageChange, onRefresh } =
+    useListPageQuery({
+      queryKey: ['cloud-list'],
+      queryFn: (params) => cloudApi.listPage(params),
+    });
 
   const columns: ColumnsType<CloudListVO> = [
-    { title: '编码', dataIndex: 'number', width: 180, render: (text) => <a>{text}</a> },
+    {
+      title: '编码',
+      dataIndex: 'number',
+      width: 180,
+      render: (text) => (
+        <Button type="link" size="small">
+          {text}
+        </Button>
+      ),
+    },
     { title: '名称', dataIndex: 'name', width: 220 },
     { title: '排序', dataIndex: 'seq', width: 80 },
     {
@@ -39,29 +41,26 @@ const CloudListPage = (props: PageComponentProps) => {
     <ListPage
       {...props}
       title="云管理"
+      loading={query.isLoading}
+      error={query.error as Error | null}
+      onRetry={() => query.refetch()}
       total={total}
       pageNum={pageNum}
       pageSize={pageSize}
       quickSearchPlaceholder="搜索编码/名称"
-      filterSummary={keyword ? `关键字：${keyword}` : '未设置筛选条件'}
+      filterSummary={keyword ? `关键字：${keyword}` : undefined}
       onAddNew={() => {
         // TODO: 打开新增云弹窗
       }}
-      onRefresh={() => listQuery.refetch()}
-      onQuickSearch={(value) => {
-        setKeyword(value);
-        setPageNum(1);
-      }}
-      onPageChange={(nextPage, nextSize) => {
-        setPageNum(nextPage);
-        setPageSize(nextSize);
-      }}
+      onRefresh={onRefresh}
+      onQuickSearch={onSearch}
+      onPageChange={onPageChange}
       table={
         <Table<CloudListVO>
           rowKey="id"
           columns={columns}
           dataSource={records}
-          loading={listQuery.isFetching}
+          loading={query.isFetching}
           pagination={false}
           scroll={{ x: 920 }}
         />

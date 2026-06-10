@@ -1,10 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { Empty, Spin } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
-import { useHeaderTabsStore } from '@/stores/headerTabs';
-import { useWorkbenchStore } from '@/stores/workbench';
 import { fetchApps } from '@/cloud/sys/app/api';
 import type { AppVO } from '@/cloud/sys/app/types';
+import { openApp } from '@/services/navigationService';
 import './AppsView.css';
 
 const AppsView = () => {
@@ -13,18 +12,8 @@ const AppsView = () => {
     queryFn: fetchApps,
   });
 
-  const addAppTab = useHeaderTabsStore((s) => s.addAppTab);
-  const activate = useHeaderTabsStore((s) => s.activate);
-  const tabs = useHeaderTabsStore((s) => s.tabs);
-  const initWorkspace = useWorkbenchStore((s) => s.initWorkspace);
-
   const handleAppClick = (app: AppVO) => {
-    if (tabs.find((tab) => tab.key === app.number)) {
-      activate(app.number);
-      return;
-    }
-    initWorkspace(app.number, app);
-    addAppTab(app.number, app.name);
+    openApp(app.number);
   };
 
   return (

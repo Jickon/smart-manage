@@ -153,9 +153,23 @@
       var loginFormEl = document.getElementById('loginForm');
       var bannerEl = document.getElementById('loginBanner');
 
-      function getRedirectUrl() {
+      /** 获取并校验重定向 URL — 使用 URL 解析器严格校验同源，防止开放重定向攻击 */
+      function getSafeRedirectUrl() {
         var params = new URLSearchParams(window.location.search);
-        return params.get('redirect') || '';
+        var redirect = params.get('redirect');
+        if (!redirect) return '';
+        // URLSearchParams.get() 已执行一次解码，redirect 为原始值
+        try {
+          var target = new URL(redirect, location.origin);
+          // 严格同源校验
+          if (target.origin !== location.origin) {
+            return '';
+          }
+          return target.pathname + target.search + target.hash;
+        } catch (_e) {
+          // 解析异常（非法 URL）返回默认页
+          return '';
+        }
       }
 
       function normalizeAssetUrl(url, fallback) {
@@ -330,10 +344,8 @@
             if (result.code === 200 && result.data && result.data.token) {
               localStorage.setItem('token', result.data.token);
               persistRememberedUsername(username);
-              var redirect = getRedirectUrl();
-              window.location.href = redirect
-                ? decodeURIComponent(redirect)
-                : '/index.html?app=home';
+              var redirect = getSafeRedirectUrl();
+              window.location.href = redirect || '/index.html?app=home';
               return;
             }
             showError(

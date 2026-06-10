@@ -31,6 +31,8 @@ export interface PageComponentProps {
   operationType?: OperationType;
   billId?: string;
   temporary?: boolean;
+  /** 当前页签是否激活 — 非激活页面应暂停轮询/昂贵计算 */
+  active: boolean;
 }
 
 /** 页面注册项 */

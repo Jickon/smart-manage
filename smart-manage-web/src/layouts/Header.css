@@ -89,6 +89,11 @@
   font-size: 12px;
   opacity: 0.6;
   cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+  padding: 0;
+  line-height: 1;
 }
 
 .sm-header-tab-operate-close:hover {

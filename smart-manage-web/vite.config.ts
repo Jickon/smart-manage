@@ -37,7 +37,7 @@ export default defineConfig({
           if (id.includes('node_modules/react') || id.includes('node_modules/react-router-dom')) {
             return 'react';
           }
-          if (id.includes('node_modules/antd') || id.includes('node_modules/@ant-design/icons')) {
+          if (id.includes('node_modules/antd')) {
             return 'antd';
           }
           if (

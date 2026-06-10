@@ -1,27 +1,32 @@
 import { Suspense } from 'react';
 import { Empty, Spin } from 'antd';
 import { componentRegistry } from '@/cloud/common/registry/componentRegistry';
-import type { OperationType } from '@/cloud/common/page/types';
+import type { OperationType, PageType } from '@/cloud/common/page/types';
 
 interface Props {
   appNumber: string;
   tabKey: string;
   title: string;
   componentKey?: string;
+  pageType?: PageType;
   operationType?: OperationType;
   billId?: string;
   temporary?: boolean;
+  /** 当前页签是否激活 */
+  active: boolean;
 }
 
-/** 页面渲染器 — 通过组件注册表映射真实组件 */
+/** 页面渲染器 — 通过组件注册表映射真实组件，并精确校验页面类型匹配 */
 const PageRenderer = ({
   componentKey,
   appNumber,
   tabKey,
   title,
+  pageType,
   operationType,
   billId,
   temporary,
+  active,
 }: Props) => {
   if (!componentKey) {
     return (
@@ -36,6 +41,17 @@ const PageRenderer = ({
     return (
       <div className="sm-page-renderer-empty">
         <Empty description={`未注册页面：${componentKey}`} />
+      </div>
+    );
+  }
+
+  // 精确校验：tab 声明的 pageType 必须与注册表一致
+  if (pageType && registration.pageType !== pageType) {
+    const msg = `页面类型不匹配：componentKey "${componentKey}" 注册为 ${registration.pageType}，但按 ${pageType} 协议打开。请检查菜单 component 配置或 pageRegistration 声明。`;
+    console.error(`[PageRenderer] ${msg}`);
+    return (
+      <div className="sm-page-renderer-empty">
+        <Empty description={msg} />
       </div>
     );
   }
@@ -57,6 +73,7 @@ const PageRenderer = ({
         operationType={operationType}
         billId={billId}
         temporary={temporary}
+        active={active}
       />
     </Suspense>
   );

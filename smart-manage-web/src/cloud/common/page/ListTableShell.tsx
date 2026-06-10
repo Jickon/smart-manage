@@ -1,47 +1,43 @@
 import type { ReactNode } from 'react';
-import { Checkbox, Empty, Pagination } from 'antd';
+import { Empty, Pagination } from 'antd';
 
 interface ListTableShellProps {
   table?: ReactNode;
   total?: number;
   selectedCount?: number;
-  allSelected?: boolean;
   pageNum?: number;
   pageSize?: number;
-  onToggleSelectAll?: (checked: boolean) => void;
   onPageChange?: (pageNum: number, pageSize: number) => void;
-  /** 左侧树面板（后续扩展左树右表布局） */
+  /** 左侧树面板（左树右表布局） */
   treePanel?: ReactNode;
 }
 
+/**
+ * 列表表格外壳 — 元信息栏 + 分页 + 表格主体。
+ *
+ * 选择模型：当前仅支持"当前页选择"。跨页全选待后续独立模型实现。
+ */
 const ListTableShell = ({
   table,
   total = 0,
   selectedCount = 0,
-  allSelected,
   pageNum = 1,
   pageSize = 20,
-  onToggleSelectAll,
   onPageChange,
   treePanel,
 }: ListTableShellProps) => {
   const rightContent = (
     <div className="sm-list-table-content">
-      {/* 元信息栏：总数 + 全选 + 分页 */}
+      {/* 元信息栏：总数 + 已选提示 + 分页 */}
       <div className="sm-list-table-meta">
         <div className="sm-list-table-count">
           <span>共 {total} 条</span>
-          <Checkbox
-            checked={allSelected}
-            onChange={(event) => onToggleSelectAll?.(event.target.checked)}
-          >
-            {allSelected ? '取消选择' : '选择全部'}
-          </Checkbox>
-          {selectedCount > 0 && <span>已选 {selectedCount} 条</span>}
+          {selectedCount > 0 && <span>，已选当前页 {selectedCount} 条</span>}
         </div>
         <Pagination
           size="small"
           showSizeChanger
+          pageSizeOptions={['10', '20', '50', '100']}
           current={pageNum}
           pageSize={pageSize}
           total={total}

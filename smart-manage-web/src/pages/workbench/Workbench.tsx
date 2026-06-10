@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { Spin } from 'antd';
+import { useCallback } from 'react';
+import { Spin, Modal } from 'antd';
+import { useQuery } from '@tanstack/react-query';
 import { useWorkbenchStore } from '@/stores/workbench';
-import type { MenuVO } from '@/types/api';
 import { getUserMenusByAppNumber } from '@/cloud/sys/menu/api';
 import AppSidebar from './AppSidebar';
 import ContentTabsBar from './ContentTabsBar';
@@ -12,67 +12,68 @@ interface Props {
   appNumber: string;
 }
 
-/** 从菜单项中提取组件标识 */
-function getMenuComponentKey(item: MenuVO) {
-  return item.component?.trim() || item.path?.trim() || item.name;
-}
-
 const Workbench = ({ appNumber }: Props) => {
   const ws = useWorkbenchStore((s) => s.workspaces[appNumber]);
-  const setMenuTree = useWorkbenchStore((s) => s.setMenuTree);
-  const setMenuLoading = useWorkbenchStore((s) => s.setMenuLoading);
   const openListTab = useWorkbenchStore((s) => s.openListTab);
 
-  useEffect(() => {
-    if (!ws || ws.menuTree || ws.menuLoading) return;
-    setMenuLoading(appNumber, true);
-    getUserMenusByAppNumber(appNumber)
-      .then((tree) => {
-        setMenuTree(appNumber, tree);
-      })
-      .catch(() => {
-        setMenuLoading(appNumber, false);
-      });
-  }, [appNumber, ws, setMenuTree, setMenuLoading]);
+  const menuQuery = useQuery({
+    queryKey: ['app-menus', appNumber],
+    queryFn: () => getUserMenusByAppNumber(appNumber),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const handleMenuItemClick = useCallback(
+    (item: { component?: string; path?: string; name: string }) => {
+      const componentKey = item.component?.trim() || item.path?.trim() || item.name;
+      const result = openListTab(appNumber, componentKey, item.name);
+      if (result === 'limit_reached') {
+        Modal.warning({
+          title: '页签数量已达上限',
+          content: '请先关闭不再使用的页签后再打开新页面。',
+        });
+      }
+    },
+    [appNumber, openListTab],
+  );
 
   if (!ws) return null;
-
-  const handleMenuItemClick = (item: MenuVO) => {
-    const componentKey = getMenuComponentKey(item);
-    openListTab(appNumber, componentKey, item.name);
-  };
 
   return (
     <div className="sm-workspace">
       <AppSidebar
-        menuTree={ws.menuTree}
-        loading={ws.menuLoading}
+        menuTree={menuQuery.data ?? null}
+        loading={menuQuery.isLoading}
         onItemClick={handleMenuItemClick}
       />
       <div className="sm-workspace-body">
         <ContentTabsBar appNumber={appNumber} />
-        <Spin spinning={ws.menuLoading}>
+        <Spin spinning={menuQuery.isLoading}>
           <ol className="sm-workspace-content">
-            {ws.contentTabs.map((tab) => (
-              <li
-                key={tab.key}
-                className={`sm-content-pane ${ws.activeContentTabKey === tab.key ? 'sm-content-pane--active' : ''}`}
-              >
-                {tab.key === '__home__' ? (
-                  <div className="sm-page-renderer-empty">欢迎使用 {ws.appInfo.name}</div>
-                ) : (
-                  <PageRenderer
-                    appNumber={appNumber}
-                    tabKey={tab.key}
-                    title={tab.label}
-                    componentKey={tab.componentKey}
-                    operationType={tab.operationType}
-                    billId={tab.billId}
-                    temporary={tab.temporary}
-                  />
-                )}
-              </li>
-            ))}
+            {ws.contentTabs.map((tab) => {
+              const isActive = ws.activeContentTabKey === tab.key;
+              return (
+                <li
+                  key={tab.key}
+                  className={`sm-content-pane ${isActive ? 'sm-content-pane--active' : ''}`}
+                >
+                  {tab.key === '__home__' ? (
+                    <div className="sm-page-renderer-empty">欢迎使用 {ws.appInfo.name}</div>
+                  ) : (
+                    <PageRenderer
+                      appNumber={appNumber}
+                      tabKey={tab.key}
+                      title={tab.label}
+                      componentKey={tab.componentKey}
+                      pageType={tab.pageType}
+                      operationType={tab.operationType}
+                      billId={tab.billId}
+                      temporary={tab.temporary}
+                      active={isActive}
+                    />
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </Spin>
       </div>
