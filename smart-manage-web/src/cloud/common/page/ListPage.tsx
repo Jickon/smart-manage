@@ -1,30 +1,27 @@
-import { Button, Space, Result, Spin } from 'antd';
-import { PlusOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
+import { Button, Space, Result, Spin, Table } from 'antd';
+import type { ColumnsType, TableRowSelection } from 'antd/es/table/interface';
 import type { ReactNode } from 'react';
 import ListFilterBar from './ListFilterBar';
 import ListTableShell from './ListTableShell';
 import './ListPage.css';
 
-interface ListPageProps {
+interface ListPageProps<T> {
   title: string;
   /** 过滤区内容 */
   filterContent?: ReactNode;
-  /** 过滤摘要文案，如 "关键字：xxx" */
+  /** 过滤摘要文案 */
   filterSummary?: ReactNode;
   /** 工具栏额外操作 */
   toolbarActions?: ReactNode;
-  /** 表格组件（通常直接传入 antd Table） */
-  table?: ReactNode;
   /** 左侧树面板（左树右表布局） */
   treePanel?: ReactNode;
   /** 是否加载中 */
   loading?: boolean;
   /** 是否请求出错 */
   error?: Error | null;
-  /** 手动重试（TanStack Query 的 refetch） */
+  /** 手动重试 */
   onRetry?: () => void;
   total?: number;
-  selectedCount?: number;
   quickSearchPlaceholder?: string;
   pageNum?: number;
   pageSize?: number;
@@ -33,41 +30,77 @@ interface ListPageProps {
   onRefresh?: () => void;
   onQuickSearch?: (value: string) => void;
   onPageChange?: (pageNum: number, pageSize: number) => void;
-  children?: ReactNode;
+
+  /** Table — 行 key */
+  rowKey: string | ((record: T) => string);
+  /** Table — 列定义（不含勾选列和序号列，由 ListPage 自动添加） */
+  columns: ColumnsType<T>;
+  /** Table — 数据源 */
+  dataSource: T[];
+  /** 勾选模式：不传则不显示勾选列 */
+  selectMode?: 'checkbox' | 'radio';
+  /** 受控选中 key */
+  selectedRowKeys?: React.Key[];
+  /** 选中变更 */
+  onSelectChange?: (keys: React.Key[]) => void;
 }
 
 /**
  * 通用列表页框架。
  *
- * 统一处理四态：
- * - 首次加载中：Spin
- * - 请求失败：Result error + 重试按钮
- * - 成功空数据：正常渲染表格区（表格自行展示 Empty）
- * - 成功有数据：正常渲染
+ * 自动注入：
+ * - 序号列（`#` 表头，跨页递增）
+ * - 勾选列（checkbox / radio，由 selectMode 控制）
+ * - Table size="small" 紧凑模式
+ * - 加载中 / 错误 / 空数据四态
  */
-const ListPage = ({
+function ListPage<T>({
   title,
   filterContent,
   filterSummary,
   toolbarActions,
-  table,
   treePanel,
   loading = false,
   error = null,
   onRetry,
   total,
-  selectedCount,
   quickSearchPlaceholder,
-  pageNum,
-  pageSize,
+  pageNum = 1,
+  pageSize = 20,
   onAddNew,
   onDelete,
   onRefresh,
   onQuickSearch,
   onPageChange,
-  children,
-}: ListPageProps) => {
-  // 错误态 — 显示错误信息并提供重试按钮
+  rowKey,
+  columns,
+  dataSource,
+  selectMode,
+  selectedRowKeys,
+  onSelectChange,
+}: ListPageProps<T>) {
+  const rowSelection: TableRowSelection<T> | undefined =
+    selectMode
+      ? {
+          type: selectMode,
+          selectedRowKeys,
+          onChange: (keys) => onSelectChange?.(keys),
+          columnWidth: 36,
+        }
+      : undefined;
+
+  // 注入序号列 + 业务列
+  const fullColumns: ColumnsType<T> = [
+    {
+      title: '#',
+      width: 44,
+      align: 'center',
+      render: (_text, _record, index) => (pageNum - 1) * pageSize + index + 1,
+    },
+    ...columns,
+  ];
+
+  // 错误态
   if (error) {
     return (
       <section className="sm-common-page sm-list-page">
@@ -87,7 +120,7 @@ const ListPage = ({
             subTitle={error.message || '请检查网络连接后重试'}
             extra={
               onRetry && (
-                <Button type="primary" icon={<ReloadOutlined />} onClick={onRetry}>
+                <Button type="primary" onClick={onRetry}>
                   重试
                 </Button>
               )
@@ -100,7 +133,6 @@ const ListPage = ({
 
   return (
     <section className="sm-common-page sm-list-page">
-      {/* 顶部：过滤区 + 工具栏 */}
       <div className="sm-list-top">
         <ListFilterBar
           title={title}
@@ -112,32 +144,36 @@ const ListPage = ({
         <div className="sm-list-toolbar">
           <Space>
             {onAddNew && (
-              <Button type="primary" icon={<PlusOutlined />} onClick={onAddNew}>
+              <Button type="primary" onClick={onAddNew}>
                 新增
               </Button>
             )}
             {onDelete && (
-              <Button danger icon={<DeleteOutlined />} onClick={onDelete}>
+              <Button danger onClick={onDelete}>
                 删除
               </Button>
             )}
-            {onRefresh && (
-              <Button icon={<ReloadOutlined />} onClick={onRefresh}>
-                刷新
-              </Button>
-            )}
+            {onRefresh && <Button onClick={onRefresh}>刷新</Button>}
             {toolbarActions}
           </Space>
         </div>
       </div>
 
-      {/* 主体：加载遮罩 + 表格区 */}
       <div className="sm-list-main">
         <Spin spinning={loading}>
           <ListTableShell
-            table={table ?? children}
+            table={
+              <Table<T>
+                rowKey={rowKey}
+                rowSelection={rowSelection}
+                columns={fullColumns}
+                dataSource={dataSource}
+                size="small"
+                pagination={false}
+              />
+            }
             total={total}
-            selectedCount={selectedCount}
+            selectedCount={selectedRowKeys?.length ?? 0}
             pageNum={pageNum}
             pageSize={pageSize}
             onPageChange={onPageChange}
@@ -147,6 +183,6 @@ const ListPage = ({
       </div>
     </section>
   );
-};
+}
 
 export default ListPage;

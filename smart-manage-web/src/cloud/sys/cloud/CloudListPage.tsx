@@ -1,4 +1,5 @@
-import { Table, Tag, Button } from 'antd';
+import { useState } from 'react';
+import { Tag, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ListPage from '@/cloud/common/page/ListPage';
 import { useListPageQuery } from '@/cloud/common/page/useListPageQuery';
@@ -13,6 +14,8 @@ const CloudListPage = (props: PageComponentProps) => {
       queryKey: ['cloud-list'],
       queryFn: (params) => cloudApi.listPage(params),
     });
+
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns: ColumnsType<CloudListVO> = [
     {
@@ -38,7 +41,7 @@ const CloudListPage = (props: PageComponentProps) => {
   ];
 
   return (
-    <ListPage
+    <ListPage<CloudListVO>
       {...props}
       title="云管理"
       loading={query.isLoading}
@@ -55,16 +58,12 @@ const CloudListPage = (props: PageComponentProps) => {
       onRefresh={onRefresh}
       onQuickSearch={onSearch}
       onPageChange={onPageChange}
-      table={
-        <Table<CloudListVO>
-          rowKey="id"
-          columns={columns}
-          dataSource={records}
-          loading={query.isFetching}
-          pagination={false}
-          scroll={{ x: 920 }}
-        />
-      }
+      rowKey="id"
+      columns={columns}
+      dataSource={records}
+      selectMode="checkbox"
+      selectedRowKeys={selectedRowKeys}
+      onSelectChange={(keys) => setSelectedRowKeys(keys)}
     />
   );
 };
