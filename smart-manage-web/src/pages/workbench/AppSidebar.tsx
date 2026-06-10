@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Empty, Menu, Skeleton } from 'antd';
 import type { MenuProps } from 'antd';
+import { Empty, Menu, Skeleton } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import type { MenuVO } from '@/types/api';
+import { resolveIcon } from '@/cloud/common/page/iconResolver';
 
 interface Props {
   menuTree: MenuVO | null;
@@ -30,14 +31,14 @@ function renderMenuTree(items: MenuVO[]): Required<MenuProps>['items'] {
       return {
         key,
         label: item.name,
-        icon: item.icon ? <span>{item.icon}</span> : undefined,
+        icon: resolveIcon(item.icon),
         children: renderMenuTree(item.routes),
       };
     }
     return {
       key,
       label: item.name,
-      icon: item.icon ? <span>{item.icon}</span> : undefined,
+      icon: resolveIcon(item.icon),
     };
   });
 }
@@ -48,7 +49,8 @@ const AppSidebar = ({ menuTree, loading, onItemClick }: Props) => {
   const handleClick: MenuProps['onClick'] = (info) => {
     if (!menuTree?.routes) return;
     const item = findMenuItem(menuTree.routes, info.key);
-    if (item) onItemClick(item);
+    // 只有叶子节点（有 component 的）才触发页面打开，父节点仅展开/折叠
+    if (item?.component) onItemClick(item);
   };
 
   return (
@@ -61,12 +63,11 @@ const AppSidebar = ({ menuTree, loading, onItemClick }: Props) => {
             <Empty description="暂无菜单" />
           ) : (
             <Menu
-              mode="inline"
+              mode="vertical"
               inlineCollapsed={collapsed}
               onClick={handleClick}
               items={renderMenuTree(menuTree.routes)}
               theme="dark"
-              style={{ background: 'transparent' }}
             />
           )}
         </div>

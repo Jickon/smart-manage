@@ -10,6 +10,7 @@ import { useHeaderTabsStore } from '@/stores/headerTabs';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { useUserStore } from '@/stores/user';
 import { openByNumber } from '@/cloud/sys/app/api';
+import '@/cloud/common/registry/bootstrap';
 
 /** 从 URL 提取 app 参数 */
 function getInitialAppParam(): string {

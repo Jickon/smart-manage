@@ -16,12 +16,11 @@
   width: 220px;
   background: rgb(52, 56, 72);
   color: rgb(193, 202, 220);
-  transition: width 0.15s ease;
   overflow: hidden;
 }
 
 .sm-workspace-sidebar--collapsed {
-  width: 50px;
+  width: 80px;
 }
 
 .sm-workspace-sidebar-content {
@@ -56,7 +55,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 50px;
+  width: 80px;
   height: 50px;
   color: #fff;
   font-size: 18px;
@@ -72,6 +71,21 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* 补全 antd Spin 在 flex 链中的高度传递 */
+.sm-workspace-body > .ant-spin {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sm-workspace-body > .ant-spin > .ant-spin-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* === Content Tabs Bar === */
@@ -193,6 +207,8 @@
 .sm-content-pane--active {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 /* 页面空状态 */

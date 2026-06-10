@@ -1,0 +1,172 @@
+/* === 通用页面容器 === */
+
+.sm-common-page {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sm-list-page {
+  /* overflow 由内部 .sm-list-table-body 控制 */
+}
+
+/* === 顶部区域（过滤 + 工具栏） === */
+
+.sm-list-top {
+  flex-shrink: 0;
+  background-color: #fff;
+}
+
+/* === 过滤栏 === */
+
+.sm-list-filter {
+  flex-shrink: 0;
+  padding: 8px 0 0;
+  margin: 0 18px;
+}
+
+.sm-list-filter-main {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sm-list-filter-title {
+  flex-shrink: 0;
+  margin: 0;
+  color: #1d2129;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.sm-list-filter-summary {
+  flex: 1;
+  min-width: 0;
+  color: #4e5969;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sm-list-filter-search {
+  width: 240px;
+  flex-shrink: 0;
+}
+
+.sm-list-filter-toggle {
+  flex-shrink: 0;
+}
+
+.sm-list-filter-panel {
+  padding: 8px 0 12px;
+  border-top: 1px solid #f2f3f5;
+}
+
+/* === 工具栏 === */
+
+.sm-list-toolbar {
+  min-height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 0 18px;
+}
+
+/* === 主体区域 === */
+
+.sm-list-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === 表格外壳 === */
+
+.sm-list-table-shell {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 10px;
+  background-color: #fff;
+}
+
+/* === 左右分割（树 + 表格） === */
+
+.sm-list-table-split {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.sm-list-tree-panel {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid #e5e6eb;
+  background: #fff;
+}
+
+/* === 表格内容区（右侧） === */
+
+.sm-list-table-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === 元信息栏 === */
+
+.sm-list-table-meta {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-left: 8px;
+  min-height: 40px;
+  color: #1d2129;
+  border-bottom: 1px solid #e5e6eb;
+  font-size: 12px;
+}
+
+.sm-list-table-count {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+
+/* === 表格主体 === */
+
+.sm-list-table-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 可点击列链接样式 */
+.sm-table-link {
+  padding: 0;
+  color: #1677ff;
+  font: inherit;
+  line-height: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.sm-table-link:hover {
+  text-decoration: underline;
+}

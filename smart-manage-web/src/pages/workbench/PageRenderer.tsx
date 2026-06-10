@@ -1,4 +1,6 @@
-import { Empty } from 'antd';
+import { Suspense } from 'react';
+import { Empty, Spin } from 'antd';
+import { componentRegistry } from '@/cloud/common/registry/componentRegistry';
 import type { OperationType } from '@/cloud/common/page/types';
 
 interface Props {
@@ -11,8 +13,16 @@ interface Props {
   temporary?: boolean;
 }
 
-/** 页面渲染器 — 占位实现，后续通过组件注册表映射真实组件 */
-const PageRenderer = ({ componentKey }: Props) => {
+/** 页面渲染器 — 通过组件注册表映射真实组件 */
+const PageRenderer = ({
+  componentKey,
+  appNumber,
+  tabKey,
+  title,
+  operationType,
+  billId,
+  temporary,
+}: Props) => {
   if (!componentKey) {
     return (
       <div className="sm-page-renderer-empty">
@@ -21,11 +31,34 @@ const PageRenderer = ({ componentKey }: Props) => {
     );
   }
 
-  // TODO: 通过 componentRegistry[componentKey] 获取注册组件并渲染
+  const registration = componentRegistry[componentKey];
+  if (!registration) {
+    return (
+      <div className="sm-page-renderer-empty">
+        <Empty description={`未注册页面：${componentKey}`} />
+      </div>
+    );
+  }
+
+  const RegisteredComponent = registration.component;
   return (
-    <div className="sm-page-renderer-empty">
-      <Empty description={`${componentKey} — 页面开发中`} />
-    </div>
+    <Suspense
+      fallback={
+        <div className="sm-page-renderer-empty">
+          <Spin />
+        </div>
+      }
+    >
+      <RegisteredComponent
+        appNumber={appNumber}
+        componentKey={componentKey}
+        tabKey={tabKey}
+        title={title}
+        operationType={operationType}
+        billId={billId}
+        temporary={temporary}
+      />
+    </Suspense>
   );
 };
 

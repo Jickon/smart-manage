@@ -6,6 +6,7 @@ import { getUserMenusByAppNumber } from '@/cloud/sys/menu/api';
 import AppSidebar from './AppSidebar';
 import ContentTabsBar from './ContentTabsBar';
 import PageRenderer from './PageRenderer';
+import './Workbench.css';
 
 interface Props {
   appNumber: string;
