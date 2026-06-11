@@ -3,9 +3,10 @@
 .sm-apps {
   flex: 1;
   min-height: 0;
-  padding: 24px 32px;
+  margin-top: 24px;
+  padding-left: 32px;
+  padding-right: 32px;
   overflow-y: auto;
-  background: #f5f6f8;
 }
 
 /* 领域分组 */
@@ -21,6 +22,7 @@
   flex-grow: 0;
   flex-shrink: 0;
   margin-right: 12px;
+  margin-bottom: 12px;
   border-radius: 2px;
   background-color: #2c3e61;
   display: flex;

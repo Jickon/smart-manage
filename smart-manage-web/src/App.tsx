@@ -44,7 +44,7 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider theme={themeConfig} locale={zhCN}>
+      <ConfigProvider theme={{ ...themeConfig, cssVar: {} }} locale={zhCN}>
         <AntApp>
           <RouterProvider router={router} />
         </AntApp>

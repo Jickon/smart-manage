@@ -3,11 +3,10 @@
 .sm-home {
   flex: 1;
   min-height: 0;
-  padding: 24px;
+  padding: 10px 24px;
   overflow-y: auto;
-  background: #f5f6f8;
 }
 
 .sm-home-row {
-  margin-top: 16px;
+  margin-top: 10px;
 }

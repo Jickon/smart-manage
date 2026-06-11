@@ -9,6 +9,7 @@ const themeConfig = {
     colorWarning: '#faad14',
     colorError: '#ff4d4f',
     colorInfo: '#1677ff',
+    colorTextBase: '#212121',
 
     // 圆角
     borderRadius: 2,
@@ -69,6 +70,9 @@ const themeConfig = {
     Table: {
       headerBg: '#fafafa',
       rowHoverBg: '#f5f5f5',
+    },
+    Card: {
+      lineWidth: 0,
     },
   },
   algorithm: theme.compactAlgorithm,
