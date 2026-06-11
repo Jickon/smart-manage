@@ -1,12 +1,11 @@
 package sm.cloud.sys.monitor.loginlog.service;
 
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import sm.cloud.sys.monitor.loginlog.domain.entity.LoginLogEntity;
-import sm.cloud.sys.monitor.loginlog.domain.entity.table.LoginLogTable;
 import sm.cloud.sys.monitor.loginlog.domain.form.LoginLogListForm;
 import sm.cloud.sys.monitor.loginlog.domain.vo.LoginLogListVO;
 import sm.cloud.sys.monitor.loginlog.mapper.LoginLogMapper;
@@ -22,32 +21,32 @@ public class LoginLogQueryService {
 	private final LoginLogMapper loginLogMapper;
 
 	public PageResult<LoginLogListVO> listPage(LoginLogListForm form) {
-		QueryWrapper qw = QueryWrapper.create().from(LoginLogTable.LOGIN_LOG);
+		LambdaQueryWrapper<LoginLogEntity> qw = new LambdaQueryWrapper<LoginLogEntity>();
 		if (StringUtils.hasText(form.getKeyword())) {
 			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(LoginLogTable.LOGIN_LOG.USERNAME.like(kw).or(LoginLogTable.LOGIN_LOG.NICKNAME.like(kw)));
+			qw.and(condition -> condition.like(LoginLogEntity::getUsername, kw).or().like(LoginLogEntity::getNickname, kw));
 		}
 		if (form.getSuccess() != null) {
-			qw.and(LoginLogTable.LOGIN_LOG.SUCCESS.eq(form.getSuccess()));
+			qw.eq(LoginLogEntity::getSuccess, form.getSuccess());
 		}
 		if (form.getBeginTime() != null) {
-			qw.and(LoginLogTable.LOGIN_LOG.CREATE_TIME.ge(form.getBeginTime()));
+			qw.ge(LoginLogEntity::getCreateTime, form.getBeginTime());
 		}
 		if (form.getEndTime() != null) {
-			qw.and(LoginLogTable.LOGIN_LOG.CREATE_TIME.le(form.getEndTime()));
+			qw.le(LoginLogEntity::getCreateTime, form.getEndTime());
 		}
-		qw.orderBy(LoginLogTable.LOGIN_LOG.CREATE_TIME, false);
-		Page<LoginLogEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<LoginLogEntity> result = loginLogMapper.paginate(page, qw);
+		qw.orderByDesc(LoginLogEntity::getCreateTime);
+		Page<LoginLogEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+		Page<LoginLogEntity> result = loginLogMapper.selectPage(page, qw);
 		var records = result.getRecords().stream().map(this::toVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), records);
+		return PageResult.of(result.getTotal(), records);
 	}
 
 	public LoginLogListVO getById(Long id) {
 		if (id == null) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "登录日志ID不能为空");
 		}
-		LoginLogEntity entity = loginLogMapper.selectOneById(id);
+		LoginLogEntity entity = loginLogMapper.selectById(id);
 		if (entity == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "登录日志不存在");
 		}

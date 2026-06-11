@@ -2,8 +2,8 @@ package sm.cloud.sys.monitor.job.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.monitor.job.domain.entity.JobEntity;
 import sm.cloud.sys.monitor.job.domain.entity.JobLogEntity;
-import sm.cloud.sys.monitor.job.domain.entity.table.JobLogTable;
-import sm.cloud.sys.monitor.job.domain.entity.table.JobTable;
 import sm.cloud.sys.monitor.job.domain.form.JobListForm;
 import sm.cloud.sys.monitor.job.domain.form.JobSaveForm;
 import sm.cloud.sys.monitor.job.domain.vo.JobDetailVO;
@@ -48,29 +46,27 @@ public class JobService {
     // ==================== 查询 ====================
 
     public PageResult<JobListVO> listPage(JobListForm form) {
-        QueryWrapper qw = QueryWrapper.create().from(JobTable.JOB);
+        LambdaQueryWrapper<JobEntity> qw = new LambdaQueryWrapper<JobEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
-            qw.and(JobTable.JOB.JOB_NAME.like(kw)
-                    .or(JobTable.JOB.JOB_GROUP.like(kw))
-                    .or(JobTable.JOB.NUMBER.like(kw)));
+            qw.and(condition -> condition.like(JobEntity::getJobName, kw).or().like(JobEntity::getJobGroup, kw).or().like(JobEntity::getNumber, kw));
         }
         if (form.getStatus() != null && !form.getStatus().isBlank()) {
-            qw.and(JobTable.JOB.STATUS.eq(form.getStatus()));
+            qw.eq(JobEntity::getStatus, form.getStatus());
         }
-        qw.orderBy(JobTable.JOB.CREATE_TIME, false);
+        qw.orderByDesc(JobEntity::getCreateTime);
 
-        Page<JobEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-        Page<JobEntity> result = mapper.paginate(page, qw);
+        Page<JobEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+        Page<JobEntity> result = mapper.selectPage(page, qw);
         List<JobListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotalRow(), vos);
+        return PageResult.of(result.getTotal(), vos);
     }
 
     public JobDetailVO getById(Long id) {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "任务ID不能为空");
         }
-        JobEntity entity = mapper.selectOneById(id);
+        JobEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "任务不存在");
         }
@@ -83,7 +79,7 @@ public class JobService {
     public Long save(JobSaveForm form) {
         JobEntity entity;
         if (form.getId() != null) {
-            entity = mapper.selectOneById(form.getId());
+            entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException("任务不存在");
             }
@@ -118,7 +114,7 @@ public class JobService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.update(entity);
+            mapper.updateById(entity);
         }
 
         // 解析 JobClass，SpringBeanJobFactory 负责依赖注入
@@ -163,7 +159,7 @@ public class JobService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "任务ID不能为空");
         }
-        JobEntity entity = mapper.selectOneById(id);
+        JobEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "任务不存在");
         }
@@ -173,15 +169,14 @@ public class JobService {
         removeQuartzJob(entity.getJobName(), entity.getJobGroup());
         mapper.deleteById(id);
         // 删除关联的执行日志
-        QueryWrapper qw = QueryWrapper.create().from(JobLogTable.JOB_LOG)
-                .where(JobLogTable.JOB_LOG.JOB_ID.eq(id));
-        jobLogMapper.deleteByQuery(qw);
+        jobLogMapper.delete(new LambdaQueryWrapper<JobLogEntity>()
+                .eq(JobLogEntity::getJobId, id));
     }
 
     // ==================== 任务操作 ====================
 
     public void pause(Long id) {
-        JobEntity entity = mapper.selectOneById(id);
+        JobEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("任务不存在");
         }
@@ -189,14 +184,14 @@ public class JobService {
             JobKey jobKey = JobKey.jobKey(entity.getJobName(), entity.getJobGroup());
             scheduler.pauseJob(jobKey);
             entity.setStatus("PAUSED");
-            mapper.update(entity);
+            mapper.updateById(entity);
         } catch (SchedulerException e) {
             throw new BizException("暂停任务失败: " + e.getMessage());
         }
     }
 
     public void resume(Long id) {
-        JobEntity entity = mapper.selectOneById(id);
+        JobEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("任务不存在");
         }
@@ -204,14 +199,14 @@ public class JobService {
             JobKey jobKey = JobKey.jobKey(entity.getJobName(), entity.getJobGroup());
             scheduler.resumeJob(jobKey);
             entity.setStatus("ENABLED");
-            mapper.update(entity);
+            mapper.updateById(entity);
         } catch (SchedulerException e) {
             throw new BizException("恢复任务失败: " + e.getMessage());
         }
     }
 
     public void trigger(Long id) {
-        JobEntity entity = mapper.selectOneById(id);
+        JobEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("任务不存在");
         }
@@ -301,11 +296,11 @@ public class JobService {
      * 获取某个任务的最后一次执行日志
      */
     private JobLogEntity getLastLog(Long jobId) {
-        QueryWrapper qw = QueryWrapper.create().from(JobLogTable.JOB_LOG)
-                .where(JobLogTable.JOB_LOG.JOB_ID.eq(jobId))
-                .orderBy(JobLogTable.JOB_LOG.CREATE_TIME, false)
-                .limit(1);
-        return jobLogMapper.selectOneByQuery(qw);
+        LambdaQueryWrapper<JobLogEntity> qw = new LambdaQueryWrapper<JobLogEntity>()
+                .eq(JobLogEntity::getJobId, jobId)
+                .orderByDesc(JobLogEntity::getCreateTime);
+        Page<JobLogEntity> page = jobLogMapper.selectPage(new Page<>(1, 1, false), qw);
+        return page.getRecords().isEmpty() ? null : page.getRecords().get(0);
     }
 
     private JobListVO toListVo(JobEntity entity) {

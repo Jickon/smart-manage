@@ -21,13 +21,13 @@ import javax.sql.DataSource;
 @Configuration
 public class QuartzConfig {
 
-    @Value("${mybatis-flex.datasource.main_db.url}")
+    @Value("${spring.datasource.url}")
     private String url;
 
-    @Value("${mybatis-flex.datasource.main_db.username}")
+    @Value("${spring.datasource.username}")
     private String username;
 
-    @Value("${mybatis-flex.datasource.main_db.password}")
+    @Value("${spring.datasource.password}")
     private String password;
 
     /**

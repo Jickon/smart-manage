@@ -1,6 +1,6 @@
 package sm.cloud.sys.monitor.job.service;
 
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.JobExecutionContext;
@@ -9,7 +9,6 @@ import org.quartz.JobListener;
 import org.springframework.stereotype.Component;
 import sm.cloud.sys.monitor.job.domain.entity.JobEntity;
 import sm.cloud.sys.monitor.job.domain.entity.JobLogEntity;
-import sm.cloud.sys.monitor.job.domain.entity.table.JobTable;
 import sm.cloud.sys.monitor.job.mapper.JobLogMapper;
 import sm.cloud.sys.monitor.job.mapper.JobMapper;
 
@@ -38,10 +37,10 @@ public class JobExecutionListener implements JobListener {
         String jobName = context.getJobDetail().getKey().getName();
         String jobGroup = context.getJobDetail().getKey().getGroup();
 
-        JobEntity jobEntity = jobMapper.selectOneByQuery(
-                QueryWrapper.create().from(JobTable.JOB)
-                        .where(JobTable.JOB.JOB_NAME.eq(jobName))
-                        .and(JobTable.JOB.JOB_GROUP.eq(jobGroup)));
+        JobEntity jobEntity = jobMapper.selectOne(
+                new LambdaQueryWrapper<JobEntity>()
+                        .eq(JobEntity::getJobName, jobName)
+                        .eq(JobEntity::getJobGroup, jobGroup));
 
         JobLogEntity logEntity = new JobLogEntity();
         logEntity.setJobId(jobEntity != null ? jobEntity.getId() : null);
@@ -66,7 +65,7 @@ public class JobExecutionListener implements JobListener {
         if (logId == null) {
             return;
         }
-        JobLogEntity logEntity = jobLogMapper.selectOneById(logId);
+        JobLogEntity logEntity = jobLogMapper.selectById(logId);
         if (logEntity == null) {
             return;
         }
@@ -79,7 +78,7 @@ public class JobExecutionListener implements JobListener {
         } else {
             logEntity.setStatus("SUCCESS");
         }
-        jobLogMapper.update(logEntity);
+        jobLogMapper.updateById(logEntity);
     }
 
     private String truncate(String s, int maxLen) {

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sm.cloud.sys.base.menu.mapper.MenuMapper">
+    <select id="selectAppInfo" resultType="sm.cloud.sys.base.menu.domain.vo.MenuAppInfoVO">
+        SELECT app.name AS app_name, app.number AS app_number, app.icon AS app_icon,
+               cloud.number AS cloud_number
+        FROM t_sys_app app
+        LEFT JOIN t_sys_cloud cloud ON cloud.id = app.cloud_id
+        WHERE app.id = #{appId}
+    </select>
+
+    <select id="selectUserMenus" resultType="sm.cloud.sys.base.menu.domain.entity.MenuEntity">
+        SELECT DISTINCT menu.*
+        FROM t_sys_menu menu
+        <if test="!admin">
+            INNER JOIN t_sys_role_perms role_perms ON role_perms.permission_id = menu.permission_id
+            INNER JOIN t_sys_user_role user_role ON user_role.role_id = role_perms.role_id
+        </if>
+        WHERE menu.app_id = #{appId}
+          AND menu.level IN (2, 3)
+        <if test="!admin">AND user_role.user_id = #{userId}</if>
+        ORDER BY menu.level, menu.sort, menu.create_time
+    </select>
+
+    <update id="updateAllColumns">
+        UPDATE t_sys_menu
+        SET number = #{number},
+            name = #{name},
+            level = #{level},
+            parent_id = #{parentId},
+            app_id = #{appId},
+            permission_id = #{permissionId},
+            path = #{path},
+            component = #{component},
+            icon = #{icon},
+            description = #{description},
+            sort = #{sort},
+            enable_flag = #{enableFlag},
+            update_time = #{updateTime},
+            update_user = #{updateUser}
+        WHERE id = #{id}
+    </update>
+</mapper>

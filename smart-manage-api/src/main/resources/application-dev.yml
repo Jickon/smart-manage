@@ -59,6 +59,10 @@ spring:
       org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
       org.quartz.threadPool.threadCount: 10
   datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:postgresql://localhost:5432/smart_manage
+    username: postgres
+    password: postgres
     druid:
       # 连接池核心配置
       initial-size: 5
@@ -143,16 +147,6 @@ jetcache:
         maxTotal: 100
         maxIdle: 10
         minIdle: 2
-
-mybatis-flex:
-  datasource:
-    main_db:
-      type: com.alibaba.druid.pool.DruidDataSource
-      # url: jdbc:mysql://localhost:3306/smart_manage?useServerPreparedStmts=false&rewriteBatchedStatements=true&characterEncoding=UTF-8&useSSL=false&allowMultiQueries=true&serverTimezone=Asia/Shanghai
-      url: jdbc:postgresql://localhost:5432/smart_manage
-      username: postgres
-      password: postgres
-
 
 ############## Sa-Token 配置 (文档: https://sa-token.cc) ##############
 sa-token:

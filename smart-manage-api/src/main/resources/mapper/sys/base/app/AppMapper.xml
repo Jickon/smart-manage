@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sm.cloud.sys.base.app.mapper.AppMapper">
+    <resultMap id="appDetailMap" type="sm.cloud.sys.base.app.domain.vo.AppDetailVO">
+        <id property="id" column="app_id"/>
+        <result property="number" column="app_number"/>
+        <result property="name" column="app_name"/>
+        <result property="icon" column="app_icon"/>
+        <result property="iconColor" column="app_icon_color"/>
+        <result property="seq" column="app_seq"/>
+        <result property="description" column="app_description"/>
+        <result property="enableFlag" column="app_enable_flag"/>
+        <result property="createTime" column="app_create_time"/>
+        <result property="updateTime" column="app_update_time"/>
+        <association property="cloud" javaType="sm.cloud.sys.base.app.domain.vo.AppDetailVO$CloudRef"
+                     notNullColumn="cloud_id">
+            <id property="id" column="cloud_id"/>
+            <result property="number" column="cloud_number"/>
+            <result property="name" column="cloud_name"/>
+        </association>
+    </resultMap>
+
+    <select id="selectListPage" resultType="sm.cloud.sys.base.app.domain.vo.AppListVO">
+        SELECT app.id, app.name, app.number, app.icon, app.icon_color, app.seq, app.description,
+               app.cloud_id, cloud.name AS cloud_name, app.enable_flag, app.create_time, app.update_time
+        FROM t_sys_app app
+        LEFT JOIN t_sys_cloud cloud ON cloud.id = app.cloud_id
+        <where>
+            <if test="form.cloudId != null">app.cloud_id = #{form.cloudId}</if>
+            <if test="form.keyword != null and form.keyword.trim() != ''">
+                AND (app.name LIKE CONCAT('%', #{form.keyword}, '%')
+                OR app.number LIKE CONCAT('%', #{form.keyword}, '%'))
+            </if>
+        </where>
+        ORDER BY app.seq, app.id
+    </select>
+
+    <select id="selectDetailById" resultMap="appDetailMap">
+        SELECT app.id AS app_id, app.number AS app_number, app.name AS app_name,
+               app.icon AS app_icon, app.icon_color AS app_icon_color, app.seq AS app_seq,
+               app.description AS app_description, app.enable_flag AS app_enable_flag,
+               app.create_time AS app_create_time, app.update_time AS app_update_time,
+               cloud.id AS cloud_id, cloud.number AS cloud_number, cloud.name AS cloud_name
+        FROM t_sys_app app
+        LEFT JOIN t_sys_cloud cloud ON cloud.id = app.cloud_id
+        WHERE app.id = #{id}
+    </select>
+
+    <select id="selectUserCloudApps" resultType="sm.cloud.sys.base.app.domain.vo.CloudAppRowVO">
+        SELECT DISTINCT cloud.id AS cloud_id, cloud.name AS cloud_name, cloud.number AS cloud_number,
+               cloud.seq AS cloud_seq, app.id AS app_id, app.name AS app_name,
+               app.number AS app_number, app.icon AS app_icon, app.icon_color AS app_icon_color,
+               app.seq AS app_seq, app.description AS app_description
+        FROM t_sys_app app
+        LEFT JOIN t_sys_cloud cloud ON cloud.id = app.cloud_id
+        INNER JOIN t_sys_menu menu ON menu.app_id = app.id
+        INNER JOIN t_sys_role_perms role_perms ON role_perms.permission_id = menu.permission_id
+        INNER JOIN t_sys_user_role user_role ON user_role.role_id = role_perms.role_id
+        WHERE user_role.user_id = #{userId}
+        ORDER BY cloud.seq, app.seq
+    </select>
+
+    <select id="selectAllCloudApps" resultType="sm.cloud.sys.base.app.domain.vo.CloudAppRowVO">
+        SELECT cloud.id AS cloud_id, cloud.name AS cloud_name, cloud.number AS cloud_number,
+               cloud.seq AS cloud_seq, app.id AS app_id, app.name AS app_name,
+               app.number AS app_number, app.icon AS app_icon, app.icon_color AS app_icon_color,
+               app.seq AS app_seq, app.description AS app_description
+        FROM t_sys_cloud cloud
+        LEFT JOIN t_sys_app app ON app.cloud_id = cloud.id
+        ORDER BY cloud.seq, app.seq, app.id
+    </select>
+
+    <select id="selectUserAppByNumber" resultType="sm.cloud.sys.base.app.domain.vo.AppVO">
+        SELECT DISTINCT app.id, cloud.number AS cloud_number, app.number, app.name, app.icon,
+               app.icon_color, app.seq, app.description
+        FROM t_sys_app app
+        LEFT JOIN t_sys_cloud cloud ON cloud.id = app.cloud_id
+        INNER JOIN t_sys_menu menu ON menu.app_id = app.id
+        INNER JOIN t_sys_role_perms role_perms ON role_perms.permission_id = menu.permission_id
+        INNER JOIN t_sys_user_role user_role ON user_role.role_id = role_perms.role_id
+        WHERE user_role.user_id = #{userId} AND app.number = #{appNumber}
+        LIMIT 1
+    </select>
+</mapper>

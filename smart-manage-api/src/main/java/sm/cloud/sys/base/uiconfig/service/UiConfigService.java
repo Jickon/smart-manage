@@ -3,14 +3,13 @@ package sm.cloud.sys.base.uiconfig.service;
 import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.uiconfig.domain.entity.UiConfigEntity;
-import sm.cloud.sys.base.uiconfig.domain.entity.table.UiConfigTable;
 import sm.cloud.sys.base.uiconfig.domain.form.UiConfigListForm;
 import sm.cloud.sys.base.uiconfig.domain.form.UiConfigSaveForm;
 import sm.cloud.sys.base.uiconfig.domain.vo.UiConfigDetailVO;
@@ -36,17 +35,16 @@ public class UiConfigService {
     private final UiConfigMapper mapper;
 
     public PageResult<UiConfigListVO> listPage(UiConfigListForm form) {
-        QueryWrapper qw = QueryWrapper.create().from(UiConfigTable.UI_CONFIG);
+        LambdaQueryWrapper<UiConfigEntity> qw = new LambdaQueryWrapper<UiConfigEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
-            qw.and(UiConfigTable.UI_CONFIG.PAGE_TITLE.like(kw)
-                    .or(UiConfigTable.UI_CONFIG.SYSTEM_NAME.like(kw)));
+            qw.and(condition -> condition.like(UiConfigEntity::getPageTitle, kw).or().like(UiConfigEntity::getSystemName, kw));
         }
-        qw.orderBy(UiConfigTable.UI_CONFIG.ID, true);
-        Page<UiConfigEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-        Page<UiConfigEntity> result = mapper.paginate(page, qw);
+        qw.orderByAsc(UiConfigEntity::getId);
+        Page<UiConfigEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+        Page<UiConfigEntity> result = mapper.selectPage(page, qw);
         List<UiConfigListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotalRow(), vos);
+        return PageResult.of(result.getTotal(), vos);
     }
 
     private UiConfigListVO toListVo(UiConfigEntity entity) {
@@ -63,14 +61,14 @@ public class UiConfigService {
     }
 
     public UiConfigEntity getById(Long id) {
-        return mapper.selectOneById(id);
+        return mapper.selectById(id);
     }
 
     public UiConfigDetailVO getDetail(Long id) {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "界面配置ID不能为空");
         }
-        UiConfigEntity entity = mapper.selectOneById(id);
+        UiConfigEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "界面配置不存在");
         }
@@ -80,7 +78,7 @@ public class UiConfigService {
     /** 获取活跃配置（Caffeine 本地缓存） */
     @Cached(cacheType = CacheType.LOCAL, name = "common", key = "'ui:config'", expire = 30, timeUnit = TimeUnit.MINUTES)
     public UiConfigDetailVO getActiveConfig() {
-        List<UiConfigEntity> entities = mapper.selectAll();
+        List<UiConfigEntity> entities = mapper.selectList(null);
         return entities.isEmpty() ? new UiConfigDetailVO() : toDetailVo(entities.get(0));
     }
 
@@ -100,7 +98,7 @@ public class UiConfigService {
     public Long save(UiConfigSaveForm form) {
         UiConfigEntity entity;
         if (form.getId() != null) {
-            entity = mapper.selectOneById(form.getId());
+            entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "界面配置不存在");
             }
@@ -115,7 +113,7 @@ public class UiConfigService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.update(entity);
+            mapper.updateById(entity);
         }
         return entity.getId();
     }
@@ -126,7 +124,7 @@ public class UiConfigService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "界面配置ID不能为空");
         }
-        UiConfigEntity entity = mapper.selectOneById(id);
+        UiConfigEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "界面配置不存在");
         }

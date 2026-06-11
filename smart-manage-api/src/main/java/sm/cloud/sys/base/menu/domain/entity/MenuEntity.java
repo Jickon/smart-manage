@@ -1,9 +1,8 @@
 package sm.cloud.sys.base.menu.domain.entity;
 
-import com.mybatisflex.annotation.Id;
-import com.mybatisflex.annotation.KeyType;
-import com.mybatisflex.annotation.Table;
-import com.mybatisflex.core.keygen.KeyGenerators;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import sm.cloud.sys.common.enums.MenuLevelEnum;
@@ -14,9 +13,9 @@ import sm.system.entity.BaseEntity;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Table("t_sys_menu")
+@TableName("t_sys_menu")
 public class MenuEntity extends BaseEntity {
-	@Id(keyType = KeyType.Generator, value = KeyGenerators.snowFlakeId)
+	@TableId(type = IdType.ASSIGN_ID)
 	private Long id;
 	/**
 	 * 编号

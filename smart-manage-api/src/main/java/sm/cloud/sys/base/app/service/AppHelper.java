@@ -1,17 +1,12 @@
 package sm.cloud.sys.base.app.service;
 
-import com.mybatisflex.core.query.QueryWrapper;
-import com.mybatisflex.core.row.Db;
-import com.mybatisflex.core.row.Row;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import sm.cloud.sys.base.app.domain.entity.table.AppTable;
 import sm.cloud.sys.base.app.domain.vo.AppVO;
+import sm.cloud.sys.base.app.domain.vo.CloudAppRowVO;
 import sm.cloud.sys.base.app.domain.vo.CloudAppsVO;
-import sm.cloud.sys.base.cloud.domain.entity.table.CloudTable;
-import sm.cloud.sys.base.menu.domain.entity.table.MenuTable;
-import sm.cloud.sys.base.roleperms.domain.entity.table.RolePermsTable;
-import sm.cloud.sys.base.userrole.domain.entity.table.UserRoleTable;
+import sm.cloud.sys.base.app.mapper.AppMapper;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
 
@@ -21,147 +16,73 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 应用入口相关查询（云/应用列表、按编号打开应用）
+ * 应用入口相关查询。
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AppHelper {
+    private final AppMapper appMapper;
 
-	/**
-	 * 按用户角色权限（菜单-权限-角色）关联，返回云及其下应用；同一用户多角色时应用去重。
-	 */
-	public List<CloudAppsVO> getUserCloudApps(Long userId) {
-		if (userId == null) {
-			return List.of();
-		}
-		QueryWrapper query = QueryWrapper.create()
-				.select(
-						CloudTable.CLOUD.ID.as("cid"),
-						CloudTable.CLOUD.NAME.as("cname"),
-						CloudTable.CLOUD.NUMBER.as("cnumber"),
-						CloudTable.CLOUD.SEQ.as("cseq"),
-						AppTable.APP.ID.as("aid"),
-						AppTable.APP.NAME.as("aname"),
-						AppTable.APP.NUMBER.as("anumber"),
-						AppTable.APP.ICON.as("aicon"),
-						AppTable.APP.ICON_COLOR.as("aiconcolor"),
-						AppTable.APP.SEQ.as("aseq"),
-						AppTable.APP.DESCRIPTION.as("adescription")
-				)
-				.from(AppTable.APP)
-				.leftJoin(CloudTable.CLOUD).on(CloudTable.CLOUD.ID.eq(AppTable.APP.CLOUD_ID))
-				.leftJoin(MenuTable.MENU).on(MenuTable.MENU.APP_ID.eq(AppTable.APP.ID))
-				.leftJoin(RolePermsTable.ROLE_PERMS).on(RolePermsTable.ROLE_PERMS.PERMISSION_ID.eq(MenuTable.MENU.PERMISSION_ID))
-				.leftJoin(UserRoleTable.USER_ROLE).on(UserRoleTable.USER_ROLE.ROLE_ID.eq(RolePermsTable.ROLE_PERMS.ROLE_ID))
-				.where(UserRoleTable.USER_ROLE.USER_ID.eq(userId))
-				.orderBy(CloudTable.CLOUD.SEQ, true).orderBy(AppTable.APP.SEQ, true);
+    public List<CloudAppsVO> getUserCloudApps(Long userId) {
+        if (userId == null) {
+            return List.of();
+        }
+        return toCloudApps(appMapper.selectUserCloudApps(userId));
+    }
 
-		List<Row> rows = Db.selectListByQuery(query);
-		return toCloudApps(rows);
-	}
+    public List<CloudAppsVO> getAllCloudApps() {
+        return toCloudApps(appMapper.selectAllCloudApps());
+    }
 
-	/**
-	 * 不按用户权限过滤，返回全量云及其下应用。
-	 */
-	public List<CloudAppsVO> getAllCloudApps() {
-		QueryWrapper query = QueryWrapper.create()
-				.select(
-						CloudTable.CLOUD.ID.as("cid"),
-						CloudTable.CLOUD.NAME.as("cname"),
-						CloudTable.CLOUD.NUMBER.as("cnumber"),
-						CloudTable.CLOUD.SEQ.as("cseq"),
-						AppTable.APP.ID.as("aid"),
-						AppTable.APP.NAME.as("aname"),
-						AppTable.APP.NUMBER.as("anumber"),
-						AppTable.APP.ICON.as("aicon"),
-						AppTable.APP.SEQ.as("aseq"),
-						AppTable.APP.DESCRIPTION.as("adescription")
-				)
-				.from(CloudTable.CLOUD)
-				.leftJoin(AppTable.APP).on(AppTable.APP.CLOUD_ID.eq(CloudTable.CLOUD.ID))
-				.orderBy(CloudTable.CLOUD.SEQ, true).orderBy(AppTable.APP.SEQ, true).orderBy(AppTable.APP.ID, true);
-		List<Row> rows = Db.selectListByQuery(query);
-		return toCloudApps(rows);
-	}
+    private List<CloudAppsVO> toCloudApps(List<CloudAppRowVO> rows) {
+        Map<Long, CloudAppsVO> cloudMap = new LinkedHashMap<>();
+        Map<Long, Map<Long, AppVO>> appMap = new LinkedHashMap<>();
+        for (CloudAppRowVO row : rows) {
+            if (row.getCloudId() == null) {
+                continue;
+            }
+            CloudAppsVO cloud = cloudMap.computeIfAbsent(row.getCloudId(), cloudId -> {
+                CloudAppsVO item = new CloudAppsVO();
+                item.setId(cloudId);
+                item.setName(row.getCloudName());
+                item.setNumber(row.getCloudNumber());
+                item.setSeq(row.getCloudSeq());
+                item.setAppList(new ArrayList<>());
+                return item;
+            });
+            if (row.getAppId() == null) {
+                continue;
+            }
+            Map<Long, AppVO> apps = appMap.computeIfAbsent(row.getCloudId(), cloudId -> new LinkedHashMap<>());
+            if (apps.containsKey(row.getAppId())) {
+                continue;
+            }
+            AppVO app = new AppVO();
+            app.setId(row.getAppId());
+            app.setName(row.getAppName());
+            app.setNumber(row.getAppNumber());
+            app.setIcon(row.getAppIcon());
+            app.setIconColor(row.getAppIconColor());
+            app.setSeq(row.getAppSeq());
+            app.setDescription(row.getAppDescription());
+            apps.put(row.getAppId(), app);
+            cloud.getAppList().add(app);
+        }
+        return new ArrayList<>(cloudMap.values());
+    }
 
-	private List<CloudAppsVO> toCloudApps(List<Row> rows) {
-		Map<Long, CloudAppsVO> cloudMap = new LinkedHashMap<>();
-		Map<Long, Map<Long, AppVO>> dedupe = new LinkedHashMap<>();
-		for (Row row : rows) {
-			Long cid = row.getLong("cid");
-			if (cid == null) continue;
-			CloudAppsVO cloud = cloudMap.computeIfAbsent(cid, id -> {
-				CloudAppsVO c = new CloudAppsVO();
-				c.setId(id);
-				c.setName(row.getString("cname"));
-				c.setNumber(row.getString("cnumber"));
-				c.setSeq(row.getInt("cseq"));
-				c.setAppList(new ArrayList<>());
-				return c;
-			});
-			Long aid = row.getLong("aid");
-			if (aid == null) continue;
-			Map<Long, AppVO> appsForCloud = dedupe.computeIfAbsent(cid, k -> new LinkedHashMap<>());
-			if (appsForCloud.containsKey(aid)) continue;
-
-			AppVO app = new AppVO();
-			app.setId(aid);
-			app.setName(row.getString("aname"));
-			app.setNumber(row.getString("anumber"));
-			app.setIcon(row.getString("aicon"));
-			app.setIconColor(row.getString("aiconcolor"));
-			app.setSeq(row.getInt("aseq"));
-			app.setDescription(row.getString("adescription"));
-			appsForCloud.put(aid, app);
-			cloud.getAppList().add(app);
-		}
-		return new ArrayList<>(cloudMap.values());
-	}
-
-	/**
-	 * 按应用编号（number）获取当前用户有权限访问的应用。
-	 */
-	public AppVO getUserAppByNumber(Long userId, String appNumber) {
-		if (userId == null) {
-			throw new BizException(ResultEnum.UNAUTHORIZED);
-		}
-		if (appNumber == null || appNumber.isBlank()) {
-			throw new BizException(ResultEnum.PARAM_ERROR, "应用编码不能为空");
-		}
-		QueryWrapper query = QueryWrapper.create()
-				.select(
-						AppTable.APP.ID.as("aid"),
-						AppTable.APP.NAME.as("aname"),
-						AppTable.APP.NUMBER.as("anumber"),
-						AppTable.APP.ICON.as("aicon"),
-						AppTable.APP.ICON_COLOR.as("aiconcolor"),
-						AppTable.APP.SEQ.as("aseq"),
-						AppTable.APP.DESCRIPTION.as("adescription"),
-						CloudTable.CLOUD.NUMBER.as("cnumber")
-				)
-				.from(AppTable.APP)
-				.leftJoin(CloudTable.CLOUD).on(CloudTable.CLOUD.ID.eq(AppTable.APP.CLOUD_ID))
-				.leftJoin(MenuTable.MENU).on(MenuTable.MENU.APP_ID.eq(AppTable.APP.ID))
-				.leftJoin(RolePermsTable.ROLE_PERMS).on(RolePermsTable.ROLE_PERMS.PERMISSION_ID.eq(MenuTable.MENU.PERMISSION_ID))
-				.leftJoin(UserRoleTable.USER_ROLE).on(UserRoleTable.USER_ROLE.ROLE_ID.eq(RolePermsTable.ROLE_PERMS.ROLE_ID))
-				.where(UserRoleTable.USER_ROLE.USER_ID.eq(userId))
-				.and(AppTable.APP.NUMBER.eq(appNumber))
-				.limit(1);
-		List<Row> rows = Db.selectListByQuery(query);
-		if (rows == null || rows.isEmpty()) {
-			throw new BizException(ResultEnum.NOT_FOUND, "应用不存在或无权访问");
-		}
-		Row row = rows.get(0);
-		AppVO app = new AppVO();
-		app.setId(row.getLong("aid"));
-		app.setName(row.getString("aname"));
-		app.setNumber(row.getString("anumber"));
-		app.setCloudNumber(row.getString("cnumber"));
-		app.setIcon(row.getString("aicon"));
-		app.setIconColor(row.getString("aiconcolor"));
-		app.setSeq(row.getInt("aseq"));
-		app.setDescription(row.getString("adescription"));
-		return app;
-	}
+    public AppVO getUserAppByNumber(Long userId, String appNumber) {
+        if (userId == null) {
+            throw new BizException(ResultEnum.UNAUTHORIZED);
+        }
+        if (appNumber == null || appNumber.isBlank()) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "应用编码不能为空");
+        }
+        AppVO app = appMapper.selectUserAppByNumber(userId, appNumber);
+        if (app == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "应用不存在或无权访问");
+        }
+        return app;
+    }
 }
-

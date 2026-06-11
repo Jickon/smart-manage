@@ -3,14 +3,13 @@ package sm.cloud.sys.base.sysparam.service;
 import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.sysparam.domain.entity.SysParamEntity;
-import sm.cloud.sys.base.sysparam.domain.entity.table.SysParamTable;
 import sm.cloud.sys.base.sysparam.domain.form.SysParamListForm;
 import sm.cloud.sys.base.sysparam.domain.form.SysParamSaveForm;
 import sm.cloud.sys.base.sysparam.domain.vo.SysParamCreateNewDataVO;
@@ -39,17 +38,16 @@ public class SysParamService {
 
     /** 管理端分页列表 */
     public PageResult<SysParamVO> listPage(SysParamListForm form) {
-        QueryWrapper qw = QueryWrapper.create().from(SysParamTable.SYS_PARAM);
+        LambdaQueryWrapper<SysParamEntity> qw = new LambdaQueryWrapper<SysParamEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
-            qw.and(SysParamTable.SYS_PARAM.NUMBER.like(kw)
-                    .or(SysParamTable.SYS_PARAM.NAME.like(kw)));
+            qw.and(condition -> condition.like(SysParamEntity::getNumber, kw).or().like(SysParamEntity::getName, kw));
         }
-        qw.orderBy(SysParamTable.SYS_PARAM.NUMBER, true);
-        Page<SysParamEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-        Page<SysParamEntity> result = mapper.paginate(page, qw);
+        qw.orderByAsc(SysParamEntity::getNumber);
+        Page<SysParamEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+        Page<SysParamEntity> result = mapper.selectPage(page, qw);
         List<SysParamVO> vos = result.getRecords().stream().map(this::toVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotalRow(), vos);
+        return PageResult.of(result.getTotal(), vos);
     }
 
     /** 详情 */
@@ -57,7 +55,7 @@ public class SysParamService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "系统参数ID不能为空");
         }
-        SysParamEntity entity = mapper.selectOneById(id);
+        SysParamEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
         }
@@ -75,14 +73,14 @@ public class SysParamService {
     public Long save(SysParamSaveForm form) {
         SysParamEntity entity;
         if (form.getId() != null) {
-            entity = mapper.selectOneById(form.getId());
+            entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
             }
             // 系统内置参数只允许修改 value
             if (Boolean.TRUE.equals(entity.getIsSystem())) {
                 entity.setValue(form.getValue());
-                mapper.update(entity);
+                mapper.updateById(entity);
                 return entity.getId();
             }
         } else {
@@ -98,7 +96,7 @@ public class SysParamService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.update(entity);
+            mapper.updateById(entity);
         }
         return entity.getId();
     }
@@ -110,7 +108,7 @@ public class SysParamService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "系统参数ID不能为空");
         }
-        SysParamEntity entity = mapper.selectOneById(id);
+        SysParamEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
         }
@@ -125,7 +123,7 @@ public class SysParamService {
     /** 全量获取 number → value 映射（Caffeine 本地缓存） */
     @Cached(cacheType = CacheType.LOCAL, name = "sys-params", key = "'all'", expire = 30, timeUnit = TimeUnit.MINUTES)
     public Map<String, String> getAll() {
-        List<SysParamEntity> entities = mapper.selectAll();
+        List<SysParamEntity> entities = mapper.selectList(null);
         Map<String, String> map = new HashMap<>();
         for (SysParamEntity entity : entities) {
             map.put(entity.getNumber(), entity.getValue());

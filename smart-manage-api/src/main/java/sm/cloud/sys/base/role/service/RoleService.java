@@ -1,13 +1,12 @@
 package sm.cloud.sys.base.role.service;
 
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.role.domain.entity.RoleEntity;
-import sm.cloud.sys.base.role.domain.entity.table.RoleTable;
 import sm.cloud.sys.base.role.domain.form.RoleListForm;
 import sm.cloud.sys.base.role.domain.form.RoleSaveForm;
 import sm.cloud.sys.base.role.domain.form.RoleSelectForm;
@@ -35,34 +34,32 @@ public class RoleService {
 	private final RoleMapper mapper;
 
 	public PageResult<RoleListVO> listPage(RoleListForm form) {
-		QueryWrapper qw = QueryWrapper.create()
-				.from(RoleTable.ROLE)
-				.orderBy(RoleTable.ROLE.ID, true);
+		LambdaQueryWrapper<RoleEntity> qw = new LambdaQueryWrapper<RoleEntity>()
+				.orderByAsc(RoleEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(RoleTable.ROLE.NAME.like(kw).or(RoleTable.ROLE.NUMBER.like(kw)));
+			qw.and(condition -> condition.like(RoleEntity::getName, kw).or().like(RoleEntity::getNumber, kw));
 		}
-		Page<RoleEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<RoleEntity> result = mapper.paginate(page, qw);
+		Page<RoleEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+		Page<RoleEntity> result = mapper.selectPage(page, qw);
 		var vos = result.getRecords().stream().map(this::toRoleListVO).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), vos);
+		return PageResult.of(result.getTotal(), vos);
 	}
 
 	/**
 	 * 基础资料选择：分页查询角色。
 	 */
 	public PageResult<RoleSelectVO> select(RoleSelectForm form) {
-		QueryWrapper qw = QueryWrapper.create()
-				.from(RoleTable.ROLE)
-				.orderBy(RoleTable.ROLE.ID, true);
+		LambdaQueryWrapper<RoleEntity> qw = new LambdaQueryWrapper<RoleEntity>()
+				.orderByAsc(RoleEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(RoleTable.ROLE.NUMBER.like(kw).or(RoleTable.ROLE.NAME.like(kw)));
+			qw.and(condition -> condition.like(RoleEntity::getName, kw).or().like(RoleEntity::getNumber, kw));
 		}
-		Page<RoleEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<RoleEntity> result = mapper.paginate(page, qw);
+		Page<RoleEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+		Page<RoleEntity> result = mapper.selectPage(page, qw);
 		List<RoleSelectVO> vos = result.getRecords().stream().map(this::toRoleSelectVO).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), vos);
+		return PageResult.of(result.getTotal(), vos);
 	}
 
 	private RoleSelectVO toRoleSelectVO(RoleEntity e) {
@@ -82,14 +79,14 @@ public class RoleService {
 	}
 
 	public RoleEntity getById(Long id) {
-		return mapper.selectOneById(id);
+		return mapper.selectById(id);
 	}
 
 	public RoleDetailVO getDetail(Long id) {
 		if (id == null) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "角色ID不能为空");
 		}
-		RoleEntity entity = mapper.selectOneById(id);
+		RoleEntity entity = mapper.selectById(id);
 		if (entity == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "角色不存在");
 		}
@@ -115,19 +112,18 @@ public class RoleService {
 	@Transactional(rollbackFor = Exception.class)
 	public Long save(RoleSaveForm form) {
 		// 检查角色编码唯一性
-		QueryWrapper checkWrapper = QueryWrapper.create()
-				.from(RoleTable.ROLE)
-				.where(RoleTable.ROLE.NUMBER.eq(form.getNumber()));
+		LambdaQueryWrapper<RoleEntity> checkWrapper = new LambdaQueryWrapper<RoleEntity>()
+				.eq(RoleEntity::getNumber, form.getNumber());
 		if (form.getId() != null) {
-			checkWrapper.and(RoleTable.ROLE.ID.ne(form.getId()));
+			checkWrapper.ne(RoleEntity::getId, form.getId());
 		}
-		if (mapper.selectCountByQuery(checkWrapper) > 0) {
+		if (mapper.selectCount(checkWrapper) > 0) {
 			throw new BizException("角色编码已存在");
 		}
 
 		RoleEntity e;
 		if (form.getId() != null) {
-			e = mapper.selectOneById(form.getId());
+			e = mapper.selectById(form.getId());
 			if (e == null) {
 				throw new BizException("角色不存在");
 			}
@@ -140,7 +136,7 @@ public class RoleService {
 		if (form.getId() == null) {
 			mapper.insert(e);
 		} else {
-			mapper.update(e);
+			mapper.updateById(e);
 		}
 		return e.getId();
 	}
@@ -150,7 +146,7 @@ public class RoleService {
 		if (id == null) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "角色ID不能为空");
 		}
-		RoleEntity role = mapper.selectOneById(id);
+		RoleEntity role = mapper.selectById(id);
 		if (role == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "角色不存在");
 		}

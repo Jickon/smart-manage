@@ -1,7 +1,7 @@
 package sm.cloud.sys.common.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.mybatisflex.annotation.EnumValue;
+import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.Getter;
 
 /**

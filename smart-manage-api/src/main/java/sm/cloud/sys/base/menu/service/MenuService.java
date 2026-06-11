@@ -1,31 +1,25 @@
 package sm.cloud.sys.base.menu.service;
 
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
-import com.mybatisflex.core.row.Db;
-import com.mybatisflex.core.row.Row;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.app.domain.entity.AppEntity;
-import sm.cloud.sys.base.app.domain.entity.table.AppTable;
-import sm.cloud.sys.base.cloud.domain.entity.table.CloudTable;
 import sm.system.exception.BizException;
 import sm.cloud.sys.base.app.mapper.AppMapper;
 import sm.cloud.sys.base.menu.domain.entity.MenuEntity;
-import sm.cloud.sys.base.menu.domain.entity.table.MenuTable;
 import sm.cloud.sys.base.menu.domain.form.MenuListForm;
 import sm.cloud.sys.base.menu.domain.form.MenuSaveForm;
 import sm.cloud.sys.base.menu.domain.form.MenuSelectForm;
 import sm.cloud.sys.base.menu.domain.vo.MenuCreateNewDataVO;
 import sm.cloud.sys.base.menu.domain.vo.MenuDetailVO;
 import sm.cloud.sys.base.menu.domain.vo.MenuListVO;
+import sm.cloud.sys.base.menu.domain.vo.MenuAppInfoVO;
 import sm.cloud.sys.base.menu.domain.vo.MenuSelectVO;
 import sm.cloud.sys.base.menu.domain.vo.MenuVO;
 import sm.cloud.sys.base.menu.mapper.MenuMapper;
-import sm.cloud.sys.base.roleperms.domain.entity.table.RolePermsTable;
-import sm.cloud.sys.base.userrole.domain.entity.table.UserRoleTable;
 import sm.cloud.sys.common.enums.MenuLevelEnum;
 import sm.cloud.sys.common.helper.UserHelper;
 import sm.system.response.PageResult;
@@ -35,6 +29,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 /**
@@ -68,19 +63,17 @@ public class MenuService {
 	}
 
 	public PageResult<MenuListVO> listPage(MenuListForm form) {
-		QueryWrapper qw = QueryWrapper.create().from(MenuTable.MENU);
-		if (form.getAppId() != null) {
-			qw.and(MenuTable.MENU.APP_ID.eq(form.getAppId()));
-		}
+		LambdaQueryWrapper<MenuEntity> wrapper = new LambdaQueryWrapper<MenuEntity>();
+		wrapper.eq(form.getAppId() != null, MenuEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(MenuTable.MENU.NAME.like(kw).or(MenuTable.MENU.PATH.like(kw)));
+			String keyword = form.getKeyword().trim();
+			wrapper.and(condition -> condition.like(MenuEntity::getName, keyword)
+					.or().like(MenuEntity::getPath, keyword));
 		}
-		qw.orderBy(MenuTable.MENU.SORT, true).orderBy(MenuTable.MENU.ID, true);
-		Page<MenuEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<MenuEntity> result = mapper.paginate(page, qw);
-		List<MenuListVO> vos = result.getRecords().stream().map(this::toMenuListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), vos);
+		wrapper.orderByAsc(MenuEntity::getSort).orderByAsc(MenuEntity::getId);
+		Page<MenuEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), wrapper);
+		List<MenuListVO> records = result.getRecords().stream().map(this::toMenuListVo).collect(Collectors.toList());
+		return PageResult.of(result.getTotal(), records);
 	}
 
 	private MenuListVO toMenuListVo(MenuEntity e) {
@@ -102,28 +95,20 @@ public class MenuService {
 	 * 支持按应用、层级、排除自身、是否启用、关键词过滤；按 sort、id 排序。
 	 */
 	public PageResult<MenuSelectVO> select(MenuSelectForm form) {
-		QueryWrapper qw = QueryWrapper.create().from(MenuTable.MENU);
-		if (form.getAppId() != null) {
-			qw.and(MenuTable.MENU.APP_ID.eq(form.getAppId()));
-		}
-		if (form.getLevel() != null) {
-			qw.and(MenuTable.MENU.LEVEL.eq(form.getLevel()));
-		}
-		if (form.getExcludeId() != null) {
-			qw.and(MenuTable.MENU.ID.ne(form.getExcludeId()));
-		}
-		if (form.getEnableFlag() != null) {
-			qw.and(MenuTable.MENU.ENABLE_FLAG.eq(form.getEnableFlag()));
-		}
+		LambdaQueryWrapper<MenuEntity> wrapper = new LambdaQueryWrapper<MenuEntity>();
+		wrapper.eq(form.getAppId() != null, MenuEntity::getAppId, form.getAppId())
+				.eq(form.getLevel() != null, MenuEntity::getLevel, form.getLevel())
+				.ne(form.getExcludeId() != null, MenuEntity::getId, form.getExcludeId())
+				.eq(form.getEnableFlag() != null, MenuEntity::getEnableFlag, form.getEnableFlag());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(MenuTable.MENU.NUMBER.like(kw).or(MenuTable.MENU.NAME.like(kw)));
+			String keyword = form.getKeyword().trim();
+			wrapper.and(condition -> condition.like(MenuEntity::getNumber, keyword)
+					.or().like(MenuEntity::getName, keyword));
 		}
-		qw.orderBy(MenuTable.MENU.SORT, true).orderBy(MenuTable.MENU.ID, true);
-		Page<MenuEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<MenuEntity> result = mapper.paginate(page, qw);
-		List<MenuSelectVO> vos = result.getRecords().stream().map(this::toMenuSelectVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), vos);
+		wrapper.orderByAsc(MenuEntity::getSort).orderByAsc(MenuEntity::getId);
+		Page<MenuEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), wrapper);
+		List<MenuSelectVO> records = result.getRecords().stream().map(this::toMenuSelectVo).collect(Collectors.toList());
+		return PageResult.of(result.getTotal(), records);
 	}
 
 	private MenuSelectVO toMenuSelectVo(MenuEntity e) {
@@ -150,86 +135,41 @@ public class MenuService {
 	public MenuVO getUserMenusByAppId(Long userId, Long appId) {
 		MenuVO root = new MenuVO();
 		root.setRoutes(new ArrayList<>());
-
 		if (userId == null || appId == null) {
 			return root;
 		}
 
-		// 应用基础信息（root 不再依赖 level=APP 的菜单记录）
-		Row appRow = Db.selectOneByQuery(
-				QueryWrapper.create()
-						.select(
-								AppTable.APP.NAME.as("aname"),
-								AppTable.APP.NUMBER.as("anumber"),
-								AppTable.APP.ICON.as("aicon"),
-								CloudTable.CLOUD.NUMBER.as("cnumber")
-						)
-						.from(AppTable.APP)
-						.leftJoin(CloudTable.CLOUD).on(CloudTable.CLOUD.ID.eq(AppTable.APP.CLOUD_ID))
-						.where(AppTable.APP.ID.eq(appId))
-						.limit(1)
-		);
-		if (appRow != null) {
-			final String appName = appRow.getString("aname");
-			final String appNumber = appRow.getString("anumber");
-			final String cloudNumber = appRow.getString("cnumber");
-			root.setName(appName);
-			root.setIcon(appRow.getString("aicon"));
-
-			// 关键：AppWorkspaceLayout 只有在 rootMenu.path 有值时才渲染侧边栏菜单
-			if (cloudNumber != null && !cloudNumber.isBlank() && appNumber != null && !appNumber.isBlank()) {
-				root.setPath("/" + cloudNumber + "/" + appNumber + "/home");
+		MenuAppInfoVO appInfo = mapper.selectAppInfo(appId);
+		if (appInfo != null) {
+			root.setName(appInfo.getAppName());
+			root.setIcon(appInfo.getAppIcon());
+			if (appInfo.getCloudNumber() != null && !appInfo.getCloudNumber().isBlank()
+					&& appInfo.getAppNumber() != null && !appInfo.getAppNumber().isBlank()) {
+				root.setPath("/" + appInfo.getCloudNumber() + "/" + appInfo.getAppNumber() + "/home");
 				root.setComponent(toWorkspaceComponentKeyByPath(root.getPath()));
 			}
 		}
 
-			// 超级管理员跳过权限过滤，直接查全量菜单
-			QueryWrapper query;
-			boolean isAdmin = UserHelper.isAdmin();
-			if (isAdmin) {
-				query = QueryWrapper.create()
-						.select(MenuTable.MENU.ALL_COLUMNS)
-						.from(MenuTable.MENU)
-						.where(MenuTable.MENU.APP_ID.eq(appId))
-						.and(MenuTable.MENU.LEVEL.in(MenuLevelEnum.CATEGORY, MenuLevelEnum.PAGE));
-			} else {
-				query = QueryWrapper.create()
-						.select(MenuTable.MENU.ALL_COLUMNS)
-						.leftJoin(RolePermsTable.ROLE_PERMS).on(RolePermsTable.ROLE_PERMS.PERMISSION_ID.eq(MenuTable.MENU.PERMISSION_ID))
-						.leftJoin(UserRoleTable.USER_ROLE).on(UserRoleTable.USER_ROLE.ROLE_ID.eq(RolePermsTable.ROLE_PERMS.ROLE_ID))
-						.where(MenuTable.MENU.APP_ID.eq(appId))
-						.and(UserRoleTable.USER_ROLE.USER_ID.eq(userId))
-						.and(MenuTable.MENU.LEVEL.in(MenuLevelEnum.CATEGORY, MenuLevelEnum.PAGE));
-			}
-			query.orderBy(MenuTable.MENU.LEVEL.asc(), MenuTable.MENU.SORT.asc(), MenuTable.MENU.CREATE_TIME.asc());
-		List<MenuEntity> menuEntities = mapper.selectListByQueryAs(query, MenuEntity.class);
-
-		Map<Long, MenuVO> cacheCategory = new HashMap<>();
+		List<MenuEntity> menuEntities = mapper.selectUserMenus(userId, appId, UserHelper.isAdmin());
+		Map<Long, MenuVO> categories = new HashMap<>();
 		for (MenuEntity menuEntity : menuEntities) {
-			if (menuEntity.getLevel().equals(MenuLevelEnum.CATEGORY)) {
-				MenuVO category = new MenuVO();
-				category.setName(menuEntity.getName());
-				category.setPath(menuEntity.getPath());
-				category.setComponent(menuEntity.getComponent());
-				category.setIcon(menuEntity.getIcon());
-				category.setLevel(MenuLevelEnum.CATEGORY);
-				root.getRoutes().add(category);
-				cacheCategory.put(menuEntity.getId(), category);
-			} else if (menuEntity.getLevel().equals(MenuLevelEnum.PAGE)) {
-				MenuVO page = new MenuVO();
-				page.setName(menuEntity.getName());
-				page.setPath(menuEntity.getPath());
-				page.setComponent(menuEntity.getComponent());
-				page.setIcon(menuEntity.getIcon());
-				page.setLevel(MenuLevelEnum.PAGE);
-				MenuVO parent = cacheCategory.get(menuEntity.getParentId());
-				if (parent == null) {
-					continue;
+			MenuVO menu = new MenuVO();
+			menu.setName(menuEntity.getName());
+			menu.setPath(menuEntity.getPath());
+			menu.setComponent(menuEntity.getComponent());
+			menu.setIcon(menuEntity.getIcon());
+			menu.setLevel(menuEntity.getLevel());
+			if (MenuLevelEnum.CATEGORY.equals(menuEntity.getLevel())) {
+				root.getRoutes().add(menu);
+				categories.put(menuEntity.getId(), menu);
+			} else if (MenuLevelEnum.PAGE.equals(menuEntity.getLevel())) {
+				MenuVO parent = categories.get(menuEntity.getParentId());
+				if (parent != null) {
+					if (parent.getRoutes() == null) {
+						parent.setRoutes(new ArrayList<>());
+					}
+					parent.getRoutes().add(menu);
 				}
-				if (parent.getRoutes() == null) {
-					parent.setRoutes(new ArrayList<>());
-				}
-				parent.getRoutes().add(page);
 			}
 		}
 		return root;
@@ -245,13 +185,8 @@ public class MenuService {
 			empty.setRoutes(new ArrayList<>());
 			return empty;
 		}
-		AppEntity app = appMapper.selectOneByQueryAs(
-				QueryWrapper.create()
-						.from(AppTable.APP)
-						.where(AppTable.APP.NUMBER.eq(appNumber))
-						.limit(1),
-				AppEntity.class
-		);
+		AppEntity app = appMapper.selectOne(new LambdaQueryWrapper<AppEntity>()
+				.eq(AppEntity::getNumber, appNumber));
 		Long appId = app == null ? null : app.getId();
 		if (appId == null) {
 			MenuVO empty = new MenuVO();
@@ -262,21 +197,21 @@ public class MenuService {
 	}
 
 	public MenuEntity getById(Long id) {
-		return mapper.selectOneById(id);
+		return mapper.selectById(id);
 	}
 
 	public MenuDetailVO getDetail(Long id) {
 		if (id == null) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "菜单ID不能为空");
 		}
-		MenuEntity entity = mapper.selectOneById(id);
+		MenuEntity entity = mapper.selectById(id);
 		if (entity == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "菜单不存在");
 		}
 		MenuDetailVO vo = toDetailVo(entity);
 		// 填充父菜单信息
 		if (entity.getParentId() != null && entity.getParentId() > 0) {
-			MenuEntity parentEntity = mapper.selectOneById(entity.getParentId());
+			MenuEntity parentEntity = mapper.selectById(entity.getParentId());
 			if (parentEntity != null) {
 				MenuDetailVO.ParentInfo info = new MenuDetailVO.ParentInfo();
 				info.setId(String.valueOf(parentEntity.getId()));
@@ -321,7 +256,7 @@ public class MenuService {
 	public Long save(MenuSaveForm form) {
 		MenuEntity e = new MenuEntity();
 		if (form.getId() != null) {
-			e = mapper.selectOneById(form.getId());
+			e = mapper.selectById(form.getId());
 			if (e == null) {
 				throw new BizException(ResultEnum.NOT_FOUND, "菜单不存在");
 			}
@@ -360,8 +295,10 @@ public class MenuService {
 		if (form.getId() == null) {
 			mapper.insert(e);
 		} else {
-			// forceUpdate=false：允许 null 值覆盖到数据库，分组菜单需清空 permissionId/path/component
-			mapper.update(e, false);
+			// 使用全字段 XML 更新，确保分组菜单可以把 permissionId/path/component 清空为 null。
+			e.setUpdateTime(LocalDateTime.now());
+			e.setUpdateUser(UserHelper.isLogin() ? UserHelper.getCurrentUserId() : null);
+			mapper.updateAllColumns(e);
 		}
 		return e.getId();
 	}
@@ -371,7 +308,7 @@ public class MenuService {
 		if (id == null) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "菜单ID不能为空");
 		}
-		MenuEntity entity = mapper.selectOneById(id);
+		MenuEntity entity = mapper.selectById(id);
 		if (entity == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "菜单不存在");
 		}

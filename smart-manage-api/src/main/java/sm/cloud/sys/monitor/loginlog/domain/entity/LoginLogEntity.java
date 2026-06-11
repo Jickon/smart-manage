@@ -1,9 +1,8 @@
 package sm.cloud.sys.monitor.loginlog.domain.entity;
 
-import com.mybatisflex.annotation.Id;
-import com.mybatisflex.annotation.KeyType;
-import com.mybatisflex.annotation.Table;
-import com.mybatisflex.core.keygen.KeyGenerators;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import sm.system.entity.BaseEntity;
@@ -15,9 +14,9 @@ import sm.system.entity.BaseEntity;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Table("t_sys_login_log")
+@TableName("t_sys_login_log")
 public class LoginLogEntity extends BaseEntity {
-	@Id(keyType = KeyType.Generator, value = KeyGenerators.snowFlakeId)
+	@TableId(type = IdType.ASSIGN_ID)
 	private Long id;
 	private Long userId;
 	private String username;

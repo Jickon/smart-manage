@@ -3,20 +3,18 @@ package sm.cloud.sys.base.basicdata.service;
 import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.CreateCache;
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.basicdataitem.domain.entity.BasicDataItemEntity;
-import sm.cloud.sys.base.basicdataitem.domain.entity.table.BasicDataItemTable;
 import sm.cloud.sys.base.basicdataitem.domain.form.BasicDataItemSaveForm;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataItemListVO;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataOptionVO;
 import sm.cloud.sys.base.basicdataitem.mapper.BasicDataItemMapper;
 import sm.cloud.sys.base.basicdata.domain.entity.BasicDataEntity;
-import sm.cloud.sys.base.basicdata.domain.entity.table.BasicDataTable;
 import sm.cloud.sys.base.basicdata.domain.form.BasicDataListForm;
 import sm.cloud.sys.base.basicdata.domain.form.BasicDataSaveForm;
 import sm.cloud.sys.base.basicdata.domain.vo.BasicDataCreateNewDataVO;
@@ -49,16 +47,16 @@ public class BasicDataService {
     private Cache<String, List<BasicDataOptionVO>> cache;
 
     public PageResult<BasicDataListVO> listPage(BasicDataListForm form) {
-        QueryWrapper qw = QueryWrapper.create().from(BasicDataTable.BASIC_DATA);
+        LambdaQueryWrapper<BasicDataEntity> qw = new LambdaQueryWrapper<BasicDataEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
-            qw.and(BasicDataTable.BASIC_DATA.NAME.like(kw).or(BasicDataTable.BASIC_DATA.NUMBER.like(kw)));
+            qw.and(condition -> condition.like(BasicDataEntity::getName, kw).or().like(BasicDataEntity::getNumber, kw));
         }
-        qw.orderBy(BasicDataTable.BASIC_DATA.NUMBER, true);
-        Page<BasicDataEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-        Page<BasicDataEntity> result = mapper.paginate(page, qw);
+        qw.orderByAsc(BasicDataEntity::getNumber);
+        Page<BasicDataEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+        Page<BasicDataEntity> result = mapper.selectPage(page, qw);
         List<BasicDataListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotalRow(), vos);
+        return PageResult.of(result.getTotal(), vos);
     }
 
     private BasicDataListVO toListVo(BasicDataEntity entity) {
@@ -77,7 +75,7 @@ public class BasicDataService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "基础数据ID不能为空");
         }
-        BasicDataEntity entity = mapper.selectOneById(id);
+        BasicDataEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
         }
@@ -90,10 +88,10 @@ public class BasicDataService {
         vo.setCreateTime(entity.getCreateTime());
         vo.setUpdateTime(entity.getUpdateTime());
         // 加载明细
-        List<BasicDataItemEntity> items = itemMapper.selectListByQuery(
-                QueryWrapper.create().from(BasicDataItemTable.BASIC_DATA_ITEM)
-                        .where(BasicDataItemTable.BASIC_DATA_ITEM.TYPE_NUMBER.eq(entity.getNumber()))
-                        .orderBy(BasicDataItemTable.BASIC_DATA_ITEM.SORT, true));
+        List<BasicDataItemEntity> items = itemMapper.selectList(
+                new LambdaQueryWrapper<BasicDataItemEntity>()
+                        .eq(BasicDataItemEntity::getTypeNumber, entity.getNumber())
+                        .orderByAsc(BasicDataItemEntity::getSort));
         vo.setEntrys(items.stream().map(item -> {
             BasicDataItemListVO iv = new BasicDataItemListVO();
             iv.setId(item.getId());
@@ -118,7 +116,7 @@ public class BasicDataService {
         // 保存基础数据
         BasicDataEntity entity;
         if (form.getId() != null) {
-            entity = mapper.selectOneById(form.getId());
+            entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
             }
@@ -133,13 +131,13 @@ public class BasicDataService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.update(entity);
+            mapper.updateById(entity);
         }
 
         // 保存明细：删除旧项，重新插入
-        itemMapper.deleteByQuery(
-                QueryWrapper.create().from(BasicDataItemTable.BASIC_DATA_ITEM)
-                        .where(BasicDataItemTable.BASIC_DATA_ITEM.TYPE_NUMBER.eq(typeNumber)));
+        itemMapper.delete(
+                new LambdaQueryWrapper<BasicDataItemEntity>()
+                        .eq(BasicDataItemEntity::getTypeNumber, typeNumber));
         if (form.getEntrys() != null) {
             for (BasicDataItemSaveForm itemForm : form.getEntrys()) {
                 BasicDataItemEntity item = new BasicDataItemEntity();
@@ -163,7 +161,7 @@ public class BasicDataService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "基础数据ID不能为空");
         }
-        BasicDataEntity entity = mapper.selectOneById(id);
+        BasicDataEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
         }

@@ -1,6 +1,5 @@
 package sm.framework.config;
 
-import cn.hutool.core.date.DatePattern;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -14,6 +13,7 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Redis配置
@@ -22,6 +22,10 @@ import java.time.LocalDateTime;
  */
 @Configuration
 public class RedisConfig {
+
+	/** 日期时间格式：yyyy-MM-dd HH:mm:ss，与 JsonConfig 保持一致 */
+	private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 	@Bean
 	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
 		RedisTemplate<String, Object> template = new RedisTemplate<>();
@@ -30,8 +34,8 @@ public class RedisConfig {
 		// 创建自定义ObjectMapper并配置日期格式化(与JsonConfig保持一致)
 		ObjectMapper objectMapper = new ObjectMapper();
 		JavaTimeModule javaTimeModule = new JavaTimeModule();
-		javaTimeModule.addSerializer(new LocalDateTimeSerializer(DatePattern.NORM_DATETIME_FORMAT.getDateTimeFormatter()));
-		javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DatePattern.NORM_DATETIME_FORMAT.getDateTimeFormatter()));
+		javaTimeModule.addSerializer(new LocalDateTimeSerializer(DATETIME_FORMATTER));
+		javaTimeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DATETIME_FORMATTER));
 		objectMapper.registerModule(javaTimeModule);
 		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 		// 启用类型信息保留

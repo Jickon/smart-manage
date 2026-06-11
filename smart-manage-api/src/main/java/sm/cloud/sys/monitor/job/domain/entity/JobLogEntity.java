@@ -1,9 +1,8 @@
 package sm.cloud.sys.monitor.job.domain.entity;
 
-import com.mybatisflex.annotation.Id;
-import com.mybatisflex.annotation.KeyType;
-import com.mybatisflex.annotation.Table;
-import com.mybatisflex.core.keygen.KeyGenerators;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -14,10 +13,10 @@ import java.time.LocalDateTime;
  * @author Chekfu
  */
 @Data
-@Table("t_sys_job_log")
+@TableName("t_sys_job_log")
 public class JobLogEntity {
 
-    @Id(keyType = KeyType.Generator, value = KeyGenerators.snowFlakeId)
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /** 关联的任务ID */

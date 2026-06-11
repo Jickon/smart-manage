@@ -1,6 +1,6 @@
 package sm.cloud.sys.base.attachment.service;
 
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -8,8 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import sm.cloud.sys.base.attachment.domain.entity.AttachmentEntity;
 import sm.cloud.sys.base.attachment.domain.entity.BizAttachmentEntity;
-import sm.cloud.sys.base.attachment.domain.entity.table.AttachmentTable;
-import sm.cloud.sys.base.attachment.domain.entity.table.BizAttachmentTable;
 import sm.cloud.sys.base.attachment.domain.form.AttachmentPromoteForm;
 import sm.cloud.sys.base.attachment.domain.vo.AttachmentVO;
 import sm.cloud.sys.base.attachment.mapper.AttachmentMapper;
@@ -76,7 +74,7 @@ public class AttachmentService {
     public void promote(AttachmentPromoteForm form) throws IOException {
         FileStorageService storage = storageFactory.getService();
         for (Long attachmentId : form.getAttachmentIds()) {
-            AttachmentEntity entity = mapper.selectOneById(attachmentId);
+            AttachmentEntity entity = mapper.selectById(attachmentId);
             if (entity == null) {
                 throw new BizException("附件不存在: " + attachmentId);
             }
@@ -85,13 +83,13 @@ public class AttachmentService {
                 String newPath = storage.promote(entity.getStoredPath(), "biz/" + form.getBizType());
                 entity.setStoredPath(newPath);
                 entity.setIsTemp(false);
-                mapper.update(entity);
+                mapper.updateById(entity);
             }
             // 更新业务映射
             BizAttachmentEntity biz = selectBizByAttachmentId(attachmentId);
             if (biz != null) {
                 biz.setBizId(form.getBizId());
-                bizMapper.update(biz);
+                bizMapper.updateById(biz);
             } else {
                 BizAttachmentEntity newBiz = new BizAttachmentEntity();
                 newBiz.setBizType(form.getBizType());
@@ -110,49 +108,38 @@ public class AttachmentService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "附件 id 不能为空");
         }
-        AttachmentEntity entity = mapper.selectOneById(id);
+        AttachmentEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "附件不存在：" + id);
         }
         FileStorageService storage = storageFactory.getService();
         storage.delete(entity.getStoredPath());
         // 删除业务映射
-        bizMapper.deleteByQuery(
-                QueryWrapper.create().from(BizAttachmentTable.BIZ_ATTACHMENT)
-                        .where(BizAttachmentTable.BIZ_ATTACHMENT.ATTACHMENT_ID.eq(id)));
+        bizMapper.delete(new LambdaQueryWrapper<BizAttachmentEntity>()
+                .eq(BizAttachmentEntity::getAttachmentId, id));
         mapper.deleteById(id);
         log.info("附件删除: id={}, path={}", id, entity.getStoredPath());
     }
 
     /** 按业务单据查询附件列表 */
     public List<AttachmentVO> listByBiz(String bizType, String bizId) {
-        QueryWrapper qw = QueryWrapper.create()
-                .select(AttachmentTable.ATTACHMENT.ALL_COLUMNS)
-                .from(AttachmentTable.ATTACHMENT)
-                .leftJoin(BizAttachmentTable.BIZ_ATTACHMENT)
-                .on(BizAttachmentTable.BIZ_ATTACHMENT.ATTACHMENT_ID.eq(AttachmentTable.ATTACHMENT.ID))
-                .where(BizAttachmentTable.BIZ_ATTACHMENT.BIZ_TYPE.eq(bizType))
-                .and(BizAttachmentTable.BIZ_ATTACHMENT.BIZ_ID.eq(bizId))
-                .orderBy(BizAttachmentTable.BIZ_ATTACHMENT.SORT, true)
-                .orderBy(AttachmentTable.ATTACHMENT.CREATE_TIME, true);
-        List<AttachmentEntity> entities = mapper.selectListByQueryAs(qw, AttachmentEntity.class);
+        List<AttachmentEntity> entities = mapper.selectByBiz(bizType, bizId);
         return entities.stream().map(this::toVo).collect(Collectors.toList());
     }
 
     /** 列出现有附件,无论是临时还是正式都有 */
     public List<AttachmentVO> listByIds(List<Long> ids) {
         if (ids == null || ids.isEmpty()) return List.of();
-        return mapper.selectListByIds(ids).stream().map(this::toVo).collect(Collectors.toList());
+        return mapper.selectByIds(ids).stream().map(this::toVo).collect(Collectors.toList());
     }
 
     public AttachmentEntity getById(Long id) {
-        return mapper.selectOneById(id);
+        return mapper.selectById(id);
     }
 
     private BizAttachmentEntity selectBizByAttachmentId(Long attachmentId) {
-        return bizMapper.selectOneByQuery(
-                QueryWrapper.create().from(BizAttachmentTable.BIZ_ATTACHMENT)
-                        .where(BizAttachmentTable.BIZ_ATTACHMENT.ATTACHMENT_ID.eq(attachmentId)));
+        return bizMapper.selectOne(new LambdaQueryWrapper<BizAttachmentEntity>()
+                .eq(BizAttachmentEntity::getAttachmentId, attachmentId));
     }
 
     private AttachmentVO toVo(AttachmentEntity entity) {

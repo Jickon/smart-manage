@@ -1,9 +1,8 @@
 package sm.cloud.sys.base.uiconfig.domain.entity;
 
-import com.mybatisflex.annotation.Id;
-import com.mybatisflex.annotation.KeyType;
-import com.mybatisflex.annotation.Table;
-import com.mybatisflex.core.keygen.KeyGenerators;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import sm.system.entity.BaseEntity;
@@ -15,10 +14,10 @@ import sm.system.entity.BaseEntity;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Table("t_sys_ui_config")
+@TableName("t_sys_ui_config")
 public class UiConfigEntity extends BaseEntity {
 
-    @Id(keyType = KeyType.Generator, value = KeyGenerators.snowFlakeId)
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /** 页面标题 */

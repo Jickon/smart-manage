@@ -1,15 +1,12 @@
 package sm.cloud.sys.base.permission.service;
 
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
-import com.mybatisflex.core.row.Db;
-import com.mybatisflex.core.row.Row;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.permission.domain.entity.PermissionEntity;
-import sm.cloud.sys.base.permission.domain.entity.table.PermissionTable;
 import sm.cloud.sys.base.permission.domain.form.PermissionListForm;
 import sm.cloud.sys.base.permission.domain.form.PermissionSaveForm;
 import sm.cloud.sys.base.permission.domain.form.PermissionSelectForm;
@@ -18,8 +15,6 @@ import sm.cloud.sys.base.permission.domain.vo.PermissionDetailVO;
 import sm.cloud.sys.base.permission.domain.vo.PermissionListVO;
 import sm.cloud.sys.base.permission.domain.vo.PermissionSelectVO;
 import sm.cloud.sys.base.permission.mapper.PermissionMapper;
-import sm.cloud.sys.base.roleperms.domain.entity.table.RolePermsTable;
-import sm.cloud.sys.base.userrole.domain.entity.table.UserRoleTable;
 import sm.system.exception.BizException;
 import sm.system.response.PageResult;
 import sm.system.response.ResultEnum;
@@ -37,19 +32,17 @@ public class PermissionService {
 	private final PermissionMapper mapper;
 
 	public PageResult<PermissionListVO> listPage(PermissionListForm form) {
-		QueryWrapper qw = QueryWrapper.create().from(PermissionTable.PERMISSION);
-		if (form.getAppId() != null) {
-			qw.and(PermissionTable.PERMISSION.APP_ID.eq(form.getAppId()));
-		}
+		LambdaQueryWrapper<PermissionEntity> wrapper = new LambdaQueryWrapper<PermissionEntity>();
+		wrapper.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(PermissionTable.PERMISSION.NAME.like(kw).or(PermissionTable.PERMISSION.NUMBER.like(kw)));
+			String keyword = form.getKeyword().trim();
+			wrapper.and(condition -> condition.like(PermissionEntity::getName, keyword)
+					.or().like(PermissionEntity::getNumber, keyword));
 		}
-		qw.orderBy(PermissionTable.PERMISSION.NUMBER, true);
-		Page<PermissionEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<PermissionEntity> result = mapper.paginate(page, qw);
-		List<PermissionListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), vos);
+		wrapper.orderByAsc(PermissionEntity::getNumber);
+		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), wrapper);
+		List<PermissionListVO> records = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
+		return PageResult.of(result.getTotal(), records);
 	}
 
 	private PermissionListVO toListVo(PermissionEntity e) {
@@ -66,19 +59,17 @@ public class PermissionService {
 	 * 支持按应用、关键词过滤；按编码排序。
 	 */
 	public PageResult<PermissionSelectVO> select(PermissionSelectForm form) {
-		QueryWrapper qw = QueryWrapper.create().from(PermissionTable.PERMISSION);
-		if (form.getAppId() != null) {
-			qw.and(PermissionTable.PERMISSION.APP_ID.eq(form.getAppId()));
-		}
+		LambdaQueryWrapper<PermissionEntity> wrapper = new LambdaQueryWrapper<PermissionEntity>();
+		wrapper.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(PermissionTable.PERMISSION.NUMBER.like(kw).or(PermissionTable.PERMISSION.NAME.like(kw)));
+			String keyword = form.getKeyword().trim();
+			wrapper.and(condition -> condition.like(PermissionEntity::getNumber, keyword)
+					.or().like(PermissionEntity::getName, keyword));
 		}
-		qw.orderBy(PermissionTable.PERMISSION.NUMBER, true);
-		Page<PermissionEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<PermissionEntity> result = mapper.paginate(page, qw);
-		List<PermissionSelectVO> vos = result.getRecords().stream().map(this::toSelectVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), vos);
+		wrapper.orderByAsc(PermissionEntity::getNumber);
+		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), wrapper);
+		List<PermissionSelectVO> records = result.getRecords().stream().map(this::toSelectVo).collect(Collectors.toList());
+		return PageResult.of(result.getTotal(), records);
 	}
 
 	private PermissionSelectVO toSelectVo(PermissionEntity e) {
@@ -97,15 +88,7 @@ public class PermissionService {
 		if (userId == null || orgId == null) {
 			return List.of();
 		}
-		QueryWrapper query = QueryWrapper.create()
-				.select(PermissionTable.PERMISSION.NUMBER)
-				.from(PermissionTable.PERMISSION)
-				.innerJoin(RolePermsTable.ROLE_PERMS).on(RolePermsTable.ROLE_PERMS.PERMISSION_ID.eq(PermissionTable.PERMISSION.ID))
-				.innerJoin(UserRoleTable.USER_ROLE).on(UserRoleTable.USER_ROLE.ROLE_ID.eq(RolePermsTable.ROLE_PERMS.ROLE_ID))
-				.where(UserRoleTable.USER_ROLE.USER_ID.eq(userId))
-				.and(UserRoleTable.USER_ROLE.ORG_ID.eq(orgId));
-		List<Row> rows = Db.selectListByQuery(query);
-		return rows.stream().map(r -> r.getString(PermissionTable.PERMISSION.NUMBER.getName())).filter(s -> s != null && !s.isEmpty()).distinct().toList();
+		return mapper.selectUserPermissionNumbers(userId, orgId, null);
 	}
 
 	/**
@@ -115,27 +98,18 @@ public class PermissionService {
 		if (userId == null || orgId == null) {
 			return List.of();
 		}
-		QueryWrapper query = QueryWrapper.create()
-				.select(PermissionTable.PERMISSION.NUMBER)
-				.from(PermissionTable.PERMISSION)
-				.innerJoin(RolePermsTable.ROLE_PERMS).on(RolePermsTable.ROLE_PERMS.PERMISSION_ID.eq(PermissionTable.PERMISSION.ID))
-				.innerJoin(UserRoleTable.USER_ROLE).on(UserRoleTable.USER_ROLE.ROLE_ID.eq(RolePermsTable.ROLE_PERMS.ROLE_ID))
-				.where(UserRoleTable.USER_ROLE.USER_ID.eq(userId))
-				.and(UserRoleTable.USER_ROLE.ORG_ID.eq(orgId))
-				.and(PermissionTable.PERMISSION.NUMBER.like(prefix + "%"));
-		List<Row> rows = Db.selectListByQuery(query);
-		return rows.stream().map(r -> r.getString(PermissionTable.PERMISSION.NUMBER.getName())).filter(s -> s != null && !s.isEmpty()).distinct().toList();
+		return mapper.selectUserPermissionNumbers(userId, orgId, prefix);
 	}
 
 	public PermissionEntity getById(Long id) {
-		return mapper.selectOneById(id);
+		return mapper.selectById(id);
 	}
 
 	public PermissionDetailVO getDetail(Long id) {
 		if (id == null) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "权限ID不能为空");
 		}
-		PermissionEntity entity = mapper.selectOneById(id);
+		PermissionEntity entity = mapper.selectById(id);
 		if (entity == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
 		}
@@ -163,7 +137,7 @@ public class PermissionService {
 	public Long save(PermissionSaveForm form) {
 		PermissionEntity e;
 		if (form.getId() != null) {
-			e = mapper.selectOneById(form.getId());
+			e = mapper.selectById(form.getId());
 			if (e == null) {
 				throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
 			}
@@ -176,7 +150,7 @@ public class PermissionService {
 		if (form.getId() == null) {
 			mapper.insert(e);
 		} else {
-			mapper.update(e);
+			mapper.updateById(e);
 		}
 		return e.getId();
 	}
@@ -186,7 +160,7 @@ public class PermissionService {
 		if (id == null) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "权限ID不能为空");
 		}
-		PermissionEntity entity = mapper.selectOneById(id);
+		PermissionEntity entity = mapper.selectById(id);
 		if (entity == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
 		}

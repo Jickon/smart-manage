@@ -1,12 +1,11 @@
 package sm.cloud.sys.monitor.operatelog.service;
 
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import sm.cloud.sys.monitor.operatelog.domain.entity.OperateLogEntity;
-import sm.cloud.sys.monitor.operatelog.domain.entity.table.OperateLogTable;
 import sm.cloud.sys.monitor.operatelog.domain.form.OperateLogListForm;
 import sm.cloud.sys.monitor.operatelog.domain.vo.OperateLogDetailVO;
 import sm.cloud.sys.monitor.operatelog.domain.vo.OperateLogListVO;
@@ -23,34 +22,32 @@ public class OperateLogQueryService {
 	private final OperateLogMapper mapper;
 
 	public PageResult<OperateLogListVO> listPage(OperateLogListForm form) {
-		QueryWrapper qw = QueryWrapper.create().from(OperateLogTable.OPERATE_LOG);
+		LambdaQueryWrapper<OperateLogEntity> qw = new LambdaQueryWrapper<OperateLogEntity>();
 		if (StringUtils.hasText(form.getKeyword())) {
 			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(OperateLogTable.OPERATE_LOG.REQUEST_URI.like(kw)
-					.or(OperateLogTable.OPERATE_LOG.METHOD_NAME.like(kw))
-					.or(OperateLogTable.OPERATE_LOG.BIZ_NAME.like(kw)));
+			qw.and(condition -> condition.like(OperateLogEntity::getRequestUri, kw).or().like(OperateLogEntity::getMethodName, kw).or().like(OperateLogEntity::getBizName, kw));
 		}
 		if (form.getSuccess() != null) {
-			qw.and(OperateLogTable.OPERATE_LOG.SUCCESS.eq(form.getSuccess()));
+			qw.eq(OperateLogEntity::getSuccess, form.getSuccess());
 		}
 		if (form.getBeginTime() != null) {
-			qw.and(OperateLogTable.OPERATE_LOG.CREATE_TIME.ge(form.getBeginTime()));
+			qw.ge(OperateLogEntity::getCreateTime, form.getBeginTime());
 		}
 		if (form.getEndTime() != null) {
-			qw.and(OperateLogTable.OPERATE_LOG.CREATE_TIME.le(form.getEndTime()));
+			qw.le(OperateLogEntity::getCreateTime, form.getEndTime());
 		}
-		qw.orderBy(OperateLogTable.OPERATE_LOG.CREATE_TIME, false);
-		Page<OperateLogEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<OperateLogEntity> result = mapper.paginate(page, qw);
+		qw.orderByDesc(OperateLogEntity::getCreateTime);
+		Page<OperateLogEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+		Page<OperateLogEntity> result = mapper.selectPage(page, qw);
 		var records = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), records);
+		return PageResult.of(result.getTotal(), records);
 	}
 
 	public OperateLogDetailVO getById(Long id) {
 		if (id == null) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "操作日志ID不能为空");
 		}
-		OperateLogEntity entity = mapper.selectOneById(id);
+		OperateLogEntity entity = mapper.selectById(id);
 		if (entity == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "操作日志不存在");
 		}

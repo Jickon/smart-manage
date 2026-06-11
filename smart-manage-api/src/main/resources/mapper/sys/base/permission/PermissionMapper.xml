@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sm.cloud.sys.base.permission.mapper.PermissionMapper">
+    <select id="selectUserPermissionNumbers" resultType="java.lang.String">
+        SELECT DISTINCT permission.number
+        FROM t_sys_permission permission
+        INNER JOIN t_sys_role_perms role_perms ON role_perms.permission_id = permission.id
+        INNER JOIN t_sys_user_role user_role ON user_role.role_id = role_perms.role_id
+        WHERE user_role.user_id = #{userId}
+          AND user_role.org_id = #{orgId}
+        <if test="prefix != null and prefix != ''">
+            AND permission.number LIKE CONCAT(#{prefix}, '%')
+        </if>
+    </select>
+</mapper>

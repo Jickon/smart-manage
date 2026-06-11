@@ -1,0 +1,14 @@
+package sm.cloud.sys.base.menu.domain.vo;
+
+import lombok.Data;
+
+/**
+ * 菜单工作台所需的应用基础信息。
+ */
+@Data
+public class MenuAppInfoVO {
+    private String appName;
+    private String appNumber;
+    private String appIcon;
+    private String cloudNumber;
+}

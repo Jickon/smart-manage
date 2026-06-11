@@ -1,8 +1,8 @@
 package sm.cloud.sys.base.user.service;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +12,6 @@ import sm.cloud.sys.base.login.domain.vo.LoginVO;
 import sm.cloud.sys.base.menu.service.MenuService;
 import sm.cloud.sys.base.permission.service.PermissionService;
 import sm.cloud.sys.base.user.domain.entity.UserEntity;
-import sm.cloud.sys.base.user.domain.entity.table.UserTable;
 import sm.cloud.sys.base.user.domain.form.UserListForm;
 import sm.cloud.sys.base.user.domain.form.UserSaveForm;
 import sm.cloud.sys.base.user.domain.vo.UserCreateNewDataVO;
@@ -47,15 +46,15 @@ public class UserService {
 	private Long defaultOrgId;
 
 	public PageResult<UserListVO> listPage(UserListForm form) {
-		QueryWrapper qw = QueryWrapper.create().from(UserTable.USER).orderBy(UserTable.USER.ID, true);
+		LambdaQueryWrapper<UserEntity> qw = new LambdaQueryWrapper<UserEntity>().orderByAsc(UserEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String kw = "%" + form.getKeyword().trim() + "%";
-			qw.and(UserTable.USER.USERNAME.like(kw).or(UserTable.USER.NICKNAME.like(kw)));
+			qw.and(condition -> condition.like(UserEntity::getUsername, kw).or().like(UserEntity::getNickname, kw));
 		}
-		Page<UserEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-		Page<UserEntity> result = mapper.paginate(page, qw);
+		Page<UserEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+		Page<UserEntity> result = mapper.selectPage(page, qw);
 		var vos = result.getRecords().stream().map(this::toUserListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotalRow(), vos);
+		return PageResult.of(result.getTotal(), vos);
 	}
 
 	private UserListVO toUserListVo(UserEntity e) {
@@ -70,13 +69,12 @@ public class UserService {
 	@Transactional(rollbackFor = Exception.class)
 	public Long save(UserSaveForm form) {
 		// 检查用户名唯一性
-		QueryWrapper checkWrapper = QueryWrapper.create()
-				.from(UserTable.USER)
-				.where(UserTable.USER.USERNAME.eq(form.getUsername()));
+		LambdaQueryWrapper<UserEntity> checkWrapper = new LambdaQueryWrapper<UserEntity>()
+				.eq(UserEntity::getUsername, form.getUsername());
 		if (form.getId() != null) {
-			checkWrapper.and(UserTable.USER.ID.ne(form.getId()));
+			checkWrapper.ne(UserEntity::getId, form.getId());
 		}
-		if (mapper.selectCountByQuery(checkWrapper) > 0) {
+		if (mapper.selectCount(checkWrapper) > 0) {
 			throw new BizException("用户名已存在");
 		}
 
@@ -109,7 +107,7 @@ public class UserService {
 			e.setEnableFlag(true);
 			mapper.insert(e);
 		} else {
-			mapper.update(e);
+			mapper.updateById(e);
 		}
 		return e.getId();
 	}
@@ -125,8 +123,8 @@ public class UserService {
 
 	public LoginVO login(String username, String password) {
 		// 查询用户
-		UserEntity user = mapper.selectOneByQuery(
-				QueryWrapper.create().where(UserTable.USER.USERNAME.eq(username)));
+		UserEntity user = mapper.selectOne(
+				new LambdaQueryWrapper<UserEntity>().eq(UserEntity::getUsername, username));
 		if (user == null) {
 			return new LoginVO("用户名或密码错误");
 		}

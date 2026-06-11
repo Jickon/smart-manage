@@ -1,7 +1,7 @@
 package sm.cloud.sys.monitor.script.service;
 
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.mozilla.javascript.*;
 import org.springframework.stereotype.Service;
@@ -158,19 +158,19 @@ public class ScriptService {
     // ---- 脚本 CRUD ----
 
     public PageResult<ScriptListVO> listPage(ScriptListForm form) {
-        QueryWrapper qw = QueryWrapper.create();
+        LambdaQueryWrapper<ScriptEntity> qw = new LambdaQueryWrapper<ScriptEntity>();
         if (StringUtil.isNotBlank(form.getKeyword())) {
             qw.like(ScriptEntity::getNumber, form.getKeyword());
         }
-        qw.orderBy(ScriptEntity::getCreateTime, false);
+        qw.orderByDesc(ScriptEntity::getCreateTime);
 
-        Page<ScriptEntity> page = mapper.paginate(form.getPageNum(), form.getPageSize(), qw);
+        Page<ScriptEntity> page = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
         List<ScriptListVO> vos = page.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageResult.of(page.getTotalRow(), vos);
+        return PageResult.of(page.getTotal(), vos);
     }
 
     public ScriptDetailVO detail(Long id) {
-        ScriptEntity entity = mapper.selectOneById(id);
+        ScriptEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("脚本不存在");
         }
@@ -180,7 +180,7 @@ public class ScriptService {
     public Long save(ScriptSaveForm form) {
         ScriptEntity entity;
         if (form.getId() != null) {
-            entity = mapper.selectOneById(form.getId());
+            entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException("脚本不存在");
             }
@@ -194,7 +194,7 @@ public class ScriptService {
         entity.setRemark(form.getRemark());
 
         if (form.getId() != null) {
-            mapper.update(entity);
+            mapper.updateById(entity);
             return form.getId();
         } else {
             mapper.insert(entity);
@@ -203,7 +203,7 @@ public class ScriptService {
     }
 
     public void delete(Long id) {
-        ScriptEntity entity = mapper.selectOneById(id);
+        ScriptEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("脚本不存在");
         }

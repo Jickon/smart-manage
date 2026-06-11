@@ -3,14 +3,13 @@ package sm.cloud.sys.base.fileconfig.service;
 import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.fileconfig.domain.entity.FileConfigEntity;
-import sm.cloud.sys.base.fileconfig.domain.entity.table.FileConfigTable;
 import sm.cloud.sys.base.fileconfig.domain.form.FileConfigListForm;
 import sm.cloud.sys.base.fileconfig.domain.form.FileConfigSaveForm;
 import sm.cloud.sys.base.fileconfig.domain.vo.FileConfigDetailVO;
@@ -35,27 +34,27 @@ public class FileConfigService {
     private final FileConfigMapper mapper;
 
     public PageResult<FileConfigDetailVO> listPage(FileConfigListForm form) {
-        QueryWrapper qw = QueryWrapper.create().from(FileConfigTable.FILE_CONFIG);
+        LambdaQueryWrapper<FileConfigEntity> qw = new LambdaQueryWrapper<FileConfigEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
-            qw.and(FileConfigTable.FILE_CONFIG.STORAGE_TYPE.like(kw));
+            qw.like(FileConfigEntity::getStorageType, kw);
         }
-        qw.orderBy(FileConfigTable.FILE_CONFIG.ID, true);
-        Page<FileConfigEntity> page = Page.of(form.getPageNum(), form.getPageSize());
-        Page<FileConfigEntity> result = mapper.paginate(page, qw);
+        qw.orderByAsc(FileConfigEntity::getId);
+        Page<FileConfigEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+        Page<FileConfigEntity> result = mapper.selectPage(page, qw);
         List<FileConfigDetailVO> vos = result.getRecords().stream().map(this::toDetailVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotalRow(), vos);
+        return PageResult.of(result.getTotal(), vos);
     }
 
     public FileConfigEntity getById(Long id) {
-        return mapper.selectOneById(id);
+        return mapper.selectById(id);
     }
 
     public FileConfigDetailVO getDetail(Long id) {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "文件配置ID不能为空");
         }
-        FileConfigEntity entity = mapper.selectOneById(id);
+        FileConfigEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
         }
@@ -65,7 +64,7 @@ public class FileConfigService {
     /** 获取活跃配置（Caffeine 本地缓存） */
     @Cached(cacheType = CacheType.LOCAL, name = "common", key = "'file:config'", expire = 30, timeUnit = TimeUnit.MINUTES)
     public FileConfigDetailVO getActiveConfig() {
-        List<FileConfigEntity> entities = mapper.selectAll();
+        List<FileConfigEntity> entities = mapper.selectList(null);
         return entities.isEmpty() ? defaultConfig() : toDetailVo(entities.get(0));
     }
 
@@ -95,7 +94,7 @@ public class FileConfigService {
     public Long save(FileConfigSaveForm form) {
         FileConfigEntity entity;
         if (form.getId() != null) {
-            entity = mapper.selectOneById(form.getId());
+            entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
             }
@@ -113,7 +112,7 @@ public class FileConfigService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.update(entity);
+            mapper.updateById(entity);
         }
         return entity.getId();
     }
@@ -124,7 +123,7 @@ public class FileConfigService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "文件配置ID不能为空");
         }
-        FileConfigEntity entity = mapper.selectOneById(id);
+        FileConfigEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
         }

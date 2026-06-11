@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sm.cloud.sys.base.attachment.mapper.AttachmentMapper">
+    <select id="selectByBiz" resultType="sm.cloud.sys.base.attachment.domain.entity.AttachmentEntity">
+        SELECT attachment.*
+        FROM t_sys_attachment attachment
+        INNER JOIN t_sys_biz_attachment biz_attachment
+            ON biz_attachment.attachment_id = attachment.id
+        WHERE biz_attachment.biz_type = #{bizType}
+          AND biz_attachment.biz_id = #{bizId}
+        ORDER BY biz_attachment.sort, attachment.create_time
+    </select>
+</mapper>

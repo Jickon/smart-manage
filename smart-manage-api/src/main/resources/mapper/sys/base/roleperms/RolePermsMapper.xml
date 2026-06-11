@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="sm.cloud.sys.base.roleperms.mapper.RolePermsMapper">
+    <select id="selectByRoleId" resultType="sm.cloud.sys.base.roleperms.domain.vo.RolePermsVO">
+        SELECT role_perms.id, role_perms.role_id, role_perms.permission_id,
+               permission.name AS perm_name, permission.number AS perm_number
+        FROM t_sys_role_perms role_perms
+        LEFT JOIN t_sys_permission permission ON permission.id = role_perms.permission_id
+        WHERE role_perms.role_id = #{roleId}
+    </select>
+
+    <insert id="insertBatch">
+        INSERT INTO t_sys_role_perms
+            (id, role_id, permission_id, create_time, create_user)
+        VALUES
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.id}, #{entity.roleId}, #{entity.permissionId},
+             #{entity.createTime}, #{entity.createUser})
+        </foreach>
+    </insert>
+</mapper>

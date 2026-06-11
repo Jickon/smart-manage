@@ -5,13 +5,12 @@ import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
 import com.alicp.jetcache.anno.CreateCache;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.basicdataitem.domain.entity.BasicDataItemEntity;
-import sm.cloud.sys.base.basicdataitem.domain.entity.table.BasicDataItemTable;
 import sm.cloud.sys.base.basicdataitem.domain.form.BasicDataItemSaveForm;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataItemListVO;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataOptionVO;
@@ -45,11 +44,10 @@ public class BasicDataItemService {
      * 按基础数据编码查询项列表（管理端用）
      */
     public List<BasicDataItemListVO> listByTypeNumber(String typeNumber) {
-        QueryWrapper qw = QueryWrapper.create()
-                .from(BasicDataItemTable.BASIC_DATA_ITEM)
-                .where(BasicDataItemTable.BASIC_DATA_ITEM.TYPE_NUMBER.eq(typeNumber))
-                .orderBy(BasicDataItemTable.BASIC_DATA_ITEM.SORT, true);
-        List<BasicDataItemEntity> entities = mapper.selectListByQuery(qw);
+        LambdaQueryWrapper<BasicDataItemEntity> qw = new LambdaQueryWrapper<BasicDataItemEntity>()
+                .eq(BasicDataItemEntity::getTypeNumber, typeNumber)
+                .orderByAsc(BasicDataItemEntity::getSort);
+        List<BasicDataItemEntity> entities = mapper.selectList(qw);
         return entities.stream().map(this::toListVo).collect(Collectors.toList());
     }
 
@@ -67,12 +65,11 @@ public class BasicDataItemService {
     /** 按基础数据编码获取选项列表（Caffeine 本地缓存） */
     @Cached(cacheType = CacheType.LOCAL, name = "basic-data-items", key = "#typeNumber", expire = 30, timeUnit = TimeUnit.MINUTES)
     public List<BasicDataOptionVO> getOptionsByTypeNumber(String typeNumber) {
-        QueryWrapper qw = QueryWrapper.create()
-                .from(BasicDataItemTable.BASIC_DATA_ITEM)
-                .where(BasicDataItemTable.BASIC_DATA_ITEM.TYPE_NUMBER.eq(typeNumber))
-                .and(BasicDataItemTable.BASIC_DATA_ITEM.ENABLE_FLAG.eq(true))
-                .orderBy(BasicDataItemTable.BASIC_DATA_ITEM.SORT, true);
-        List<BasicDataItemEntity> entities = mapper.selectListByQuery(qw);
+        LambdaQueryWrapper<BasicDataItemEntity> qw = new LambdaQueryWrapper<BasicDataItemEntity>()
+                .eq(BasicDataItemEntity::getTypeNumber, typeNumber)
+                .eq(BasicDataItemEntity::getEnableFlag, true)
+                .orderByAsc(BasicDataItemEntity::getSort);
+        List<BasicDataItemEntity> entities = mapper.selectList(qw);
         return entities.stream()
                 .map(e -> new BasicDataOptionVO(e.getItemCode(), e.getItemLabel()))
                 .collect(Collectors.toList());
@@ -83,7 +80,7 @@ public class BasicDataItemService {
     public Long save(BasicDataItemSaveForm form) {
         BasicDataItemEntity entity;
         if (form.getId() != null) {
-            entity = mapper.selectOneById(form.getId());
+            entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "基础数据项不存在");
             }
@@ -98,7 +95,7 @@ public class BasicDataItemService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.update(entity);
+            mapper.updateById(entity);
         }
         return entity.getId();
     }
@@ -108,7 +105,7 @@ public class BasicDataItemService {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "基础数据项ID不能为空");
         }
-        BasicDataItemEntity entity = mapper.selectOneById(id);
+        BasicDataItemEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "基础数据项不存在");
         }

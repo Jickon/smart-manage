@@ -1,7 +1,7 @@
 package sm.cloud.sys.monitor.sql.service;
 
-import com.mybatisflex.core.paginate.Page;
-import com.mybatisflex.core.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import sm.cloud.sys.common.helper.UserHelper;
@@ -117,18 +117,18 @@ public class SqlService {
      * 分页查询执行历史
      */
     public PageResult<SqlLogListVO> listPage(SqlLogListForm form) {
-        QueryWrapper qw = QueryWrapper.create();
+        LambdaQueryWrapper<SqlLogEntity> qw = new LambdaQueryWrapper<SqlLogEntity>();
         if (StringUtil.isNotBlank(form.getKeyword())) {
             qw.like(SqlLogEntity::getSqlText, form.getKeyword());
         }
         if (StringUtil.isNotBlank(form.getResultType())) {
             qw.eq(SqlLogEntity::getResultType, form.getResultType());
         }
-        qw.orderBy(SqlLogEntity::getId, false);
+        qw.orderByDesc(SqlLogEntity::getId);
 
-        Page<SqlLogEntity> page = mapper.paginate(form.getPageNum(), form.getPageSize(), qw);
+        Page<SqlLogEntity> page = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
         List<SqlLogListVO> vos = page.getRecords().stream().map(this::toListVo).collect(java.util.stream.Collectors.toList());
-        return PageResult.of(page.getTotalRow(), vos);
+        return PageResult.of(page.getTotal(), vos);
     }
 
     private SqlLogListVO toListVo(SqlLogEntity e) {
@@ -148,7 +148,7 @@ public class SqlService {
      * 查询单条执行历史
      */
     public SqlLogEntity detail(Long id) {
-        SqlLogEntity entity = mapper.selectOneById(id);
+        SqlLogEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("执行日志不存在");
         }
@@ -156,7 +156,7 @@ public class SqlService {
     }
 
     public SqlLogDetailVO getDetail(Long id) {
-        SqlLogEntity entity = mapper.selectOneById(id);
+        SqlLogEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("执行日志不存在");
         }
