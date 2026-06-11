@@ -1,6 +1,5 @@
 package sm.cloud.sys.base.sysparam.service;
 
-import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,7 +7,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.sysparam.domain.entity.SysParamEntity;
 import sm.cloud.sys.base.sysparam.domain.form.SysParamListForm;
 import sm.cloud.sys.base.sysparam.domain.form.SysParamSaveForm;
@@ -35,6 +33,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SysParamService {
     private final SysParamMapper mapper;
+    private final SysParamTxService txService;
 
     /** 管理端分页列表 */
     public PageResult<SysParamVO> listPage(SysParamListForm form) {
@@ -67,55 +66,14 @@ public class SysParamService {
         return new SysParamCreateNewDataVO();
     }
 
-    /** 新增/编辑，清除缓存 */
-    @Transactional(rollbackFor = Exception.class)
-    @CacheInvalidate(name = "sys-params", key = "'all'")
+    /** 新增/编辑，委托事务服务处理 */
     public Long save(SysParamSaveForm form) {
-        SysParamEntity entity;
-        if (form.getId() != null) {
-            entity = mapper.selectById(form.getId());
-            if (entity == null) {
-                throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
-            }
-            // 系统内置参数只允许修改 value
-            if (Boolean.TRUE.equals(entity.getIsSystem())) {
-                entity.setValue(form.getValue());
-                mapper.updateById(entity);
-                return entity.getId();
-            }
-        } else {
-            entity = new SysParamEntity();
-        }
-        entity.setNumber(form.getNumber());
-        entity.setName(form.getName());
-        entity.setValue(form.getValue());
-        entity.setRemark(form.getRemark());
-        if (form.getId() == null) {
-            entity.setIsSystem(false);
-        }
-        if (form.getId() == null) {
-            mapper.insert(entity);
-        } else {
-            mapper.updateById(entity);
-        }
-        return entity.getId();
+        return txService.save(form);
     }
 
-    /** 删除，清除缓存 */
-    @Transactional(rollbackFor = Exception.class)
-    @CacheInvalidate(name = "sys-params", key = "'all'")
+    /** 删除，委托事务服务处理 */
     public void deleteById(Long id) {
-        if (id == null) {
-            throw new BizException(ResultEnum.PARAM_ERROR, "系统参数ID不能为空");
-        }
-        SysParamEntity entity = mapper.selectById(id);
-        if (entity == null) {
-            throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
-        }
-        if (Boolean.TRUE.equals(entity.getIsSystem())) {
-            throw new BizException("系统内置参数不可删除");
-        }
-        mapper.deleteById(id);
+        txService.deleteById(id);
     }
 
     // ==================== 消费端（带缓存） ====================

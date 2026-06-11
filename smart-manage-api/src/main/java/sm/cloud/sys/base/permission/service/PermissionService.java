@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.permission.domain.entity.PermissionEntity;
 import sm.cloud.sys.base.permission.domain.form.PermissionListForm;
 import sm.cloud.sys.base.permission.domain.form.PermissionSaveForm;
@@ -30,6 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PermissionService {
 	private final PermissionMapper mapper;
+	private final PermissionTxService txService;
 
 	public PageResult<PermissionListVO> listPage(PermissionListForm form) {
 		LambdaQueryWrapper<PermissionEntity> wrapper = new LambdaQueryWrapper<PermissionEntity>();
@@ -133,37 +133,11 @@ public class PermissionService {
 		return new PermissionCreateNewDataVO();
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public Long save(PermissionSaveForm form) {
-		PermissionEntity e;
-		if (form.getId() != null) {
-			e = mapper.selectById(form.getId());
-			if (e == null) {
-				throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
-			}
-		} else {
-			e = new PermissionEntity();
-		}
-		e.setName(form.getName());
-		e.setNumber(form.getNumber());
-		e.setAppId(form.getAppId());
-		if (form.getId() == null) {
-			mapper.insert(e);
-		} else {
-			mapper.updateById(e);
-		}
-		return e.getId();
+		return txService.save(form);
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
-		if (id == null) {
-			throw new BizException(ResultEnum.PARAM_ERROR, "权限ID不能为空");
-		}
-		PermissionEntity entity = mapper.selectById(id);
-		if (entity == null) {
-			throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
-		}
-		mapper.deleteById(id);
+		txService.deleteById(id);
 	}
 }

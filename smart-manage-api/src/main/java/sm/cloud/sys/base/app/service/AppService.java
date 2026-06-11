@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.app.domain.entity.AppEntity;
 import sm.cloud.sys.base.app.domain.form.AppListForm;
 import sm.cloud.sys.base.app.domain.form.AppSaveForm;
@@ -25,6 +24,7 @@ public class AppService {
 	private static final String DEFAULT_ICON_COLOR = "#165dff";
 
 	private final AppMapper mapper;
+	private final AppTxService txService;
 
 	public PageResult<AppListVO> listPage(AppListForm form) {
 		Page<AppListVO> result = mapper.selectListPage(new Page<>(form.getPageNum(), form.getPageSize()), form);
@@ -58,42 +58,11 @@ public class AppService {
 		return vo;
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public Long save(AppSaveForm form) {
-		AppEntity e;
-		if (form.getId() != null) {
-			e = mapper.selectById(form.getId());
-			if (e == null) {
-				throw new BizException(ResultEnum.NOT_FOUND, "应用不存在");
-			}
-		} else {
-			e = new AppEntity();
-		}
-		e.setName(form.getName());
-		e.setNumber(form.getNumber());
-		e.setIcon(form.getIcon() == null || form.getIcon().isBlank() ? DEFAULT_ICON : form.getIcon());
-		e.setIconColor(form.getIconColor() == null || form.getIconColor().isBlank() ? DEFAULT_ICON_COLOR : form.getIconColor());
-		e.setSeq(form.getSeq() != null ? form.getSeq() : 99);
-		e.setDescription(form.getDescription());
-		e.setCloudId(form.getCloudId());
-		e.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
-		if (form.getId() == null) {
-			mapper.insert(e);
-		} else {
-			mapper.updateById(e);
-		}
-		return e.getId();
+		return txService.save(form);
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
-		if (id == null) {
-			throw new BizException(ResultEnum.PARAM_ERROR, "应用ID不能为空");
-		}
-		AppEntity entity = mapper.selectById(id);
-		if (entity == null) {
-			throw new BizException(ResultEnum.NOT_FOUND, "应用不存在");
-		}
-		mapper.deleteById(id);
+		txService.deleteById(id);
 	}
 }

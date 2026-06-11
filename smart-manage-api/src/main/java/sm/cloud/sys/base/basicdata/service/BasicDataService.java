@@ -1,18 +1,12 @@
 package sm.cloud.sys.base.basicdata.service;
 
-import com.alicp.jetcache.Cache;
-import com.alicp.jetcache.anno.CacheType;
-import com.alicp.jetcache.anno.CreateCache;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.basicdataitem.domain.entity.BasicDataItemEntity;
-import sm.cloud.sys.base.basicdataitem.domain.form.BasicDataItemSaveForm;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataItemListVO;
-import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataOptionVO;
 import sm.cloud.sys.base.basicdataitem.mapper.BasicDataItemMapper;
 import sm.cloud.sys.base.basicdata.domain.entity.BasicDataEntity;
 import sm.cloud.sys.base.basicdata.domain.form.BasicDataListForm;
@@ -39,12 +33,7 @@ import java.util.stream.Collectors;
 public class BasicDataService {
     private final BasicDataMapper mapper;
     private final BasicDataItemMapper itemMapper;
-
-    private static final String CACHE_PREFIX = "basic-data:items:";
-
-    // 编程方式获取缓存实例（用于 key 依赖方法内部计算逻辑的场景）
-    @CreateCache(name = "basic-data-items", cacheType = CacheType.LOCAL)
-    private Cache<String, List<BasicDataOptionVO>> cache;
+    private final BasicDataTxService txService;
 
     public PageResult<BasicDataListVO> listPage(BasicDataListForm form) {
         LambdaQueryWrapper<BasicDataEntity> qw = new LambdaQueryWrapper<BasicDataEntity>();
@@ -111,60 +100,11 @@ public class BasicDataService {
         return vo;
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public Long save(BasicDataSaveForm form) {
-        // 保存基础数据
-        BasicDataEntity entity;
-        if (form.getId() != null) {
-            entity = mapper.selectById(form.getId());
-            if (entity == null) {
-                throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
-            }
-        } else {
-            entity = new BasicDataEntity();
-        }
-        String typeNumber = form.getId() != null ? entity.getNumber() : form.getNumber();
-        entity.setNumber(typeNumber);
-        entity.setName(form.getName());
-        entity.setRemark(form.getRemark());
-        entity.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
-        if (form.getId() == null) {
-            mapper.insert(entity);
-        } else {
-            mapper.updateById(entity);
-        }
-
-        // 保存明细：删除旧项，重新插入
-        itemMapper.delete(
-                new LambdaQueryWrapper<BasicDataItemEntity>()
-                        .eq(BasicDataItemEntity::getTypeNumber, typeNumber));
-        if (form.getEntrys() != null) {
-            for (BasicDataItemSaveForm itemForm : form.getEntrys()) {
-                BasicDataItemEntity item = new BasicDataItemEntity();
-                item.setTypeNumber(typeNumber);
-                item.setItemCode(itemForm.getItemCode());
-                item.setItemLabel(itemForm.getItemLabel());
-                item.setSort(itemForm.getSort() != null ? itemForm.getSort() : 99);
-                item.setEnableFlag(itemForm.getEnableFlag() != null ? itemForm.getEnableFlag() : true);
-                itemMapper.insert(item);
-            }
-        }
-
-        // 缓存 key 依赖方法内部计算逻辑，使用编程方式清除
-        cache.remove(CACHE_PREFIX + typeNumber);
-
-        return entity.getId();
+        return txService.save(form);
     }
 
-    @Transactional(rollbackFor = Exception.class)
     public void deleteById(Long id) {
-        if (id == null) {
-            throw new BizException(ResultEnum.PARAM_ERROR, "基础数据ID不能为空");
-        }
-        BasicDataEntity entity = mapper.selectById(id);
-        if (entity == null) {
-            throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
-        }
-        mapper.deleteById(id);
+        txService.deleteById(id);
     }
 }

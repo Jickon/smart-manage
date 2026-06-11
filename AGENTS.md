@@ -52,6 +52,8 @@
 - JSON 反序列化、ID 转换等基础设施禁止静默吞错。比如 Long 解析失败不能返回 `null`，应暴露为参数异常。
 - 标准业务接口语义：`listPage` 返回分页；`detail` 找不到应抛异常；`createNewData` 只返回新增默认值且不返回 id；`save` 负责新增和暂存修改；`submit` 负责提交并推进单据状态；`delete` 负责删除或作废，具体语义由单据类型明确。
 - 修改后端代码后至少执行 `mvn compile`。如果涉及实体、Mapper 或配置变更，也需要确认 MyBatis-Plus 相关代码可正常编译。
+- **事务分离**：Service 禁止直接写 `@Transactional`。每个含写操作的 Service 必须搭配一个 `*TxService`，将 `@Transactional(rollbackFor = Exception.class)` 放在 TxService 类级别。Service 注入 TxService，写方法（`save`/`deleteById` 等）以委托方式调用 TxService。读写共用的私有辅助方法留在 Service；仅事务内使用的私有方法移入 TxService。TxService 内需要的前置读取（如唯一性校验、存在性检查）直接使用 Mapper，不走 Service 缓存方法。
+  - 例：`RoleService`（只读 + 委托） → `RoleTxService`（类级别 @Transactional，包含 save/deleteById 全部逻辑）
 
 ### 命名规范
 
@@ -62,6 +64,7 @@
   也必须返回空数组 `[]`**
 - `*Util` — 纯静态工具类，不依赖 Spring 容器（如 `ServletUtil`、`StringUtil`）
 - `*Helper` — `@Component` 组件，依赖 Spring 注入或配置（如 `CacheHelper`、`Argon2Helper`）
+- `*TxService` — 事务服务，`@Service` + 类级别 `@Transactional(rollbackFor = Exception.class)`，包含所有写操作逻辑。对应读 Service 注入并委托写方法给它
 
 ### SQL执行
 - 由于本项目处于框架搭建阶段，随时可能修改数据库表结构，所以要以数据库实际数据为准

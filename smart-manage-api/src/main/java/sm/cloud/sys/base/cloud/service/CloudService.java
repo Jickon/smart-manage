@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.cloud.domain.entity.CloudEntity;
 import sm.cloud.sys.base.cloud.domain.form.CloudListForm;
 import sm.cloud.sys.base.cloud.domain.form.CloudSelectForm;
@@ -27,6 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CloudService {
 	private final CloudMapper mapper;
+	private final CloudTxService txService;
 
 	public PageResult<CloudListVO> listPage(CloudListForm form) {
 		LambdaQueryWrapper<CloudEntity> qw = new LambdaQueryWrapper<CloudEntity>();
@@ -117,38 +117,11 @@ public class CloudService {
 		return vo;
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public Long save(CloudSaveForm form) {
-		CloudEntity e;
-		if (form.getId() != null) {
-			e = mapper.selectById(form.getId());
-			if (e == null) {
-				throw new BizException(ResultEnum.NOT_FOUND, "云不存在");
-			}
-		} else {
-			e = new CloudEntity();
-		}
-		e.setName(form.getName());
-		e.setNumber(form.getNumber());
-		e.setSeq(form.getSeq() != null ? form.getSeq() : 99);
-		e.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
-		if (form.getId() == null) {
-			mapper.insert(e);
-		} else {
-			mapper.updateById(e);
-		}
-		return e.getId();
+		return txService.save(form);
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
-		if (id == null) {
-			throw new BizException(ResultEnum.PARAM_ERROR, "云ID不能为空");
-		}
-		CloudEntity entity = mapper.selectById(id);
-		if (entity == null) {
-			throw new BizException(ResultEnum.NOT_FOUND, "云不存在");
-		}
-		mapper.deleteById(id);
+		txService.deleteById(id);
 	}
 }

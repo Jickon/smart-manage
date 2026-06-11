@@ -1,6 +1,5 @@
 package sm.cloud.sys.base.fileconfig.service;
 
-import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,7 +7,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.fileconfig.domain.entity.FileConfigEntity;
 import sm.cloud.sys.base.fileconfig.domain.form.FileConfigListForm;
 import sm.cloud.sys.base.fileconfig.domain.form.FileConfigSaveForm;
@@ -32,6 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FileConfigService {
     private final FileConfigMapper mapper;
+    private final FileConfigTxService txService;
 
     public PageResult<FileConfigDetailVO> listPage(FileConfigListForm form) {
         LambdaQueryWrapper<FileConfigEntity> qw = new LambdaQueryWrapper<FileConfigEntity>();
@@ -89,44 +88,11 @@ public class FileConfigService {
         return vo;
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @CacheInvalidate(name = "common", key = "'file:config'")
     public Long save(FileConfigSaveForm form) {
-        FileConfigEntity entity;
-        if (form.getId() != null) {
-            entity = mapper.selectById(form.getId());
-            if (entity == null) {
-                throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
-            }
-        } else {
-            entity = new FileConfigEntity();
-        }
-        entity.setStorageType(form.getStorageType());
-        entity.setLocalDir(form.getLocalDir());
-        entity.setFtpHost(form.getFtpHost());
-        entity.setFtpPort(form.getFtpPort());
-        entity.setFtpUsername(form.getFtpUsername());
-        entity.setFtpPassword(form.getFtpPassword());
-        entity.setFtpDir(form.getFtpDir());
-        entity.setFtpPassiveMode(form.getFtpPassiveMode());
-        if (form.getId() == null) {
-            mapper.insert(entity);
-        } else {
-            mapper.updateById(entity);
-        }
-        return entity.getId();
+        return txService.save(form);
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @CacheInvalidate(name = "common", key = "'file:config'")
     public void deleteById(Long id) {
-        if (id == null) {
-            throw new BizException(ResultEnum.PARAM_ERROR, "文件配置ID不能为空");
-        }
-        FileConfigEntity entity = mapper.selectById(id);
-        if (entity == null) {
-            throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
-        }
-        mapper.deleteById(id);
+        txService.deleteById(id);
     }
 }

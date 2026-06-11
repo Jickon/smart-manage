@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.login.domain.vo.LoginVO;
 import sm.cloud.sys.base.menu.service.MenuService;
 import sm.cloud.sys.base.permission.service.PermissionService;
@@ -17,15 +16,17 @@ import sm.cloud.sys.base.user.domain.form.UserSaveForm;
 import sm.cloud.sys.base.user.domain.vo.UserCreateNewDataVO;
 import sm.cloud.sys.base.user.domain.vo.UserInfoVO;
 import sm.cloud.sys.base.user.domain.vo.UserListVO;
+import com.alicp.jetcache.anno.CacheType;
+import com.alicp.jetcache.anno.Cached;
 import sm.cloud.sys.base.user.mapper.UserMapper;
 import sm.cloud.sys.common.constat.UserConst;
 import sm.cloud.sys.common.helper.UserHelper;
-import sm.system.exception.BizException;
 import sm.system.helper.Argon2Helper;
 import sm.system.response.PageResult;
 import sm.system.util.BeanUtil;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
 	private final UserMapper mapper;
-	private final UserManage manage;
+	private final UserTxService txService;
 	private final MenuService menuService;
 	private final PermissionService permissionService;
 
@@ -66,59 +67,12 @@ public class UserService {
 		return vo;
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public Long save(UserSaveForm form) {
-		// 检查用户名唯一性
-		LambdaQueryWrapper<UserEntity> checkWrapper = new LambdaQueryWrapper<UserEntity>()
-				.eq(UserEntity::getUsername, form.getUsername());
-		if (form.getId() != null) {
-			checkWrapper.ne(UserEntity::getId, form.getId());
-		}
-		if (mapper.selectCount(checkWrapper) > 0) {
-			throw new BizException("用户名已存在");
-		}
-
-		UserEntity e;
-		if (form.getId() != null) {
-			e = manage.getById(form.getId());
-			if (e == null) {
-				throw new BizException("用户不存在");
-			}
-		} else {
-			e = new UserEntity();
-		}
-
-		e.setUsername(form.getUsername());
-		// 密码处理：新增时必填，修改时可选
-		if (form.getPassword() != null && !form.getPassword().isEmpty()) {
-			// 使用 Argon2 加密密码
-			e.setPassword(Argon2Helper.encode(form.getPassword()));
-		}
-		if (form.getNickname() != null) {
-			e.setNickname(form.getNickname());
-		}
-
-		if (form.getId() == null) {
-			// 新增用户
-			if (e.getPassword() == null || e.getPassword().isEmpty()) {
-				// 默认密码 123456
-				e.setPassword(Argon2Helper.encode("123456"));
-			}
-			e.setEnableFlag(true);
-			mapper.insert(e);
-		} else {
-			mapper.updateById(e);
-		}
-		return e.getId();
+		return txService.save(form);
 	}
 
-	@Transactional(rollbackFor = Exception.class)
 	public void deleteById(Long id) {
-		// 不能删除自己
-		if (id.equals(UserHelper.getCurrentUserId())) {
-			throw new BizException("不能删除当前登录用户");
-		}
-		mapper.deleteById(id);
+		txService.deleteById(id);
 	}
 
 	public LoginVO login(String username, String password) {
@@ -153,7 +107,8 @@ public class UserService {
 	}
 
 	public UserInfoVO current() {
-		UserEntity userEntity = manage.getById(UserHelper.getCurrentUserId());
+		// 直接走 mapper，避免自调用绕过缓存代理
+		UserEntity userEntity = mapper.selectById(UserHelper.getCurrentUserId());
 		UserInfoVO userInfoVO = BeanUtil.copyProperties(userEntity, UserInfoVO.class);
 		return userInfoVO;
 	}
@@ -168,8 +123,10 @@ public class UserService {
 		return permissionService.getUserPermissionsByPrefix(UserHelper.getCurrentUserId(), UserHelper.getCurrentOrgId(), prefix);
 	}
 
+	/** Redis 远程缓存读取（外部调用时走代理生效，内部调用请直接使用 mapper） */
+	@Cached(cacheType = CacheType.REMOTE, name = "userInfo", key = "#id", expire = 1, timeUnit = TimeUnit.HOURS)
 	public UserEntity getById(Long id) {
-		return manage.getById(id);
+		return mapper.selectById(id);
 	}
 
 	/**

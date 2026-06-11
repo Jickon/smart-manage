@@ -1,6 +1,5 @@
 package sm.cloud.sys.base.uiconfig.service;
 
-import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,7 +7,6 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import sm.cloud.sys.base.uiconfig.domain.entity.UiConfigEntity;
 import sm.cloud.sys.base.uiconfig.domain.form.UiConfigListForm;
 import sm.cloud.sys.base.uiconfig.domain.form.UiConfigSaveForm;
@@ -33,6 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UiConfigService {
     private final UiConfigMapper mapper;
+    private final UiConfigTxService txService;
 
     public PageResult<UiConfigListVO> listPage(UiConfigListForm form) {
         LambdaQueryWrapper<UiConfigEntity> qw = new LambdaQueryWrapper<UiConfigEntity>();
@@ -93,41 +92,11 @@ public class UiConfigService {
         return vo;
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @CacheInvalidate(name = "common", key = "'ui:config'")
     public Long save(UiConfigSaveForm form) {
-        UiConfigEntity entity;
-        if (form.getId() != null) {
-            entity = mapper.selectById(form.getId());
-            if (entity == null) {
-                throw new BizException(ResultEnum.NOT_FOUND, "界面配置不存在");
-            }
-        } else {
-            entity = new UiConfigEntity();
-        }
-        entity.setPageTitle(form.getPageTitle());
-        entity.setSystemName(form.getSystemName());
-        entity.setLoginBanner(form.getLoginBanner());
-        entity.setLoginLogo(form.getLoginLogo());
-        entity.setHeaderLogo(form.getHeaderLogo());
-        if (form.getId() == null) {
-            mapper.insert(entity);
-        } else {
-            mapper.updateById(entity);
-        }
-        return entity.getId();
+        return txService.save(form);
     }
 
-    @Transactional(rollbackFor = Exception.class)
-    @CacheInvalidate(name = "common", key = "'ui:config'")
     public void deleteById(Long id) {
-        if (id == null) {
-            throw new BizException(ResultEnum.PARAM_ERROR, "界面配置ID不能为空");
-        }
-        UiConfigEntity entity = mapper.selectById(id);
-        if (entity == null) {
-            throw new BizException(ResultEnum.NOT_FOUND, "界面配置不存在");
-        }
-        mapper.deleteById(id);
+        txService.deleteById(id);
     }
 }
