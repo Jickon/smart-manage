@@ -47,6 +47,7 @@
 - admin 用户（`superadmin`）拥有 `*` 通配权限，跳过权限校验
 - 主键使用雪花 ID（MyBatis-Plus 的 `IdType.ASSIGN_ID`），乐观锁字段 `mutex`（通过 `@Version` 注解 + `OptimisticLockerInnerInterceptor` 实现）
 - **禁止**在查询中使用裸表名/字段名字符串（如 `"t_sys_user"`、`"username"`），必须使用 MyBatis-Plus 的 `LambdaQueryWrapper` + 方法引用（如 `UserEntity::getUsername`）
+- **XML Mapper 表别名**：所有 SQL 中 FROM 主表别名为 `a`，JOIN 表按出现顺序依次为 `b, c, d...`。不使用语义化别名（如 `app`、`user`），保持 SQL 紧凑统一。
 - Service 禁止用 `return null` 表达业务失败。资源不存在、状态非法、无权限、参数不合法等场景必须抛出明确异常，让 `GlobalExceptionHandler` 统一返回。
 - JSON 反序列化、ID 转换等基础设施禁止静默吞错。比如 Long 解析失败不能返回 `null`，应暴露为参数异常。
 - 标准业务接口语义：`listPage` 返回分页；`detail` 找不到应抛异常；`createNewData` 只返回新增默认值且不返回 id；`save` 负责新增和暂存修改；`submit` 负责提交并推进单据状态；`delete` 负责删除或作废，具体语义由单据类型明确。
