@@ -1,6 +1,0 @@
-[mcp_servers.postgres]
-command = "npx"
-args = [
-    "@modelcontextprotocol/server-postgres",
-    "postgresql://postgres:postgres@localhost:5432/smart_manage",
-]
