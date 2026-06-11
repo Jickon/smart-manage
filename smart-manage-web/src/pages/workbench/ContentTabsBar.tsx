@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Modal } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { useWorkbenchStore } from '@/stores/workbench';
+import './ContentTabsBar.css';
 
 interface Props {
   appNumber: string;

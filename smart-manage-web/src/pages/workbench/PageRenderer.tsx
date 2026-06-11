@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Empty, Spin } from 'antd';
 import { componentRegistry } from '@/cloud/common/registry/componentRegistry';
 import type { OperationType, PageType } from '@/cloud/common/page/types';
+import './PageRenderer.css';
 
 interface Props {
   appNumber: string;

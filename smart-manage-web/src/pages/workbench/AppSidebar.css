@@ -1,0 +1,55 @@
+/* === 侧边栏 === */
+
+.sm-workspace-sidebar {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 0;
+  flex-shrink: 0;
+  background-color: #001529;
+  color: rgb(193, 202, 220);
+  overflow: hidden;
+}
+
+.sm-workspace-sidebar--collapsed {
+}
+
+.sm-workspace-sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 菜单滚动区 */
+.sm-workspace-sidebar-menu {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-top: 10px;
+}
+
+.sm-sidebar-skeleton {
+  padding: 16px;
+}
+
+/* 折叠按钮区 */
+.sm-workspace-sidebar-switch {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  border-top: 1px solid rgba(218, 222, 237, 0.1);
+  flex-grow: 0;
+}
+
+.sm-workspace-sidebar-switch-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 50px;
+  color: #fff;
+  font-size: 18px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
