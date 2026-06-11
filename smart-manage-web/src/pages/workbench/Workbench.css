@@ -97,9 +97,9 @@
   flex-grow: 0;
   flex-shrink: 0;
   height: 34px;
-  background-color: #f6f7f9;
-  border-top: 1px solid hsla(0, 0%, 89%, 0.9);
-  border-bottom: 1px solid hsla(0, 0%, 89%, 0.9);
+  background-color: rgb(246, 247, 249);
+  border-top: 1px solid rgba(227, 227, 227, 0.9);
+  border-bottom: 1px solid rgba(227, 227, 227, 0.9);
   overflow: hidden;
 }
 
@@ -118,7 +118,6 @@
   height: 32px;
   margin-right: 12px;
   font-size: 14px;
-  color: #637da9;
   cursor: pointer;
   position: relative;
   transition: color 0.3s;
@@ -134,7 +133,7 @@
 }
 
 .sm-content-tab--active {
-  color: #1677ff;
+  color: var(--ant-color-primary);
 }
 
 /* 激活态底部指示器 */
@@ -146,14 +145,13 @@
   left: 0;
   right: 0;
   height: 2px;
-  background: #1677ff;
+  background: var(--ant-color-primary);
 }
 
 /* 关闭按钮 — hover 显示 */
 .sm-content-tab-close {
   font-size: 12px;
   opacity: 0;
-  color: #7f93bc;
   transition: opacity 0.15s;
   padding: 0 2px;
   background: none;
@@ -166,7 +164,7 @@
 }
 
 .sm-content-tab-close:hover {
-  color: #1677ff;
+  color: var(--ant-color-primary);
   opacity: 1;
 }
 
@@ -184,14 +182,13 @@
   align-items: center;
   padding: 0 6px;
   font-size: 16px;
-  color: #666;
   cursor: pointer;
   background: none;
   border: none;
 }
 
 .sm-content-tabs-action-btn:hover {
-  color: #1677ff;
+  color: var(--ant-color-primary);
 }
 
 .sm-content-tabs-action-btn:disabled {
