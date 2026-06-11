@@ -13,9 +13,9 @@
 
 ## 技术栈
 
-| 层级                        | 技术                                                                |
-|---------------------------|-------------------------------------------------------------------|
-| **后端** (smart-manage-api) | Spring Boot 3, Java 17, MyBatis-Flex, Druid, Sa-Token, PostgreSQL |
+| 层级                        | 技术                                                                   |
+|---------------------------|----------------------------------------------------------------------|
+| **后端** (smart-manage-api) | Spring Boot 3, Java 21, MyBatis-Flex, Druid, Sa-Token, PostgreSQL    |
 | **前端** (smart-manage-web) | Vite, React 19, TypeScript, Ant Design, TanStack Query, Zustand, Zod |
 
 ## 后端约定 (smart-manage-api)
