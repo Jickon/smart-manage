@@ -32,4 +32,5 @@ logs
 .claude
 .agents
 .codex
+skills-lock.json
 **/.playwright-cli
