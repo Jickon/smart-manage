@@ -1,6 +1,5 @@
 package sm.cloud.sys.base.menu.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,15 +27,15 @@ public class MenuTxService {
     private final MenuMapper mapper;
 
     public Long save(MenuSaveForm form) {
-        MenuEntity e = new MenuEntity();
+        MenuEntity entity = new MenuEntity();
         if (form.getId() != null) {
-            e = mapper.selectById(form.getId());
-            if (e == null) {
+            entity = mapper.selectById(form.getId());
+            if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "菜单不存在");
             }
         }
-        e.setNumber(form.getNumber());
-        e.setName(form.getName());
+        entity.setNumber(form.getNumber());
+        entity.setName(form.getName());
         if (form.getLevel() == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "菜单层级不能为空");
         }
@@ -52,29 +51,29 @@ public class MenuTxService {
             if (form.getPath() == null || form.getPath().isBlank()) {
                 throw new BizException("页面层级菜单必须填写路径");
             }
-            e.setPath(form.getPath());
-            e.setComponent(form.getComponent());
+            entity.setPath(form.getPath());
+            entity.setComponent(form.getComponent());
         } else {
-            e.setPath(null);
-            e.setComponent(null);
+            entity.setPath(null);
+            entity.setComponent(null);
         }
-        e.setPermissionId(form.getPermissionId());
-        e.setLevel(form.getLevel());
-        e.setParentId(form.getParentId() != null ? form.getParentId() : 0L);
-        e.setAppId(form.getAppId());
-        e.setIcon(form.getIcon());
-        e.setDescription(form.getDescription());
-        e.setSort(form.getSort() != null ? form.getSort() : 99);
-        e.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
+        entity.setPermissionId(form.getPermissionId());
+        entity.setLevel(form.getLevel());
+        entity.setParentId(form.getParentId() != null ? form.getParentId() : 0L);
+        entity.setAppId(form.getAppId());
+        entity.setIcon(form.getIcon());
+        entity.setDescription(form.getDescription());
+        entity.setSort(form.getSort() != null ? form.getSort() : 99);
+        entity.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
         if (form.getId() == null) {
-            mapper.insert(e);
+            mapper.insert(entity);
         } else {
             // 使用全字段 XML 更新，确保分组菜单可以把 permissionId/path/component 清空为 null。
-            e.setUpdateTime(LocalDateTime.now());
-            e.setUpdateUser(UserHelper.isLogin() ? UserHelper.getCurrentUserId() : null);
-            mapper.updateAllColumns(e);
+            entity.setUpdateTime(LocalDateTime.now());
+            entity.setUpdateUser(UserHelper.isLogin() ? UserHelper.getCurrentUserId() : null);
+            mapper.updateAllColumns(entity);
         }
-        return e.getId();
+        return entity.getId();
     }
 
     public void deleteById(Long id) {

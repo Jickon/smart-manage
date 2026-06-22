@@ -23,24 +23,24 @@ public class PermissionTxService {
     private final PermissionMapper mapper;
 
     public Long save(PermissionSaveForm form) {
-        PermissionEntity e;
+        PermissionEntity entity;
         if (form.getId() != null) {
-            e = mapper.selectById(form.getId());
-            if (e == null) {
+            entity = mapper.selectById(form.getId());
+            if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
             }
         } else {
-            e = new PermissionEntity();
+            entity = new PermissionEntity();
         }
-        e.setName(form.getName());
-        e.setNumber(form.getNumber());
-        e.setAppId(form.getAppId());
+        entity.setName(form.getName());
+        entity.setNumber(form.getNumber());
+        entity.setAppId(form.getAppId());
         if (form.getId() == null) {
-            mapper.insert(e);
+            mapper.insert(entity);
         } else {
-            mapper.updateById(e);
+            mapper.updateById(entity);
         }
-        return e.getId();
+        return entity.getId();
     }
 
     public void deleteById(Long id) {

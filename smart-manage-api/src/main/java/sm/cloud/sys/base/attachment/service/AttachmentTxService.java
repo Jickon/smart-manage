@@ -83,10 +83,10 @@ public class AttachmentTxService {
                 mapper.updateById(entity);
             }
             // 更新业务映射
-            BizAttachmentEntity biz = selectBizByAttachmentId(attachmentId);
-            if (biz != null) {
-                biz.setBizId(form.getBizId());
-                bizMapper.updateById(biz);
+            BizAttachmentEntity bizEntity = selectBizByAttachmentId(attachmentId);
+            if (bizEntity != null) {
+                bizEntity.setBizId(form.getBizId());
+                bizMapper.updateById(bizEntity);
             } else {
                 BizAttachmentEntity newBiz = new BizAttachmentEntity();
                 newBiz.setBizType(form.getBizType());

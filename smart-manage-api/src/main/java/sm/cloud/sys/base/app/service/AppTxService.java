@@ -26,29 +26,29 @@ public class AppTxService {
     private final AppMapper mapper;
 
     public Long save(AppSaveForm form) {
-        AppEntity e;
+        AppEntity entity;
         if (form.getId() != null) {
-            e = mapper.selectById(form.getId());
-            if (e == null) {
+            entity = mapper.selectById(form.getId());
+            if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "应用不存在");
             }
         } else {
-            e = new AppEntity();
+            entity = new AppEntity();
         }
-        e.setName(form.getName());
-        e.setNumber(form.getNumber());
-        e.setIcon(form.getIcon() == null || form.getIcon().isBlank() ? DEFAULT_ICON : form.getIcon());
-        e.setIconColor(form.getIconColor() == null || form.getIconColor().isBlank() ? DEFAULT_ICON_COLOR : form.getIconColor());
-        e.setSeq(form.getSeq() != null ? form.getSeq() : 99);
-        e.setDescription(form.getDescription());
-        e.setCloudId(form.getCloudId());
-        e.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
+        entity.setName(form.getName());
+        entity.setNumber(form.getNumber());
+        entity.setIcon(form.getIcon() == null || form.getIcon().isBlank() ? DEFAULT_ICON : form.getIcon());
+        entity.setIconColor(form.getIconColor() == null || form.getIconColor().isBlank() ? DEFAULT_ICON_COLOR : form.getIconColor());
+        entity.setSeq(form.getSeq() != null ? form.getSeq() : 99);
+        entity.setDescription(form.getDescription());
+        entity.setCloudId(form.getCloudId());
+        entity.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
         if (form.getId() == null) {
-            mapper.insert(e);
+            mapper.insert(entity);
         } else {
-            mapper.updateById(e);
+            mapper.updateById(entity);
         }
-        return e.getId();
+        return entity.getId();
     }
 
     public void deleteById(Long id) {

@@ -1,7 +1,7 @@
 package sm.cloud.sys.monitor.operatelog.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -54,41 +54,41 @@ public class OperateLogQueryService {
 		return toDetail(entity);
 	}
 
-	private OperateLogListVO toListVo(OperateLogEntity e) {
+	private OperateLogListVO toListVo(OperateLogEntity entity) {
 		OperateLogListVO vo = new OperateLogListVO();
-		vo.setId(e.getId());
-		vo.setBizName(e.getBizName());
-		vo.setSuccess(e.getSuccess());
-		vo.setErrorMsg(e.getErrorMsg());
-		vo.setRequestMethod(e.getRequestMethod());
-		vo.setRequestUri(e.getRequestUri());
-		vo.setIp(e.getIp());
-		vo.setClassName(e.getClassName());
-		vo.setMethodName(e.getMethodName());
-		vo.setDurationMs(e.getDurationMs());
-		vo.setUsername(e.getUsername());
-		vo.setCreateTime(e.getCreateTime());
+		vo.setId(entity.getId());
+		vo.setBizName(entity.getBizName());
+		vo.setSuccess(entity.getSuccess());
+		vo.setErrorMsg(entity.getErrorMsg());
+		vo.setRequestMethod(entity.getRequestMethod());
+		vo.setRequestUri(entity.getRequestUri());
+		vo.setIp(entity.getIp());
+		vo.setClassName(entity.getClassName());
+		vo.setMethodName(entity.getMethodName());
+		vo.setDurationMs(entity.getDurationMs());
+		vo.setUsername(entity.getUsername());
+		vo.setCreateTime(entity.getCreateTime());
 		return vo;
 	}
 
-	private OperateLogDetailVO toDetail(OperateLogEntity e) {
+	private OperateLogDetailVO toDetail(OperateLogEntity entity) {
 		OperateLogDetailVO vo = new OperateLogDetailVO();
-		vo.setId(e.getId());
-		vo.setBizName(e.getBizName());
-		vo.setSuccess(e.getSuccess());
-		vo.setErrorMsg(e.getErrorMsg());
-		vo.setRequestMethod(e.getRequestMethod());
-		vo.setRequestUri(e.getRequestUri());
-		vo.setIp(e.getIp());
-		vo.setUserAgent(e.getUserAgent());
-		vo.setClassName(e.getClassName());
-		vo.setMethodName(e.getMethodName());
-		vo.setDurationMs(e.getDurationMs());
-		vo.setRequestParams(e.getRequestParams());
-		vo.setResponseBody(e.getResponseBody());
-		vo.setUserId(e.getUserId());
-		vo.setUsername(e.getUsername());
-		vo.setCreateTime(e.getCreateTime());
+		vo.setId(entity.getId());
+		vo.setBizName(entity.getBizName());
+		vo.setSuccess(entity.getSuccess());
+		vo.setErrorMsg(entity.getErrorMsg());
+		vo.setRequestMethod(entity.getRequestMethod());
+		vo.setRequestUri(entity.getRequestUri());
+		vo.setIp(entity.getIp());
+		vo.setUserAgent(entity.getUserAgent());
+		vo.setClassName(entity.getClassName());
+		vo.setMethodName(entity.getMethodName());
+		vo.setDurationMs(entity.getDurationMs());
+		vo.setRequestParams(entity.getRequestParams());
+		vo.setResponseBody(entity.getResponseBody());
+		vo.setUserId(entity.getUserId());
+		vo.setUsername(entity.getUsername());
+		vo.setCreateTime(entity.getCreateTime());
 		return vo;
 	}
 }

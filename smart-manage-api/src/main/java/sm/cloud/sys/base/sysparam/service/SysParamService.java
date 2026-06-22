@@ -2,8 +2,8 @@ package sm.cloud.sys.base.sysparam.service;
 
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -81,9 +81,9 @@ public class SysParamService {
     /** 全量获取 number → value 映射（Caffeine 本地缓存） */
     @Cached(cacheType = CacheType.LOCAL, name = "sys-params", key = "'all'", expire = 30, timeUnit = TimeUnit.MINUTES)
     public Map<String, String> getAll() {
-        List<SysParamEntity> entities = mapper.selectList(null);
+        List<SysParamEntity> entityList = mapper.selectList(null);
         Map<String, String> map = new HashMap<>();
-        for (SysParamEntity entity : entities) {
+        for (SysParamEntity entity : entityList) {
             map.put(entity.getNumber(), entity.getValue());
         }
         return map;

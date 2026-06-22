@@ -49,11 +49,11 @@ public class UserRoleService {
 	 * 获取用户的角色ID列表
 	 */
 	public List<Long> getRoleIdsByUser(Long userId, Long orgId) {
-		List<UserRoleEntity> entities = mapper.selectList(new LambdaQueryWrapper<UserRoleEntity>()
+		List<UserRoleEntity> entityList = mapper.selectList(new LambdaQueryWrapper<UserRoleEntity>()
 				.select(UserRoleEntity::getRoleId)
 				.eq(UserRoleEntity::getUserId, userId)
 				.eq(UserRoleEntity::getOrgId, orgId));
-		return entities.stream()
+		return entityList.stream()
 				.map(UserRoleEntity::getRoleId)
 				.collect(Collectors.toList());
 	}

@@ -7,13 +7,16 @@ import org.springframework.stereotype.Service;
 import sm.cloud.sys.base.app.domain.entity.AppEntity;
 import sm.cloud.sys.base.app.domain.form.AppListForm;
 import sm.cloud.sys.base.app.domain.form.AppSaveForm;
-import sm.cloud.sys.base.app.domain.vo.AppCreateNewDataVO;
-import sm.cloud.sys.base.app.domain.vo.AppDetailVO;
-import sm.cloud.sys.base.app.domain.vo.AppListVO;
+import sm.cloud.sys.base.app.domain.vo.*;
 import sm.cloud.sys.base.app.mapper.AppMapper;
 import sm.system.exception.BizException;
 import sm.system.response.PageResult;
 import sm.system.response.ResultEnum;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -64,5 +67,69 @@ public class AppService {
 
 	public void deleteById(Long id) {
 		txService.deleteById(id);
+	}
+
+	// ==================== 云+应用入口查询 ====================
+
+	public List<CloudAppsVO> getUserCloudApps(Long userId) {
+		if (userId == null) {
+			return List.of();
+		}
+		return toCloudApps(mapper.selectUserCloudApps(userId));
+	}
+
+	public List<CloudAppsVO> getAllCloudApps() {
+		return toCloudApps(mapper.selectAllCloudApps());
+	}
+
+	private List<CloudAppsVO> toCloudApps(List<CloudAppRowVO> rows) {
+		Map<Long, CloudAppsVO> cloudMap = new LinkedHashMap<>();
+		Map<Long, Map<Long, AppVO>> appMap = new LinkedHashMap<>();
+		for (CloudAppRowVO row : rows) {
+			if (row.getCloudId() == null) {
+				continue;
+			}
+			CloudAppsVO cloud = cloudMap.computeIfAbsent(row.getCloudId(), cloudId -> {
+				CloudAppsVO item = new CloudAppsVO();
+				item.setId(cloudId);
+				item.setName(row.getCloudName());
+				item.setNumber(row.getCloudNumber());
+				item.setSeq(row.getCloudSeq());
+				item.setAppList(new ArrayList<>());
+				return item;
+			});
+			if (row.getAppId() == null) {
+				continue;
+			}
+			Map<Long, AppVO> appsMap = appMap.computeIfAbsent(row.getCloudId(), cloudId -> new LinkedHashMap<>());
+			if (appsMap.containsKey(row.getAppId())) {
+				continue;
+			}
+			AppVO vo = new AppVO();
+			vo.setId(row.getAppId());
+			vo.setName(row.getAppName());
+			vo.setNumber(row.getAppNumber());
+			vo.setIcon(row.getAppIcon());
+			vo.setIconColor(row.getAppIconColor());
+			vo.setSeq(row.getAppSeq());
+			vo.setDescription(row.getAppDescription());
+			appsMap.put(row.getAppId(), vo);
+			cloud.getAppList().add(vo);
+		}
+		return new ArrayList<>(cloudMap.values());
+	}
+
+	public AppVO getUserAppByNumber(Long userId, String appNumber) {
+		if (userId == null) {
+			throw new BizException(ResultEnum.UNAUTHORIZED);
+		}
+		if (appNumber == null || appNumber.isBlank()) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "应用编码不能为空");
+		}
+		AppVO vo = mapper.selectUserAppByNumber(userId, appNumber);
+		if (vo == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "应用不存在或无权访问");
+		}
+		return vo;
 	}
 }

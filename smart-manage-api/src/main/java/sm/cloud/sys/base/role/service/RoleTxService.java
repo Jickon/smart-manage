@@ -34,32 +34,32 @@ public class RoleTxService {
             throw new BizException("角色编码已存在");
         }
 
-        RoleEntity e;
+        RoleEntity entity;
         if (form.getId() != null) {
-            e = mapper.selectById(form.getId());
-            if (e == null) {
+            entity = mapper.selectById(form.getId());
+            if (entity == null) {
                 throw new BizException("角色不存在");
             }
         } else {
-            e = new RoleEntity();
+            entity = new RoleEntity();
         }
-        e.setName(form.getName());
-        e.setNumber(form.getNumber());
+        entity.setName(form.getName());
+        entity.setNumber(form.getNumber());
 
         if (form.getId() == null) {
-            mapper.insert(e);
+            mapper.insert(entity);
         } else {
-            mapper.updateById(e);
+            mapper.updateById(entity);
         }
-        return e.getId();
+        return entity.getId();
     }
 
     public void deleteById(Long id) {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "角色ID不能为空");
         }
-        RoleEntity role = mapper.selectById(id);
-        if (role == null) {
+        RoleEntity entity = mapper.selectById(id);
+        if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "角色不存在");
         }
         mapper.deleteById(id);

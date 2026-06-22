@@ -32,25 +32,25 @@ public class PermissionService {
 	private final PermissionTxService txService;
 
 	public PageResult<PermissionListVO> listPage(PermissionListForm form) {
-		LambdaQueryWrapper<PermissionEntity> wrapper = new LambdaQueryWrapper<PermissionEntity>();
-		wrapper.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
+		LambdaQueryWrapper<PermissionEntity> qw = new LambdaQueryWrapper<PermissionEntity>();
+		qw.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String keyword = form.getKeyword().trim();
-			wrapper.and(condition -> condition.like(PermissionEntity::getName, keyword)
+			qw.and(condition -> condition.like(PermissionEntity::getName, keyword)
 					.or().like(PermissionEntity::getNumber, keyword));
 		}
-		wrapper.orderByAsc(PermissionEntity::getNumber);
-		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), wrapper);
+		qw.orderByAsc(PermissionEntity::getNumber);
+		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
 		List<PermissionListVO> records = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
 		return PageResult.of(result.getTotal(), records);
 	}
 
-	private PermissionListVO toListVo(PermissionEntity e) {
+	private PermissionListVO toListVo(PermissionEntity entity) {
 		PermissionListVO vo = new PermissionListVO();
-		vo.setId(e.getId());
-		vo.setName(e.getName());
-		vo.setNumber(e.getNumber());
-		vo.setAppId(e.getAppId());
+		vo.setId(entity.getId());
+		vo.setName(entity.getName());
+		vo.setNumber(entity.getNumber());
+		vo.setAppId(entity.getAppId());
 		return vo;
 	}
 
@@ -59,15 +59,15 @@ public class PermissionService {
 	 * 支持按应用、关键词过滤；按编码排序。
 	 */
 	public PageResult<PermissionSelectVO> select(PermissionSelectForm form) {
-		LambdaQueryWrapper<PermissionEntity> wrapper = new LambdaQueryWrapper<PermissionEntity>();
-		wrapper.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
+		LambdaQueryWrapper<PermissionEntity> qw = new LambdaQueryWrapper<PermissionEntity>();
+		qw.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String keyword = form.getKeyword().trim();
-			wrapper.and(condition -> condition.like(PermissionEntity::getNumber, keyword)
+			qw.and(condition -> condition.like(PermissionEntity::getNumber, keyword)
 					.or().like(PermissionEntity::getName, keyword));
 		}
-		wrapper.orderByAsc(PermissionEntity::getNumber);
-		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), wrapper);
+		qw.orderByAsc(PermissionEntity::getNumber);
+		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
 		List<PermissionSelectVO> records = result.getRecords().stream().map(this::toSelectVo).collect(Collectors.toList());
 		return PageResult.of(result.getTotal(), records);
 	}
@@ -116,16 +116,16 @@ public class PermissionService {
 		return toDetailVo(entity);
 	}
 
-	private PermissionDetailVO toDetailVo(PermissionEntity e) {
+	private PermissionDetailVO toDetailVo(PermissionEntity entity) {
 		PermissionDetailVO vo = new PermissionDetailVO();
-		vo.setId(String.valueOf(e.getId()));
-		vo.setName(e.getName());
-		vo.setNumber(e.getNumber());
-		vo.setAppId(e.getAppId());
-		vo.setCreateTime(e.getCreateTime());
-		vo.setUpdateTime(e.getUpdateTime());
-		vo.setCreateUser(e.getCreateUser());
-		vo.setUpdateUser(e.getUpdateUser());
+		vo.setId(String.valueOf(entity.getId()));
+		vo.setName(entity.getName());
+		vo.setNumber(entity.getNumber());
+		vo.setAppId(entity.getAppId());
+		vo.setCreateTime(entity.getCreateTime());
+		vo.setUpdateTime(entity.getUpdateTime());
+		vo.setCreateUser(entity.getCreateUser());
+		vo.setUpdateUser(entity.getUpdateUser());
 		return vo;
 	}
 

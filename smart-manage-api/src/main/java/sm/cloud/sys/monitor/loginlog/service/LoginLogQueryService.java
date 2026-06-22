@@ -1,7 +1,7 @@
 package sm.cloud.sys.monitor.loginlog.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -53,19 +53,19 @@ public class LoginLogQueryService {
 		return toVo(entity);
 	}
 
-	private LoginLogListVO toVo(LoginLogEntity e) {
+	private LoginLogListVO toVo(LoginLogEntity entity) {
 		LoginLogListVO vo = new LoginLogListVO();
-		vo.setId(e.getId());
-		vo.setUserId(e.getUserId());
-		vo.setUsername(e.getUsername());
-		vo.setNickname(e.getNickname());
-		vo.setEventType(e.getEventType());
-		vo.setSuccess(e.getSuccess());
-		vo.setFailReason(e.getFailReason());
-		vo.setIp(e.getIp());
-		vo.setUserAgent(e.getUserAgent());
-		vo.setTokenHint(e.getTokenHint());
-		vo.setCreateTime(e.getCreateTime());
+		vo.setId(entity.getId());
+		vo.setUserId(entity.getUserId());
+		vo.setUsername(entity.getUsername());
+		vo.setNickname(entity.getNickname());
+		vo.setEventType(entity.getEventType());
+		vo.setSuccess(entity.getSuccess());
+		vo.setFailReason(entity.getFailReason());
+		vo.setIp(entity.getIp());
+		vo.setUserAgent(entity.getUserAgent());
+		vo.setTokenHint(entity.getTokenHint());
+		vo.setCreateTime(entity.getCreateTime());
 		return vo;
 	}
 }

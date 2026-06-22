@@ -2,8 +2,8 @@ package sm.cloud.sys.base.uiconfig.service;
 
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -77,8 +77,8 @@ public class UiConfigService {
     /** 获取活跃配置（Caffeine 本地缓存） */
     @Cached(cacheType = CacheType.LOCAL, name = "common", key = "'ui:config'", expire = 30, timeUnit = TimeUnit.MINUTES)
     public UiConfigDetailVO getActiveConfig() {
-        List<UiConfigEntity> entities = mapper.selectList(null);
-        return entities.isEmpty() ? new UiConfigDetailVO() : toDetailVo(entities.get(0));
+        List<UiConfigEntity> entityList = mapper.selectList(null);
+        return entityList.isEmpty() ? new UiConfigDetailVO() : toDetailVo(entityList.get(0));
     }
 
     private UiConfigDetailVO toDetailVo(UiConfigEntity entity) {

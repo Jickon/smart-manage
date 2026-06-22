@@ -36,38 +36,38 @@ public class UserTxService {
             throw new BizException("用户名已存在");
         }
 
-        UserEntity e;
+        UserEntity entity;
         if (form.getId() != null) {
-            e = mapper.selectById(form.getId());
-            if (e == null) {
+            entity = mapper.selectById(form.getId());
+            if (entity == null) {
                 throw new BizException("用户不存在");
             }
         } else {
-            e = new UserEntity();
+            entity = new UserEntity();
         }
 
-        e.setUsername(form.getUsername());
+        entity.setUsername(form.getUsername());
         // 密码处理：新增时必填，修改时可选
         if (form.getPassword() != null && !form.getPassword().isEmpty()) {
             // 使用 Argon2 加密密码
-            e.setPassword(Argon2Helper.encode(form.getPassword()));
+            entity.setPassword(Argon2Helper.encode(form.getPassword()));
         }
         if (form.getNickname() != null) {
-            e.setNickname(form.getNickname());
+            entity.setNickname(form.getNickname());
         }
 
         if (form.getId() == null) {
             // 新增用户
-            if (e.getPassword() == null || e.getPassword().isEmpty()) {
+            if (entity.getPassword() == null || entity.getPassword().isEmpty()) {
                 // 默认密码 123456
-                e.setPassword(Argon2Helper.encode("123456"));
+                entity.setPassword(Argon2Helper.encode("123456"));
             }
-            e.setEnableFlag(true);
-            mapper.insert(e);
+            entity.setEnableFlag(true);
+            mapper.insert(entity);
         } else {
-            mapper.updateById(e);
+            mapper.updateById(entity);
         }
-        return e.getId();
+        return entity.getId();
     }
 
     /** 删除用户 */

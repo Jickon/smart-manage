@@ -2,8 +2,8 @@ package sm.cloud.sys.base.fileconfig.service;
 
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -63,8 +63,8 @@ public class FileConfigService {
     /** 获取活跃配置（Caffeine 本地缓存） */
     @Cached(cacheType = CacheType.LOCAL, name = "common", key = "'file:config'", expire = 30, timeUnit = TimeUnit.MINUTES)
     public FileConfigDetailVO getActiveConfig() {
-        List<FileConfigEntity> entities = mapper.selectList(null);
-        return entities.isEmpty() ? defaultConfig() : toDetailVo(entities.get(0));
+        List<FileConfigEntity> entityList = mapper.selectList(null);
+        return entityList.isEmpty() ? defaultConfig() : toDetailVo(entityList.get(0));
     }
 
     private FileConfigDetailVO defaultConfig() {

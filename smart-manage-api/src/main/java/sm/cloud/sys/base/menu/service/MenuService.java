@@ -6,21 +6,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import sm.cloud.sys.base.app.domain.entity.AppEntity;
-import sm.system.exception.BizException;
 import sm.cloud.sys.base.app.mapper.AppMapper;
 import sm.cloud.sys.base.menu.domain.entity.MenuEntity;
 import sm.cloud.sys.base.menu.domain.form.MenuListForm;
 import sm.cloud.sys.base.menu.domain.form.MenuSaveForm;
 import sm.cloud.sys.base.menu.domain.form.MenuSelectForm;
-import sm.cloud.sys.base.menu.domain.vo.MenuCreateNewDataVO;
-import sm.cloud.sys.base.menu.domain.vo.MenuDetailVO;
-import sm.cloud.sys.base.menu.domain.vo.MenuListVO;
-import sm.cloud.sys.base.menu.domain.vo.MenuAppInfoVO;
-import sm.cloud.sys.base.menu.domain.vo.MenuSelectVO;
-import sm.cloud.sys.base.menu.domain.vo.MenuVO;
+import sm.cloud.sys.base.menu.domain.vo.*;
 import sm.cloud.sys.base.menu.mapper.MenuMapper;
 import sm.cloud.sys.common.enums.MenuLevelEnum;
 import sm.cloud.sys.common.helper.UserHelper;
+import sm.system.exception.BizException;
 import sm.system.response.PageResult;
 import sm.system.response.ResultEnum;
 
@@ -62,15 +57,15 @@ public class MenuService {
 	}
 
 	public PageResult<MenuListVO> listPage(MenuListForm form) {
-		LambdaQueryWrapper<MenuEntity> wrapper = new LambdaQueryWrapper<MenuEntity>();
-		wrapper.eq(form.getAppId() != null, MenuEntity::getAppId, form.getAppId());
+		LambdaQueryWrapper<MenuEntity> qw = new LambdaQueryWrapper<MenuEntity>();
+		qw.eq(form.getAppId() != null, MenuEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String keyword = form.getKeyword().trim();
-			wrapper.and(condition -> condition.like(MenuEntity::getName, keyword)
+			qw.and(condition -> condition.like(MenuEntity::getName, keyword)
 					.or().like(MenuEntity::getPath, keyword));
 		}
-		wrapper.orderByAsc(MenuEntity::getSort).orderByAsc(MenuEntity::getId);
-		Page<MenuEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), wrapper);
+		qw.orderByAsc(MenuEntity::getSort).orderByAsc(MenuEntity::getId);
+		Page<MenuEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
 		List<MenuListVO> records = result.getRecords().stream().map(this::toMenuListVo).collect(Collectors.toList());
 		return PageResult.of(result.getTotal(), records);
 	}
@@ -149,9 +144,9 @@ public class MenuService {
 			}
 		}
 
-		List<MenuEntity> menuEntities = mapper.selectUserMenus(userId, appId, UserHelper.isAdmin());
+		List<MenuEntity> entityList = mapper.selectUserMenus(userId, appId, UserHelper.isAdmin());
 		Map<Long, MenuVO> categories = new HashMap<>();
-		for (MenuEntity menuEntity : menuEntities) {
+		for (MenuEntity menuEntity : entityList) {
 			MenuVO menu = new MenuVO();
 			menu.setName(menuEntity.getName());
 			menu.setPath(menuEntity.getPath());

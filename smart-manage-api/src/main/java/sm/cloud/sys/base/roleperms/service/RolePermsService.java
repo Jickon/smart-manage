@@ -48,10 +48,10 @@ public class RolePermsService {
 	 * 获取角色的权限ID列表
 	 */
 	public List<Long> getPermissionIdsByRole(Long roleId) {
-		List<RolePermsEntity> entities = mapper.selectList(new LambdaQueryWrapper<RolePermsEntity>()
+		List<RolePermsEntity> entityList = mapper.selectList(new LambdaQueryWrapper<RolePermsEntity>()
 				.select(RolePermsEntity::getPermissionId)
 				.eq(RolePermsEntity::getRoleId, roleId));
-		return entities.stream()
+		return entityList.stream()
 				.map(RolePermsEntity::getPermissionId)
 				.toList();
 	}

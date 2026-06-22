@@ -1,8 +1,10 @@
 package sm.cloud.sys.base.user.service;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.alicp.jetcache.anno.CacheType;
+import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,8 +18,6 @@ import sm.cloud.sys.base.user.domain.form.UserSaveForm;
 import sm.cloud.sys.base.user.domain.vo.UserCreateNewDataVO;
 import sm.cloud.sys.base.user.domain.vo.UserInfoVO;
 import sm.cloud.sys.base.user.domain.vo.UserListVO;
-import com.alicp.jetcache.anno.CacheType;
-import com.alicp.jetcache.anno.Cached;
 import sm.cloud.sys.base.user.mapper.UserMapper;
 import sm.cloud.sys.common.constat.UserConst;
 import sm.cloud.sys.common.helper.UserHelper;
@@ -58,12 +58,12 @@ public class UserService {
 		return PageResult.of(result.getTotal(), vos);
 	}
 
-	private UserListVO toUserListVo(UserEntity e) {
+	private UserListVO toUserListVo(UserEntity entity) {
 		UserListVO vo = new UserListVO();
-		vo.setId(e.getId());
-		vo.setUsername(e.getUsername());
-		vo.setNickname(e.getNickname());
-		vo.setAvatar(e.getAvatar());
+		vo.setId(entity.getId());
+		vo.setUsername(entity.getUsername());
+		vo.setNickname(entity.getNickname());
+		vo.setAvatar(entity.getAvatar());
 		return vo;
 	}
 
@@ -109,8 +109,7 @@ public class UserService {
 	public UserInfoVO current() {
 		// 直接走 mapper，避免自调用绕过缓存代理
 		UserEntity userEntity = mapper.selectById(UserHelper.getCurrentUserId());
-		UserInfoVO userInfoVO = BeanUtil.copyProperties(userEntity, UserInfoVO.class);
-		return userInfoVO;
+		return BeanUtil.copyProperties(userEntity, UserInfoVO.class);
 	}
 
 	/**
@@ -133,12 +132,12 @@ public class UserService {
 	 * 获取用户新增默认值
 	 */
 	public UserCreateNewDataVO createNewData() {
-		UserCreateNewDataVO form = new UserCreateNewDataVO();
+		UserCreateNewDataVO vo = new UserCreateNewDataVO();
 		// 默认组织ID
-		form.setDefaultOrgId(defaultOrgId);
+		vo.setDefaultOrgId(defaultOrgId);
 		// 默认启用
-		form.setEnableFlag(true);
+		vo.setEnableFlag(true);
 		// 可根据业务需要设置默认角色等
-		return form;
+		return vo;
 	}
 }

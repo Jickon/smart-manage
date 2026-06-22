@@ -53,7 +53,9 @@ public class AttachmentService {
 
     /** 列出现有附件,无论是临时还是正式都有 */
     public List<AttachmentVO> listByIds(List<Long> ids) {
-        if (ids == null || ids.isEmpty()) return List.of();
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
         return mapper.selectByIds(ids).stream().map(this::toVo).collect(Collectors.toList());
     }
 

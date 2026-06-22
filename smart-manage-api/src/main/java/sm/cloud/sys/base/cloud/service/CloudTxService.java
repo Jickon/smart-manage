@@ -23,25 +23,25 @@ public class CloudTxService {
     private final CloudMapper mapper;
 
     public Long save(CloudSaveForm form) {
-        CloudEntity e;
+        CloudEntity entity;
         if (form.getId() != null) {
-            e = mapper.selectById(form.getId());
-            if (e == null) {
+            entity = mapper.selectById(form.getId());
+            if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "云不存在");
             }
         } else {
-            e = new CloudEntity();
+            entity = new CloudEntity();
         }
-        e.setName(form.getName());
-        e.setNumber(form.getNumber());
-        e.setSeq(form.getSeq() != null ? form.getSeq() : 99);
-        e.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
+        entity.setName(form.getName());
+        entity.setNumber(form.getNumber());
+        entity.setSeq(form.getSeq() != null ? form.getSeq() : 99);
+        entity.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
         if (form.getId() == null) {
-            mapper.insert(e);
+            mapper.insert(entity);
         } else {
-            mapper.updateById(e);
+            mapper.updateById(entity);
         }
-        return e.getId();
+        return entity.getId();
     }
 
     public void deleteById(Long id) {

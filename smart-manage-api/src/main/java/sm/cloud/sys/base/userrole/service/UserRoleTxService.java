@@ -38,7 +38,7 @@ public class UserRoleTxService {
 
         // 批量插入新的角色关联
         if (form.getRoleIds() != null && !form.getRoleIds().isEmpty()) {
-            List<UserRoleEntity> entities = new ArrayList<>();
+            List<UserRoleEntity> entityList = new ArrayList<>();
             for (Long roleId : form.getRoleIds()) {
                 UserRoleEntity entity = new UserRoleEntity();
                 entity.setId(IdWorker.getId());
@@ -47,9 +47,9 @@ public class UserRoleTxService {
                 entity.setUserId(form.getUserId());
                 entity.setOrgId(form.getOrgId());
                 entity.setRoleId(roleId);
-                entities.add(entity);
+                entityList.add(entity);
             }
-            mapper.insertBatch(entities);
+            mapper.insertBatch(entityList);
         }
     }
 

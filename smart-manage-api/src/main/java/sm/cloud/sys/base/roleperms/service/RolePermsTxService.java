@@ -37,7 +37,7 @@ public class RolePermsTxService {
 
         // 批量插入新的权限关联
         if (form.getPermissionIds() != null && !form.getPermissionIds().isEmpty()) {
-            List<RolePermsEntity> entities = new ArrayList<>();
+            List<RolePermsEntity> entityList = new ArrayList<>();
             for (Long permId : form.getPermissionIds()) {
                 RolePermsEntity entity = new RolePermsEntity();
                 entity.setId(IdWorker.getId());
@@ -45,9 +45,9 @@ public class RolePermsTxService {
                 entity.setCreateUser(UserHelper.getCurrentUserId());
                 entity.setRoleId(form.getRoleId());
                 entity.setPermissionId(permId);
-                entities.add(entity);
+                entityList.add(entity);
             }
-            mapper.insertBatch(entities);
+            mapper.insertBatch(entityList);
         }
     }
 

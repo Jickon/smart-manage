@@ -1,7 +1,7 @@
 package sm.cloud.sys.base.role.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,8 +58,8 @@ public class RoleService {
 		}
 		Page<RoleEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
 		Page<RoleEntity> result = mapper.selectPage(page, qw);
-		List<RoleSelectVO> vos = result.getRecords().stream().map(this::toRoleSelectVO).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), vos);
+		List<RoleSelectVO> voList = result.getRecords().stream().map(this::toRoleSelectVO).collect(Collectors.toList());
+		return PageResult.of(result.getTotal(), voList);
 	}
 
 	private RoleSelectVO toRoleSelectVO(RoleEntity e) {
@@ -93,15 +93,15 @@ public class RoleService {
 		return toDetailVo(entity);
 	}
 
-	private RoleDetailVO toDetailVo(RoleEntity e) {
+	private RoleDetailVO toDetailVo(RoleEntity entity) {
 		RoleDetailVO vo = new RoleDetailVO();
-		vo.setId(String.valueOf(e.getId()));
-		vo.setName(e.getName());
-		vo.setNumber(e.getNumber());
-		vo.setCreateTime(e.getCreateTime());
-		vo.setUpdateTime(e.getUpdateTime());
-		vo.setCreateUser(e.getCreateUser());
-		vo.setUpdateUser(e.getUpdateUser());
+		vo.setId(String.valueOf(entity.getId()));
+		vo.setName(entity.getName());
+		vo.setNumber(entity.getNumber());
+		vo.setCreateTime(entity.getCreateTime());
+		vo.setUpdateTime(entity.getUpdateTime());
+		vo.setCreateUser(entity.getCreateUser());
+		vo.setUpdateUser(entity.getUpdateUser());
 		return vo;
 	}
 
