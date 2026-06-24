@@ -2,8 +2,10 @@ package sm.domain.sys.monitor.node.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuate.health.HealthComponent;
-import org.springframework.boot.actuate.health.HealthEndpoint;
+import org.springframework.boot.health.actuate.endpoint.CompositeHealthDescriptor;
+import org.springframework.boot.health.actuate.endpoint.HealthDescriptor;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
+import org.springframework.boot.health.actuate.endpoint.IndicatedHealthDescriptor;
 import org.springframework.stereotype.Service;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
@@ -201,20 +203,20 @@ public class NodeService {
         return info;
     }
 
-    // ── Actuator 健康检查 ──
+    // ── Actuator 健康检查（Spring Boot 4 新 API）──
     private HealthInfo buildHealthInfo() {
-        var actHealth = healthEndpoint.health();
+        HealthDescriptor actHealth = healthEndpoint.health();
         HealthInfo info = new HealthInfo();
         info.setStatus(actHealth.getStatus().getCode());
 
-        java.util.List<NodeInfoVO.HealthComponent> comps = new ArrayList<>();
-        if (actHealth instanceof org.springframework.boot.actuate.health.CompositeHealth composite) {
-            composite.getComponents().forEach((name, c) -> {
+        java.util.List<NodeInfoVO.HealthComponent> comps = new java.util.ArrayList<>();
+        if (actHealth instanceof CompositeHealthDescriptor composite) {
+            composite.getComponents().forEach((name, descriptor) -> {
                 NodeInfoVO.HealthComponent hc = new NodeInfoVO.HealthComponent();
                 hc.setName(name);
-                hc.setStatus(c.getStatus().getCode());
-                if (c instanceof org.springframework.boot.actuate.health.Health healthDetail) {
-                    hc.setDetails(healthDetail.getDetails());
+                hc.setStatus(descriptor.getStatus().getCode());
+                if (descriptor instanceof IndicatedHealthDescriptor indicated) {
+                    hc.setDetails(indicated.getDetails());
                 }
                 comps.add(hc);
             });
@@ -222,4 +224,5 @@ public class NodeService {
         info.setComponents(comps);
         return info;
     }
+
 }

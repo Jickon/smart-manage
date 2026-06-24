@@ -1,19 +1,22 @@
 package sm.framework.config;
 
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sm.framework.json.deserializer.LongJsonDeserializer;
 import sm.framework.json.serializer.LongJsonSerializer;
+import tools.jackson.databind.ext.javatime.deser.LocalDateDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalDateTimeDeserializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
+import tools.jackson.databind.module.SimpleModule;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * JSON 配置
+ * JSON 全局配置（Jackson 3）
  *
  * @author Chekfu
  */
@@ -26,16 +29,21 @@ public class JsonConfig {
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer customizer() {
+    public JsonMapperBuilderCustomizer customizer() {
         return builder -> {
-            // 日期格式化
-            builder.deserializers(new LocalDateDeserializer(DATE_FORMATTER));
-            builder.deserializers(new LocalDateTimeDeserializer(DATETIME_FORMATTER));
-            builder.serializers(new LocalDateSerializer(DATE_FORMATTER));
-            builder.serializers(new LocalDateTimeSerializer(DATETIME_FORMATTER));
-            // Long 转 String，防止js丢失精度
-            builder.serializerByType(Long.class, LongJsonSerializer.INSTANCE);
-            builder.deserializerByType(Long.class, LongJsonDeserializer.INSTANCE);
+            // 日期格式化模块（Jackson 3 内置 JSR-310，无需额外依赖）
+            SimpleModule dateModule = new SimpleModule("dateModule");
+            dateModule.addSerializer(new LocalDateTimeSerializer(DATETIME_FORMATTER));
+            dateModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(DATETIME_FORMATTER));
+            dateModule.addSerializer(new LocalDateSerializer(DATE_FORMATTER));
+            dateModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(DATE_FORMATTER));
+            builder.addModule(dateModule);
+
+            // Long 转 String 模块，防止JS丢失精度
+            SimpleModule longModule = new SimpleModule("longModule");
+            longModule.addSerializer(Long.class, LongJsonSerializer.INSTANCE);
+            longModule.addDeserializer(Long.class, LongJsonDeserializer.INSTANCE);
+            builder.addModule(longModule);
         };
     }
 

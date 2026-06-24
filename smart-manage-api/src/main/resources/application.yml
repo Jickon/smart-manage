@@ -6,8 +6,6 @@ spring:
   jackson:
     time-zone: GMT+8
     date-format: yyyy-MM-dd HH:mm:ss
-    serialization:
-      write-dates-as-timestamps: false
 
 logging:
   pattern:
@@ -28,9 +26,23 @@ mybatis-plus:
     db-config:
       id-type: assign_id
 
+# SpringDoc OpenAPI 配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+scalar:
+  enabled: true
+  path: /scalar
+  # SpringDoc Scalar 通过该默认示例地址触发基于当前请求的 context-path 自动计算。
+  url: https://registry.scalar.com/@scalar/apis/galaxy?format=json
+
 smart-manage:
   framework:
-    no-need-login: /login,/captcha,/doc.html,/v3/api-docs/**,/webjars/**,/swagger-ui.html,/swagger-ui/**,/swagger-resources,/swagger-resources/**,/upload/**,/druid/**
+    no-need-login: /login,/captcha,/scalar,/scalar/**,/v3/api-docs/**,/webjars/**,/swagger-ui.html,/swagger-ui/**,/swagger-resources,/swagger-resources/**,/upload/**,/druid/**
   # 组织配置
   org:
     default-id: 1  # 默认组织ID

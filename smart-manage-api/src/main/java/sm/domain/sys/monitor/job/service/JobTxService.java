@@ -1,20 +1,20 @@
 package sm.domain.sys.monitor.job.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sm.domain.sys.monitor.job.mapper.JobLogMapper;
+import sm.domain.sys.monitor.job.mapper.JobMapper;
 import sm.domain.sys.monitor.job.model.entity.JobEntity;
 import sm.domain.sys.monitor.job.model.entity.JobLogEntity;
 import sm.domain.sys.monitor.job.model.form.JobSaveForm;
-import sm.domain.sys.monitor.job.mapper.JobLogMapper;
-import sm.domain.sys.monitor.job.mapper.JobMapper;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 
@@ -32,7 +32,7 @@ public class JobTxService {
     private final JobMapper mapper;
     private final JobLogMapper jobLogMapper;
     private final Scheduler scheduler;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     public Long save(JobSaveForm form) {
         JobEntity entity;
@@ -155,7 +155,8 @@ public class JobTxService {
         JobDataMap dataMap = new JobDataMap();
         if (jobDataJson != null && !jobDataJson.isBlank()) {
             try {
-                Map<String, Object> map = objectMapper.readValue(jobDataJson, new TypeReference<>() {});
+                Map<String, Object> map = jsonMapper.readValue(jobDataJson, new TypeReference<>() {
+                });
                 map.forEach(dataMap::put);
             } catch (Exception e) {
                 log.warn("jobData JSON 解析失败，将忽略自定义参数: {}", jobDataJson, e);

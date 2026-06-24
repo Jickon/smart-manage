@@ -1,7 +1,5 @@
 package sm.system.aop.log;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
@@ -15,6 +13,8 @@ import org.springframework.stereotype.Component;
 import sm.domain.sys.base.common.helper.UserHelper;
 import sm.domain.sys.monitor.common.util.LogPayloadUtil;
 import sm.system.util.ServletUtil;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.lang.reflect.Method;
 
@@ -29,7 +29,7 @@ import java.lang.reflect.Method;
 @Slf4j
 @RequiredArgsConstructor
 public class BizLogAspect {
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
     private final OperateLogWriter operateLogWriter;
 
     @Pointcut("@annotation(sm.system.aop.log.BizLog)")
@@ -123,8 +123,8 @@ public class BizLogAspect {
             return "[]";
         }
         try {
-            return objectMapper.writeValueAsString(args);
-        } catch (JsonProcessingException ex) {
+            return jsonMapper.writeValueAsString(args);
+        } catch (JacksonException ex) {
             return "[unserializable args]";
         }
     }
@@ -134,8 +134,8 @@ public class BizLogAspect {
             return "null";
         }
         try {
-            return objectMapper.writeValueAsString(o);
-        } catch (JsonProcessingException e) {
+            return jsonMapper.writeValueAsString(o);
+        } catch (JacksonException e) {
             return o.toString();
         }
     }

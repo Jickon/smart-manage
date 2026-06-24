@@ -5,7 +5,6 @@ import cn.dev33.satoken.context.SaHolder;
 import cn.dev33.satoken.filter.SaServletFilter;
 import cn.dev33.satoken.router.SaRouter;
 import cn.dev33.satoken.stp.StpUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,6 +15,7 @@ import org.springframework.web.servlet.mvc.condition.PathPatternsRequestConditio
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 import sm.system.exception.ExceptionResult;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class SaTokenConfig {
 	private final RequestMappingHandlerMapping requestMappingHandlerMapping;
-	private final ObjectMapper objectMapper;
+	private final JsonMapper jsonMapper;
 	@Value("${smart-manage.framework.no-need-login}")
 	private String[] noNeedLogin;
 	@Value("${smart-manage.framework.cors.allowed-origins:http://localhost:8888}")
@@ -80,7 +80,7 @@ public class SaTokenConfig {
 					SaHolder.getResponse().setHeader("Content-Type", "application/json;charset=UTF-8");
 					// 处理异常
 					try {
-						return objectMapper.writeValueAsString(ExceptionResult.getExceptionResult(e));
+						return jsonMapper.writeValueAsString(ExceptionResult.getExceptionResult(e));
 					} catch (Exception ex) {
 						return "{\"code\":500,\"msg\":\"server error\"}";
 					}
