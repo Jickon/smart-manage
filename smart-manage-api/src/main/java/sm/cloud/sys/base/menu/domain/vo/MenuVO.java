@@ -2,7 +2,7 @@ package sm.cloud.sys.base.menu.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import sm.cloud.sys.common.enums.MenuLevelEnum;
+import sm.cloud.sys.base.common.enums.MenuLevelEnum;
 
 import java.util.List;
 

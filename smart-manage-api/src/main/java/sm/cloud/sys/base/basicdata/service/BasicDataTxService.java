@@ -1,8 +1,6 @@
 package sm.cloud.sys.base.basicdata.service;
 
-import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CacheType;
-import com.alicp.jetcache.anno.CreateCache;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +14,8 @@ import sm.cloud.sys.base.basicdataitem.domain.form.BasicDataItemSaveForm;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataOptionVO;
 import sm.cloud.sys.base.basicdataitem.mapper.BasicDataItemMapper;
 import sm.system.exception.BizException;
+import sm.cloud.sys.base.common.constant.RedisKeyConstant;
+import sm.system.helper.CacheHelper;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
@@ -32,12 +32,7 @@ import java.util.List;
 public class BasicDataTxService {
     private final BasicDataMapper mapper;
     private final BasicDataItemMapper itemMapper;
-
-    private static final String CACHE_PREFIX = "basic-data:items:";
-
-    // 编程方式获取缓存实例（用于 key 依赖方法内部计算逻辑的场景）
-    @CreateCache(name = "basic-data-items", cacheType = CacheType.LOCAL)
-    private Cache<String, List<BasicDataOptionVO>> cache;
+    private final CacheHelper cacheHelper;
 
     public Long save(BasicDataSaveForm form) {
         // 保存基础数据
@@ -77,8 +72,9 @@ public class BasicDataTxService {
             }
         }
 
-        // 缓存 key 依赖方法内部计算逻辑，使用编程方式清除
-        cache.remove(CACHE_PREFIX + typeNumber);
+        // 保存后清除缓存，key 对齐 @Cached 注解中的 #typeNumber
+        cacheHelper.<String, List<BasicDataOptionVO>>getCache(RedisKeyConstant.CACHE_BASIC_DATA_ITEMS, CacheType.LOCAL)
+                .remove(typeNumber);
 
         return entity.getId();
     }

@@ -1,9 +1,9 @@
-package sm.cloud.sys.common.constat;
+package sm.cloud.sys.base.common.constant;
 
 /**
  * @author Chekfu
  */
-public class UserConst {
+public class UserConstant {
 	/**
 	 * 超级管理员账号
 	 */

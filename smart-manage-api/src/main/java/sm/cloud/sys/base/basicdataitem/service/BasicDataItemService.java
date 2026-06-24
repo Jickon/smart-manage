@@ -11,6 +11,7 @@ import sm.cloud.sys.base.basicdataitem.domain.form.BasicDataItemSaveForm;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataItemListVO;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataOptionVO;
 import sm.cloud.sys.base.basicdataitem.mapper.BasicDataItemMapper;
+import sm.cloud.sys.base.common.constant.RedisKeyConstant;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
 
@@ -53,7 +54,7 @@ public class BasicDataItemService {
     }
 
     /** 按基础数据编码获取选项列表（Caffeine 本地缓存） */
-    @Cached(cacheType = CacheType.LOCAL, name = "basic-data-items", key = "#typeNumber", expire = 30, timeUnit = TimeUnit.MINUTES)
+    @Cached(cacheType = CacheType.LOCAL, name = RedisKeyConstant.CACHE_BASIC_DATA_ITEMS, key = "#typeNumber", expire = 30, timeUnit = TimeUnit.MINUTES)
     public List<BasicDataOptionVO> getOptionsByTypeNumber(String typeNumber) {
         LambdaQueryWrapper<BasicDataItemEntity> qw = new LambdaQueryWrapper<BasicDataItemEntity>()
                 .eq(BasicDataItemEntity::getTypeNumber, typeNumber)

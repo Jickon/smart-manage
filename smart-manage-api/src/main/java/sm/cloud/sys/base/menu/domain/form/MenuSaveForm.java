@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import sm.cloud.sys.common.enums.MenuLevelEnum;
+import sm.cloud.sys.base.common.enums.MenuLevelEnum;
 
 /**
  * @author Chekfu

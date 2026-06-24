@@ -1,12 +1,12 @@
-package sm.cloud.sys.common.helper;
+package sm.cloud.sys.base.common.helper;
 
 import cn.dev33.satoken.stp.StpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import sm.cloud.sys.base.common.constant.UserConstant;
 import sm.cloud.sys.base.user.domain.entity.UserEntity;
 import sm.cloud.sys.base.user.service.UserService;
-import sm.cloud.sys.common.constat.UserConst;
 
 /**
  * @author Chekfu
@@ -80,6 +80,6 @@ public class UserHelper {
 		if (user == null) {
 			return false;
 		}
-		return UserConst.SUPER_ADMIN.equals(user.getUsername());
+		return UserConstant.SUPER_ADMIN.equals(user.getUsername());
 	}
 }

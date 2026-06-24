@@ -1,4 +1,4 @@
-package sm.system.constat;
+package sm.system.constant;
 
 /**
  * @author Chekfu

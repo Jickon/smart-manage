@@ -12,7 +12,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import sm.cloud.sys.common.helper.UserHelper;
+import sm.cloud.sys.base.common.helper.UserHelper;
 import sm.cloud.sys.monitor.common.util.LogPayloadUtil;
 import sm.system.util.ServletUtil;
 

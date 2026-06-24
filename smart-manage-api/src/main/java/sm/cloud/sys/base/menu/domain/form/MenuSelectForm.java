@@ -3,7 +3,7 @@ package sm.cloud.sys.base.menu.domain.form;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import sm.cloud.sys.common.enums.MenuLevelEnum;
+import sm.cloud.sys.base.common.enums.MenuLevelEnum;
 import sm.system.form.PageForm;
 
 /**

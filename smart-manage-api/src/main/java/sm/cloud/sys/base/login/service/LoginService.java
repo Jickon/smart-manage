@@ -6,15 +6,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import sm.cloud.sys.base.common.config.CaptchaConfig;
+import sm.cloud.sys.base.common.constant.RedisKeyConstant;
+import sm.cloud.sys.base.common.util.CaptchaUtil;
 import sm.cloud.sys.base.login.domain.form.LoginForm;
 import sm.cloud.sys.base.login.domain.vo.CaptchaVO;
 import sm.cloud.sys.base.login.domain.vo.LoginVO;
 import sm.cloud.sys.base.menu.service.MenuService;
 import sm.cloud.sys.base.user.domain.entity.UserEntity;
 import sm.cloud.sys.base.user.service.UserService;
-import sm.cloud.sys.common.config.CaptchaConfig;
-import sm.cloud.sys.common.constat.RedisKeyConst;
-import sm.cloud.sys.common.util.CaptchaUtil;
 import sm.cloud.sys.monitor.common.service.LogWriteService;
 import sm.system.exception.BizException;
 import sm.system.helper.SM2Helper;
@@ -53,7 +53,7 @@ public class LoginService {
 	public LoginVO login(LoginForm form) {
 		// 验证码校验
 		String decryptedCaptcha = form.getCaptcha() != null ? SM2Helper.decrypt(form.getCaptcha()) : null;
-		String captchaKey = RedisKeyConst.CAPTCHA + form.getCaptchaId();
+		String captchaKey = RedisKeyConstant.CAPTCHA + form.getCaptchaId();
 		String captcha = (String) redisTemplate.opsForValue().get(captchaKey);
 		if (captcha == null) {
 			throw new BizException(ResultEnum.CAPTCHA_EXPIRE);
@@ -89,7 +89,7 @@ public class LoginService {
 		BufferedImage image = CaptchaUtil.generateCaptchaImage(captcha, captchaConfig.getWidth(), captchaConfig.getHeight());
 
 		// 将验证码存入Redis
-		redisTemplate.opsForValue().set(RedisKeyConst.CAPTCHA + captchaId, captcha, captchaConfig.getExpire(), TimeUnit.SECONDS);
+		redisTemplate.opsForValue().set(RedisKeyConstant.CAPTCHA + captchaId, captcha, captchaConfig.getExpire(), TimeUnit.SECONDS);
 
 		// 将图片转换为Base64
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

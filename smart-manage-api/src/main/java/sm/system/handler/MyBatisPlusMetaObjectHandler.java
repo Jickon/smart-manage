@@ -5,7 +5,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
-import sm.cloud.sys.common.helper.UserHelper;
+import sm.cloud.sys.base.common.helper.UserHelper;
 import sm.system.entity.BaseEntity;
 
 import java.time.LocalDateTime;

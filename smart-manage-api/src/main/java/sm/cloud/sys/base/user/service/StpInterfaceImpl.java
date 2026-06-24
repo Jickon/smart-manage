@@ -3,8 +3,8 @@ package sm.cloud.sys.base.user.service;
 import cn.dev33.satoken.stp.StpInterface;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import sm.cloud.sys.base.common.helper.UserHelper;
 import sm.cloud.sys.base.permission.service.PermissionService;
-import sm.cloud.sys.common.helper.UserHelper;
 
 import java.util.List;
 

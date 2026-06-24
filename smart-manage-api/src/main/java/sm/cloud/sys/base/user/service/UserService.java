@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import sm.cloud.sys.base.common.constant.UserConstant;
+import sm.cloud.sys.base.common.helper.UserHelper;
 import sm.cloud.sys.base.login.domain.vo.LoginVO;
 import sm.cloud.sys.base.menu.service.MenuService;
 import sm.cloud.sys.base.permission.service.PermissionService;
@@ -19,8 +21,6 @@ import sm.cloud.sys.base.user.domain.vo.UserCreateNewDataVO;
 import sm.cloud.sys.base.user.domain.vo.UserInfoVO;
 import sm.cloud.sys.base.user.domain.vo.UserListVO;
 import sm.cloud.sys.base.user.mapper.UserMapper;
-import sm.cloud.sys.common.constat.UserConst;
-import sm.cloud.sys.common.helper.UserHelper;
 import sm.system.helper.Argon2Helper;
 import sm.system.response.PageResult;
 import sm.system.util.BeanUtil;
@@ -102,7 +102,7 @@ public class UserService {
 		LoginVO vo = new LoginVO();
 		vo.setToken(token);
 		vo.setNickname(user.getNickname());
-		vo.setAccess(UserConst.SUPER_ADMIN.equalsIgnoreCase(user.getUsername()) ? "kdcloud" : "");
+		vo.setAccess(UserConstant.SUPER_ADMIN.equalsIgnoreCase(user.getUsername()) ? "kdcloud" : "");
 		return vo;
 	}
 

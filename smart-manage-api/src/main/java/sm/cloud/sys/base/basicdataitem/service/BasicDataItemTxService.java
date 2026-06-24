@@ -1,9 +1,7 @@
 package sm.cloud.sys.base.basicdataitem.service;
 
-import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CacheInvalidate;
 import com.alicp.jetcache.anno.CacheType;
-import com.alicp.jetcache.anno.CreateCache;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +12,8 @@ import sm.cloud.sys.base.basicdataitem.domain.form.BasicDataItemSaveForm;
 import sm.cloud.sys.base.basicdataitem.domain.vo.BasicDataOptionVO;
 import sm.cloud.sys.base.basicdataitem.mapper.BasicDataItemMapper;
 import sm.system.exception.BizException;
+import sm.cloud.sys.base.common.constant.RedisKeyConstant;
+import sm.system.helper.CacheHelper;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
@@ -29,15 +29,9 @@ import java.util.List;
 @Transactional(rollbackFor = Exception.class)
 public class BasicDataItemTxService {
     private final BasicDataItemMapper mapper;
+    private final CacheHelper cacheHelper;
 
-    // 缓存 key 前缀
-    private static final String CACHE_PREFIX = "basic-data:items:";
-
-    // 编程方式获取缓存实例（用于 key 依赖方法内部加载数据的场景）
-    @CreateCache(name = "basic-data-items", cacheType = CacheType.LOCAL)
-    private Cache<String, List<BasicDataOptionVO>> cache;
-
-    @CacheInvalidate(name = "basic-data-items", key = "#form.typeNumber")
+    @CacheInvalidate(name = RedisKeyConstant.CACHE_BASIC_DATA_ITEMS, key = "#form.typeNumber")
     public Long save(BasicDataItemSaveForm form) {
         BasicDataItemEntity entity;
         if (form.getId() != null) {
@@ -70,7 +64,8 @@ public class BasicDataItemTxService {
             throw new BizException(ResultEnum.NOT_FOUND, "基础数据项不存在");
         }
         mapper.deleteById(id);
-        // 缓存 key 依赖方法内部加载的数据，使用编程方式清除
-        cache.remove(CACHE_PREFIX + entity.getTypeNumber());
+        // 删除后清除缓存，key 对齐 @Cached 注解中的 #typeNumber
+        cacheHelper.<String, List<BasicDataOptionVO>>getCache(RedisKeyConstant.CACHE_BASIC_DATA_ITEMS, CacheType.LOCAL)
+                .remove(entity.getTypeNumber());
     }
 }

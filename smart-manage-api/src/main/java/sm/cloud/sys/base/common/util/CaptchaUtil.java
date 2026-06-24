@@ -1,4 +1,4 @@
-package sm.cloud.sys.common.util;
+package sm.cloud.sys.base.common.util;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

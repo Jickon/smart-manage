@@ -6,10 +6,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import sm.cloud.sys.base.common.helper.UserHelper;
 import sm.cloud.sys.base.userrole.domain.entity.UserRoleEntity;
 import sm.cloud.sys.base.userrole.domain.form.UserRoleSaveForm;
 import sm.cloud.sys.base.userrole.mapper.UserRoleMapper;
-import sm.cloud.sys.common.helper.UserHelper;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
 

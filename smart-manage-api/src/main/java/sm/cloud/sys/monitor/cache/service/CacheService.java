@@ -10,13 +10,16 @@ import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Service;
+import sm.cloud.sys.base.common.constant.RedisKeyConstant;
 import sm.cloud.sys.monitor.cache.domain.vo.CacheStatsVO;
 import sm.cloud.sys.monitor.cache.domain.vo.CaffeineCacheVO;
 import sm.cloud.sys.monitor.cache.domain.vo.RedisInfoVO;
 import sm.cloud.sys.monitor.cache.domain.vo.RedisKeyVO;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * 缓存管理服务
@@ -35,7 +38,7 @@ public class CacheService {
     private static final int MAX_SCAN_KEYS = 500;
 
     /** 已知的 JetCache LOCAL 缓存名列表 */
-    private static final List<String> LOCAL_CACHE_NAMES = List.of("sys-params", "common", "basic-data-items");
+    private static final List<String> LOCAL_CACHE_NAMES = List.of("sys-params", "common", RedisKeyConstant.CACHE_BASIC_DATA_ITEMS);
 
     public CacheService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -70,15 +73,15 @@ public class CacheService {
                     // 通过 unwrap 获取底层 Caffeine Cache 实例
                     com.github.benmanes.caffeine.cache.Cache<?, ?> caffeine = cache.unwrap(com.github.benmanes.caffeine.cache.Cache.class);
                     if (caffeine != null) {
-                        CaffeineCacheVO cv = new CaffeineCacheVO();
-                        cv.setName(cacheName);
-                        cv.setEstimatedSize(caffeine.estimatedSize());
-                        cv.setHitCount(caffeine.stats().hitCount());
-                        cv.setMissCount(caffeine.stats().missCount());
-                        cv.setHitRate(caffeine.stats().hitRate());
-                        cv.setEvictionCount(caffeine.stats().evictionCount());
-                        cv.setRequestCount(caffeine.stats().requestCount());
-                        list.add(cv);
+                        CaffeineCacheVO vo = new CaffeineCacheVO();
+                        vo.setName(cacheName);
+                        vo.setEstimatedSize(caffeine.estimatedSize());
+                        vo.setHitCount(caffeine.stats().hitCount());
+                        vo.setMissCount(caffeine.stats().missCount());
+                        vo.setHitRate(caffeine.stats().hitRate());
+                        vo.setEvictionCount(caffeine.stats().evictionCount());
+                        vo.setRequestCount(caffeine.stats().requestCount());
+                        list.add(vo);
                     }
                 }
             } catch (Exception e) {
