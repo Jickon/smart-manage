@@ -13,8 +13,7 @@ logging:
   pattern:
     dateformat: yyyy-MM-dd HH:mm:ss.SSS
   file:
-    path: logs
-    name: smart-manage
+    name: logs/smart-manage.log
   logback:
     rollingpolicy:
       max-file-size: 50MB
