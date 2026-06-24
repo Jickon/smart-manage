@@ -1,0 +1,32 @@
+package sm.domain.sys.base.sysparam.model.form;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+/**
+ * 系统参数保存表单
+ *
+ * @author Chekfu
+ */
+@Data
+@Schema(description = "系统参数保存表单")
+public class SysParamSaveForm {
+
+    @Schema(description = "主键ID（新建时不传）")
+    private Long id;
+
+    @NotBlank(message = "参数编码不能为空")
+    @Schema(description = "参数编码")
+    private String number;
+
+    @NotBlank(message = "参数名称不能为空")
+    @Schema(description = "参数名称")
+    private String name;
+
+    @Schema(description = "参数值")
+    private String value;
+
+    @Schema(description = "备注")
+    private String remark;
+}

@@ -1,0 +1,129 @@
+package sm.domain.sys.base.sysparam.service;
+
+import com.alicp.jetcache.anno.CacheType;
+import com.alicp.jetcache.anno.Cached;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import sm.domain.sys.base.sysparam.model.entity.SysParamEntity;
+import sm.domain.sys.base.sysparam.model.form.SysParamListForm;
+import sm.domain.sys.base.sysparam.model.form.SysParamSaveForm;
+import sm.domain.sys.base.sysparam.model.vo.SysParamCreateNewDataVO;
+import sm.domain.sys.base.sysparam.model.vo.SysParamVO;
+import sm.domain.sys.base.sysparam.mapper.SysParamMapper;
+import sm.system.exception.BizException;
+import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+/**
+ * 系统参数服务
+ *
+ * @author Chekfu
+ */
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class SysParamService {
+    private final SysParamMapper mapper;
+    private final SysParamTxService txService;
+
+    /** 管理端分页列表 */
+    public PageResult<SysParamVO> listPage(SysParamListForm form) {
+        LambdaQueryWrapper<SysParamEntity> qw = new LambdaQueryWrapper<SysParamEntity>();
+        if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
+            String kw = "%" + form.getKeyword().trim() + "%";
+            qw.and(condition -> condition.like(SysParamEntity::getNumber, kw).or().like(SysParamEntity::getName, kw));
+        }
+        qw.orderByAsc(SysParamEntity::getNumber);
+        Page<SysParamEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
+        Page<SysParamEntity> result = mapper.selectPage(page, qw);
+        List<SysParamVO> vos = result.getRecords().stream().map(this::toVo).collect(Collectors.toList());
+        return PageResult.of(result.getTotal(), vos);
+    }
+
+    /** 详情 */
+    public SysParamVO getById(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "系统参数ID不能为空");
+        }
+        SysParamEntity entity = mapper.selectById(id);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
+        }
+        return toVo(entity);
+    }
+
+    /** 新增默认值 */
+    public SysParamCreateNewDataVO createNewData() {
+        return new SysParamCreateNewDataVO();
+    }
+
+    /** 新增/编辑，委托事务服务处理 */
+    public Long save(SysParamSaveForm form) {
+        return txService.save(form);
+    }
+
+    /** 删除，委托事务服务处理 */
+    public void deleteById(Long id) {
+        txService.deleteById(id);
+    }
+
+    // ==================== 消费端（带缓存） ====================
+
+    /** 全量获取 number → value 映射（Caffeine 本地缓存） */
+    @Cached(cacheType = CacheType.LOCAL, name = "sys-params", key = "'all'", expire = 30, timeUnit = TimeUnit.MINUTES)
+    public Map<String, String> getAll() {
+        List<SysParamEntity> entityList = mapper.selectList(null);
+        Map<String, String> map = new HashMap<>();
+        for (SysParamEntity entity : entityList) {
+            map.put(entity.getNumber(), entity.getValue());
+        }
+        return map;
+    }
+
+    /** 获取字符串值 */
+    public String getString(String number) {
+        return getAll().get(number);
+    }
+
+    /** 获取布尔值（"true" 或 "1" 为 true，其余 false） */
+    public boolean getBoolean(String number) {
+        String value = getString(number);
+        return "true".equalsIgnoreCase(value) || "1".equals(value);
+    }
+
+    /** 获取整数值，不存在或解析失败返回 null */
+    public Integer getInt(String number) {
+        String value = getString(number);
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(value.trim());
+        } catch (NumberFormatException e) {
+            log.warn("系统参数 {} 无法转为整数: {}", number, value);
+            return null;
+        }
+    }
+
+    // ==================== 内部方法 ====================
+
+    private SysParamVO toVo(SysParamEntity entity) {
+        SysParamVO vo = new SysParamVO();
+        vo.setId(entity.getId());
+        vo.setNumber(entity.getNumber());
+        vo.setName(entity.getName());
+        vo.setValue(entity.getValue());
+        vo.setRemark(entity.getRemark());
+        vo.setIsSystem(entity.getIsSystem());
+        return vo;
+    }
+}

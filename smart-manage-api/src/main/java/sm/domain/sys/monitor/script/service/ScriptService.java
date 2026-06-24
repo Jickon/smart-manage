@@ -1,0 +1,236 @@
+package sm.domain.sys.monitor.script.service;
+
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import lombok.extern.slf4j.Slf4j;
+import org.mozilla.javascript.*;
+import org.springframework.stereotype.Service;
+import sm.domain.sys.base.sysparam.service.SysParamService;
+import sm.domain.sys.monitor.script.model.entity.ScriptEntity;
+import sm.domain.sys.monitor.script.model.form.ScriptExecuteForm;
+import sm.domain.sys.monitor.script.model.form.ScriptListForm;
+import sm.domain.sys.monitor.script.model.form.ScriptSaveForm;
+import sm.domain.sys.monitor.script.model.vo.ScriptDetailVO;
+import sm.domain.sys.monitor.script.model.vo.ScriptListVO;
+import sm.domain.sys.monitor.script.model.vo.ScriptResultVO;
+import sm.domain.sys.monitor.script.mapper.ScriptMapper;
+import sm.system.exception.BizException;
+import sm.system.helper.SpringContextHelper;
+import sm.system.response.PageResult;
+import sm.system.util.StringUtil;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+
+/**
+ * 脚本控制台服务——Rhino 执行 JS + 脚本 CRUD
+ */
+@Slf4j
+@Service
+public class ScriptService {
+
+    private final ScriptMapper mapper;
+    private final SysParamService sysParamService;
+
+    public ScriptService(ScriptMapper mapper, SysParamService sysParamService) {
+        this.mapper = mapper;
+        this.sysParamService = sysParamService;
+    }
+
+    // ---- 脚本执行 ----
+
+    public ScriptResultVO execute(ScriptExecuteForm form) {
+        String content = form.getContent().trim();
+        if (content.isEmpty()) {
+            throw new BizException("脚本内容不能为空");
+        }
+
+        ScriptResultVO result = new ScriptResultVO();
+        long start = System.currentTimeMillis();
+
+        // 从系统参数取超时时间，默认 60 秒
+        Integer timeoutParam = sysParamService.getInt("SCRIPT_EXECUTE_TIMEOUT");
+        int timeoutSeconds = timeoutParam != null && timeoutParam > 0 ? timeoutParam : 60;
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<ScriptResultVO> future = executor.submit(() -> executeScript(content));
+
+        try {
+            ScriptResultVO r = future.get(timeoutSeconds, TimeUnit.SECONDS);
+            result.setOutput(r.getOutput());
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            result.setOutput("Error: 脚本执行超时 (" + timeoutSeconds + "s)");
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            log.warn("脚本执行异常: {}", cause.getMessage());
+            result.setOutput("Error: " + cause.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            result.setOutput("Error: 执行被中断");
+        } finally {
+            executor.shutdownNow();
+        }
+
+        result.setExecuteDuration((int) (System.currentTimeMillis() - start));
+        return result;
+    }
+
+    private ScriptResultVO executeScript(String jsContent) {
+        ScriptResultVO result = new ScriptResultVO();
+        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        PrintStream printStream = new PrintStream(outStream, true, StandardCharsets.UTF_8);
+
+        Context cx = Context.enter();
+        try {
+            cx.setOptimizationLevel(-1);
+            cx.setLanguageVersion(Context.VERSION_ES6);
+
+            Scriptable scope = cx.initStandardObjects();
+
+            // 注入 ctx：Spring 容器，通过 ctx.getBean("xxx") 获取 Bean
+            Object wrappedCtx = Context.javaToJS(SpringContextHelper.getApplicationContext(), scope);
+            ScriptableObject.putProperty(scope, "ctx", wrappedCtx);
+
+            // 重定向 print() 函数，捕获输出
+            ScriptableObject.putProperty(scope, "print", new BaseFunction() {
+                @Override
+                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+                    printStream.println(Context.toString(args.length == 0 ? Undefined.instance : args[0]));
+                    return Undefined.instance;
+                }
+            });
+
+            // 注入 console.log()
+            Scriptable console = cx.newObject(scope);
+            ScriptableObject.putProperty(console, "log", new BaseFunction() {
+                @Override
+                public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+                    printStream.println(Context.toString(args.length == 0 ? Undefined.instance : args[0]));
+                    return Undefined.instance;
+                }
+            });
+            ScriptableObject.putProperty(scope, "console", console);
+
+            // 执行脚本，最后一行表达式的值作为返回值
+            Object evalResult = cx.evaluateString(scope, jsContent, "<script>", 1, null);
+
+            // 收集输出
+            printStream.flush();
+            String capturedOutput = outStream.toString(StandardCharsets.UTF_8).trim();
+
+            String returnValue = evalResult instanceof Undefined ? "" : Context.toString(evalResult);
+
+            StringBuilder output = new StringBuilder();
+            if (!capturedOutput.isEmpty()) {
+                output.append(capturedOutput);
+            }
+            if (!returnValue.isEmpty()) {
+                if (!output.isEmpty()) {
+                    output.append("\n");
+                }
+                output.append(returnValue);
+            }
+
+            result.setOutput(output.toString());
+        } catch (RhinoException e) {
+            printStream.flush();
+            String capturedOutput = outStream.toString(StandardCharsets.UTF_8).trim();
+
+            StringBuilder output = new StringBuilder();
+            if (!capturedOutput.isEmpty()) {
+                output.append(capturedOutput).append("\n");
+            }
+            output.append("Error: ").append(e.getMessage());
+            result.setOutput(output.toString());
+        } finally {
+            Context.exit();
+        }
+
+        return result;
+    }
+
+    // ---- 脚本 CRUD ----
+
+    public PageResult<ScriptListVO> listPage(ScriptListForm form) {
+        LambdaQueryWrapper<ScriptEntity> qw = new LambdaQueryWrapper<ScriptEntity>();
+        if (StringUtil.isNotBlank(form.getKeyword())) {
+            qw.like(ScriptEntity::getNumber, form.getKeyword());
+        }
+        qw.orderByDesc(ScriptEntity::getCreateTime);
+
+        Page<ScriptEntity> page = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
+        List<ScriptListVO> vos = page.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
+        return PageResult.of(page.getTotal(), vos);
+    }
+
+    public ScriptDetailVO detail(Long id) {
+        ScriptEntity entity = mapper.selectById(id);
+        if (entity == null) {
+            throw new BizException("脚本不存在");
+        }
+        return toDetailVo(entity);
+    }
+
+    public Long save(ScriptSaveForm form) {
+        ScriptEntity entity;
+        if (form.getId() != null) {
+            entity = mapper.selectById(form.getId());
+            if (entity == null) {
+                throw new BizException("脚本不存在");
+            }
+        } else {
+            entity = new ScriptEntity();
+        }
+
+        entity.setNumber(form.getNumber());
+        entity.setName(form.getName());
+        entity.setContent(form.getContent());
+        entity.setRemark(form.getRemark());
+
+        if (form.getId() != null) {
+            mapper.updateById(entity);
+            return form.getId();
+        } else {
+            mapper.insert(entity);
+            return entity.getId();
+        }
+    }
+
+    public void delete(Long id) {
+        ScriptEntity entity = mapper.selectById(id);
+        if (entity == null) {
+            throw new BizException("脚本不存在");
+        }
+        mapper.deleteById(id);
+    }
+
+    // ---- 转换方法 ----
+
+    private ScriptListVO toListVo(ScriptEntity entity) {
+        ScriptListVO vo = new ScriptListVO();
+        vo.setId(String.valueOf(entity.getId()));
+        vo.setNumber(entity.getNumber());
+        vo.setName(entity.getName());
+        vo.setRemark(entity.getRemark());
+        vo.setCreateTime(entity.getCreateTime());
+        return vo;
+    }
+
+    private ScriptDetailVO toDetailVo(ScriptEntity entity) {
+        ScriptDetailVO vo = new ScriptDetailVO();
+        vo.setId(String.valueOf(entity.getId()));
+        vo.setNumber(entity.getNumber());
+        vo.setName(entity.getName());
+        vo.setContent(entity.getContent());
+        vo.setRemark(entity.getRemark());
+        vo.setCreateTime(entity.getCreateTime());
+        vo.setUpdateTime(entity.getUpdateTime());
+        return vo;
+    }
+}

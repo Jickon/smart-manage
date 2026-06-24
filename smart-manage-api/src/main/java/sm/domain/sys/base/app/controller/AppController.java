@@ -1,0 +1,86 @@
+package sm.domain.sys.base.app.controller;
+
+import cn.dev33.satoken.annotation.SaCheckPermission;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import sm.domain.sys.base.app.model.form.AppListForm;
+import sm.domain.sys.base.app.model.form.AppOpenByNumberForm;
+import sm.domain.sys.base.app.model.form.AppSaveForm;
+import sm.domain.sys.base.app.model.vo.*;
+import sm.domain.sys.base.app.service.AppService;
+import sm.domain.sys.base.common.helper.UserHelper;
+import sm.system.form.IdForm;
+import sm.system.response.PageResult;
+import sm.system.response.Result;
+
+import java.util.List;
+
+/**
+ * @author Chekfu
+ */
+@RestController
+@Tag(name = "系统建模-应用管理", description = "应用信息管理接口")
+@RequiredArgsConstructor
+public class AppController {
+	private final AppService service;
+
+	@Operation(summary = "应用列表", description = "获取应用分页列表数据")
+	@PostMapping("/sys/base/app/listPage")
+	@SaCheckPermission("sys:base:app:listPage")
+	public Result<PageResult<AppListVO>> listPage(@RequestBody AppListForm form) {
+		return Result.success(service.listPage(form));
+	}
+
+	@Operation(summary = "应用详情", description = "按ID查询应用")
+	@PostMapping("/sys/base/app/detail")
+	@SaCheckPermission("sys:base:app:detail")
+	public Result<AppDetailVO> detail(@RequestBody @Valid IdForm form) {
+		return Result.success(service.detail(form.getId()));
+	}
+
+	@Operation(summary = "保存应用", description = "新增或更新应用")
+	@PostMapping("/sys/base/app/save")
+	@SaCheckPermission("sys:base:app:save")
+	public Result<Long> save(@Valid @RequestBody AppSaveForm form) {
+		return Result.success(service.save(form));
+	}
+
+	@GetMapping("/sys/base/app/createNewData")
+	@Operation(summary = "获取新增默认值", description = "获取应用新增时的默认初始数据")
+	@SaCheckPermission("sys:base:app:save")
+	public Result<AppCreateNewDataVO> createNewData() {
+		return Result.success(service.createNewData());
+	}
+
+	@Operation(summary = "删除应用", description = "按ID删除应用")
+	@PostMapping("/sys/base/app/delete")
+	@SaCheckPermission("sys:base:app:delete")
+	public Result<String> delete(@RequestBody @Valid IdForm form) {
+		service.deleteById(form.getId());
+		return Result.success();
+	}
+
+	@Operation(summary = "云与应用列表", description = "获取云及其下应用")
+	@GetMapping("/sys/base/app/apps")
+	public Result<List<CloudAppsVO>> apps() {
+		return Result.success(service.getUserCloudApps(UserHelper.getCurrentUserId()));
+	}
+
+	@Operation(summary = "云与应用列表（全量）", description = "获取所有云及其下应用（不按用户权限过滤）")
+	@GetMapping("/sys/base/app/appsAll")
+	public Result<List<CloudAppsVO>> appsAll() {
+		return Result.success(service.getAllCloudApps());
+	}
+
+	@Operation(summary = "按应用编号打开应用", description = "返回当前用户有权限访问的应用信息")
+	@PostMapping("/sys/base/app/openByNumber")
+	public Result<AppVO> openByNumber(@RequestBody @Valid AppOpenByNumberForm form) {
+		return Result.success(service.getUserAppByNumber(UserHelper.getCurrentUserId(), form.getNumber()));
+	}
+}

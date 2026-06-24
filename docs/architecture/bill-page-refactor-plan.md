@@ -39,7 +39,7 @@ export enum OperationType {
 - 后端菜单只维护元数据和稳定业务键。
 - 前端组件注册表负责把 `component` 映射到真实组件。
 - 新增业务页面时在页面目录新增 `pageRegistration.ts`，默认导出 `definePageRegistration(...)` 的结果。
-- `pnpm gen:registry` 会扫描 `src/cloud/**/pageRegistration.ts` 或 `.tsx` 并生成 `src/cloud/common/registry/componentRegistry.generated.tsx`。
+- `pnpm gen:registry` 会扫描 `src/domain/**/pageRegistration.ts` 或 `.tsx` 并生成 `src/domain/common/registry/componentRegistry.generated.tsx`。
 
 示例业务键：
 

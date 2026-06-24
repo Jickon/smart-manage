@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="sm.cloud.sys.base.attachment.mapper.AttachmentMapper">
-    <select id="selectByBiz" resultType="sm.cloud.sys.base.attachment.domain.entity.AttachmentEntity">
+<mapper namespace="sm.domain.sys.base.attachment.mapper.AttachmentMapper">
+    <select id="selectByBiz" resultType="sm.domain.sys.base.attachment.model.entity.AttachmentEntity">
         SELECT a.*
         FROM t_sys_attachment a
         INNER JOIN t_sys_biz_attachment b

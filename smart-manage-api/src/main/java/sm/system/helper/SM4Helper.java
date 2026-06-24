@@ -6,7 +6,7 @@ import cn.hutool.crypto.symmetric.SM4;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import sm.cloud.sys.base.sysparam.service.SysParamService;
+import sm.domain.sys.base.sysparam.service.SysParamService;
 import sm.system.exception.BizException;
 
 import java.nio.charset.StandardCharsets;

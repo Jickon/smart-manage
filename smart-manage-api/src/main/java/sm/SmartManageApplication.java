@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Chekfu
  */
 @SpringBootApplication
-@EnableMethodCache(basePackages = "sm.cloud")
+@EnableMethodCache(basePackages = "sm.domain")
 public class SmartManageApplication {
 
 	public static void main(String[] args) {

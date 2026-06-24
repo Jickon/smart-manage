@@ -24,10 +24,10 @@
 - 根包：`sm`
 - `sm.framework` — 第三方 jar 配置（CORS, Sa-Token, JSON, Redis, MyBatis-Flex, 请求加解密, TraceId）
 - `sm.system` — 本系统公共类（自定义注解、全局异常处理、实体基类、拦截器、监听器、工具类）
-- `sm.cloud.{领域}` — 领域模块（如 `sm.cloud.sys` 系统服务云）
-- `sm.cloud.{领域}.{应用}` — 应用模块（如 `sm.cloud.sys.monitor` 系统监控）
-- `sm.cloud.{领域}.{应用}.{单据}` — 单据/子模块
-- 公共能力放在 `sm.cloud.{领域}.common`或`sm.cloud.{领域}.{应用}.common`
+- `sm.domain.{领域}` — 领域模块（如 `sm.domain.sys` 系统服务云）
+- `sm.domain.{领域}.{应用}` — 应用模块（如 `sm.domain.sys.monitor` 系统监控）
+- `sm.domain.{领域}.{应用}.{单据}` — 单据/子模块
+- 公共能力放在 `sm.domain.{领域}.common`或`sm.domain.{领域}.{应用}.common`
 
 ### 核心设计模式
 **请求流程：** CorsFilter → EncryptApiFilter（SM4 解密） → SaServletFilter（登录校验 + 权限校验） → TraceIdInterceptor → BizLogAspect → Controller → Service → Mapper
@@ -106,7 +106,7 @@ src/
 ├── api/            # 接口层（axios 实例 + 拦截器）
 ├── assets/         # 静态文件
 ├── layouts/        # 布局组件（MainLayout → Sider + Header + Content）
-├── cloud/          # 领域/应用/单据页面（如 cloud/sys/base/user）
+├── domain/         # 领域/应用/单据页面（如 domain/sys/base/user）
 │   └── common/     # 前端领域公共能力（页面框架、组件注册表等）
 ├── pages/          # 非业务页面组件
 │   └── errors/     # 错误页面（404 等）
@@ -141,9 +141,9 @@ src/
 
 ### 页面架构
 
-- 前端业务页面目录与后端保持一致，按 `src/cloud/{领域}/{应用}/{单据}` 分层，例如 `src/cloud/sys/base/user`。
+- 前端业务页面目录与后端保持一致，按 `src/domain/{领域}/{应用}/{单据}` 分层，例如 `src/domain/sys/base/user`。
 - 菜单表中的 `component` 使用稳定业务键，例如 `sys/base/user/list`、`sys/base/file-config/custom`。后端只存菜单元数据，前端通过组件注册表把 `component` 映射为真实组件。
-- 组件注册表是前端白名单，由 `pnpm gen:registry` 扫描 `src/cloud/**/pageRegistration.ts` 或 `.tsx` 生成。新增业务页面时在页面目录新增 `pageRegistration.ts` 并默认导出 `definePageRegistration(...)` 的结果，禁止根据后端字符串任意动态加载组件。
+- 组件注册表是前端白名单，由 `pnpm gen:registry` 扫描 `src/domain/**/pageRegistration.ts` 或 `.tsx` 生成。新增业务页面时在页面目录新增 `pageRegistration.ts` 并默认导出 `definePageRegistration(...)` 的结果，禁止根据后端字符串任意动态加载组件。
 - 标准页面类型：
   - `ListPage`：列表页，负责查询、分页、过滤、行操作、打开单据页。
   - `EditPage`：单据新增、编辑、查看页，由 `OperationType` 控制页面能力。

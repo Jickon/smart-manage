@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="sm.cloud.sys.base.menu.mapper.MenuMapper">
-    <select id="selectAppInfo" resultType="sm.cloud.sys.base.menu.domain.vo.MenuAppInfoVO">
+<mapper namespace="sm.domain.sys.base.menu.mapper.MenuMapper">
+    <select id="selectAppInfo" resultType="sm.domain.sys.base.menu.model.vo.MenuAppInfoVO">
         SELECT a.name AS app_name, a.number AS app_number, a.icon AS app_icon,
                b.number AS cloud_number
         FROM t_sys_app a
@@ -9,7 +9,7 @@
         WHERE a.id = #{appId}
     </select>
 
-    <select id="selectUserMenus" resultType="sm.cloud.sys.base.menu.domain.entity.MenuEntity">
+    <select id="selectUserMenus" resultType="sm.domain.sys.base.menu.model.entity.MenuEntity">
         SELECT DISTINCT a.*
         FROM t_sys_menu a
         <if test="!admin">

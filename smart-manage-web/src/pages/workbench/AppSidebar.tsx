@@ -3,7 +3,7 @@ import type { MenuProps } from 'antd';
 import { Empty, Menu, Skeleton } from 'antd';
 import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import type { MenuVO } from '@/types/api';
-import { resolveIcon } from '@/cloud/common/page/iconResolver';
+import { resolveIcon } from '@/domain/common/page/iconResolver';
 import './AppSidebar.css';
 
 interface Props {

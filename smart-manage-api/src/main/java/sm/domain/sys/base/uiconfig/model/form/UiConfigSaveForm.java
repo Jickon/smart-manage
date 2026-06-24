@@ -1,0 +1,35 @@
+package sm.domain.sys.base.uiconfig.model.form;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+/**
+ * 界面配置保存表单
+ *
+ * @author Chekfu
+ */
+@Data
+@Schema(description = "界面配置保存表单")
+public class UiConfigSaveForm {
+
+    @Schema(description = "主键ID（新建时不传）")
+    private Long id;
+
+    @NotBlank(message = "页面标题不能为空")
+    @Schema(description = "页面标题")
+    private String pageTitle;
+
+    @Schema(description = "登录页 banner 图片路径")
+    private String loginBanner;
+
+    @Schema(description = "登录页 logo 路径")
+    private String loginLogo;
+
+    @NotBlank(message = "系统名称不能为空")
+    @Schema(description = "系统名称")
+    private String systemName;
+
+    @Schema(description = "首页 header logo 路径")
+    private String headerLogo;
+}

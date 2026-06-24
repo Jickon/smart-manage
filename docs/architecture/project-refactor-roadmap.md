@@ -28,9 +28,9 @@
 
 ## 第二阶段：前端工作台骨架
 
-- 建立 `src/cloud/{领域}/{应用}/{单据}` 业务目录。
-- 建立 `src/cloud/common/page`，沉淀 `PageType`、`OperationType`、`BillStatus` 等基础类型。
-- 建立 `src/cloud/common/registry/componentRegistry.tsx`，作为菜单组件白名单，并通过 `pnpm gen:registry` 生成注册表。
+- 建立 `src/domain/{领域}/{应用}/{单据}` 业务目录。
+- 建立 `src/domain/common/page`，沉淀 `PageType`、`OperationType`、`BillStatus` 等基础类型。
+- 建立 `src/domain/common/registry/componentRegistry.tsx`，作为菜单组件白名单，并通过 `pnpm gen:registry` 生成注册表。
 - 工作台内部业务 tabs 保持 DOM 不卸载，只控制显隐。
 - 菜单点击通过 `component` 业务键查注册表，不能任意动态加载后端字符串。
 
@@ -80,6 +80,6 @@
 ## 当前执行顺序
 
 1. 已补齐文档、校验脚本、组件注册表生成脚本。
-2. 已建立前端 `cloud/common` 最小架构骨架和工作台 tab 打开规则。
+2. 已建立前端 `domain/common` 最小架构骨架和工作台 tab 打开规则。
 3. 已收敛后端管理接口静默失败、Long 反序列化、单据状态基础能力。
 4. 下一步选择一个低风险页面作为通用页面框架试点。

@@ -1,7 +1,7 @@
 /**
  * 自动生成组件注册表导入文件。
  *
- * 扫描 src/cloud/**\/pageRegistration.ts，生成 src/cloud/common/registry/registry.gen.ts。
+ * 扫描 src/domain/**\/pageRegistration.ts，生成 src/domain/common/registry/registry.gen.ts。
  * 检测重复 componentKey 时直接中止构建。
  *
  * 用法：node scripts/gen-registry.mjs
@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const SRC = join(ROOT, 'src');
-const OUTPUT = join(SRC, 'cloud', 'common', 'registry', 'registry.gen.ts');
+const OUTPUT = join(SRC, 'domain', 'common', 'registry', 'registry.gen.ts');
 
 const HEADER = `/**
  * 组件注册表导入文件 — 由 pnpm gen:registry 自动生成，禁止手动修改。
@@ -53,8 +53,8 @@ function extractComponentKey(filePath, content) {
 async function main() {
   console.log('[gen:registry] 扫描 pageRegistration 文件...');
 
-  const cloudDir = join(SRC, 'cloud');
-  const files = await discoverRegistrations(cloudDir);
+  const domainDir = join(SRC, 'domain');
+  const files = await discoverRegistrations(domainDir);
   files.sort();
 
   if (files.length === 0) {

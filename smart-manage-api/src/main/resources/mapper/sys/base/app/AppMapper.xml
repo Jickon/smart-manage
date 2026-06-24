@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="sm.cloud.sys.base.app.mapper.AppMapper">
-    <resultMap id="appDetailMap" type="sm.cloud.sys.base.app.domain.vo.AppDetailVO">
+<mapper namespace="sm.domain.sys.base.app.mapper.AppMapper">
+    <resultMap id="appDetailMap" type="sm.domain.sys.base.app.model.vo.AppDetailVO">
         <id property="id" column="app_id"/>
         <result property="number" column="app_number"/>
         <result property="name" column="app_name"/>
@@ -12,7 +12,7 @@
         <result property="enableFlag" column="app_enable_flag"/>
         <result property="createTime" column="app_create_time"/>
         <result property="updateTime" column="app_update_time"/>
-        <association property="cloud" javaType="sm.cloud.sys.base.app.domain.vo.AppDetailVO$CloudRef"
+        <association property="cloud" javaType="sm.domain.sys.base.app.model.vo.AppDetailVO$CloudRef"
                      notNullColumn="cloud_id">
             <id property="id" column="cloud_id"/>
             <result property="number" column="cloud_number"/>
@@ -20,7 +20,7 @@
         </association>
     </resultMap>
 
-    <select id="selectListPage" resultType="sm.cloud.sys.base.app.domain.vo.AppListVO">
+    <select id="selectListPage" resultType="sm.domain.sys.base.app.model.vo.AppListVO">
         SELECT a.id, a.name, a.number, a.icon, a.icon_color, a.seq, a.description,
                a.cloud_id, b.name AS cloud_name, a.enable_flag, a.create_time, a.update_time
         FROM t_sys_app a
@@ -46,7 +46,7 @@
         WHERE a.id = #{id}
     </select>
 
-    <select id="selectUserCloudApps" resultType="sm.cloud.sys.base.app.domain.vo.CloudAppRowVO">
+    <select id="selectUserCloudApps" resultType="sm.domain.sys.base.app.model.vo.CloudAppRowVO">
         SELECT DISTINCT b.id AS cloud_id, b.name AS cloud_name, b.number AS cloud_number,
                b.seq AS cloud_seq, a.id AS app_id, a.name AS app_name,
                a.number AS app_number, a.icon AS app_icon, a.icon_color AS app_icon_color,
@@ -60,7 +60,7 @@
         ORDER BY b.seq, a.seq
     </select>
 
-    <select id="selectAllCloudApps" resultType="sm.cloud.sys.base.app.domain.vo.CloudAppRowVO">
+    <select id="selectAllCloudApps" resultType="sm.domain.sys.base.app.model.vo.CloudAppRowVO">
         SELECT a.id AS cloud_id, a.name AS cloud_name, a.number AS cloud_number,
                a.seq AS cloud_seq, b.id AS app_id, b.name AS app_name,
                b.number AS app_number, b.icon AS app_icon, b.icon_color AS app_icon_color,
@@ -70,7 +70,7 @@
         ORDER BY a.seq, b.seq, b.id
     </select>
 
-    <select id="selectUserAppByNumber" resultType="sm.cloud.sys.base.app.domain.vo.AppVO">
+    <select id="selectUserAppByNumber" resultType="sm.domain.sys.base.app.model.vo.AppVO">
         SELECT DISTINCT a.id, b.number AS cloud_number, a.number, a.name, a.icon,
                a.icon_color, a.seq, a.description
         FROM t_sys_app a

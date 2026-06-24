@@ -5,8 +5,8 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import sm.cloud.sys.base.fileconfig.domain.vo.FileConfigDetailVO;
-import sm.cloud.sys.base.fileconfig.service.FileConfigService;
+import sm.domain.sys.base.fileconfig.model.vo.FileConfigDetailVO;
+import sm.domain.sys.base.fileconfig.service.FileConfigService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

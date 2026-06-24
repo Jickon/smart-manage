@@ -1,0 +1,65 @@
+package sm.domain.sys.base.roleperms.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import sm.domain.sys.base.common.helper.UserHelper;
+import sm.domain.sys.base.roleperms.model.entity.RolePermsEntity;
+import sm.domain.sys.base.roleperms.model.form.RolePermsSaveForm;
+import sm.domain.sys.base.roleperms.mapper.RolePermsMapper;
+import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 角色权限事务服务 —— 所有写操作在类级别事务中执行
+ *
+ * @author Chekfu
+ */
+@Service
+@Slf4j
+@RequiredArgsConstructor
+@Transactional(rollbackFor = Exception.class)
+public class RolePermsTxService {
+    private final RolePermsMapper mapper;
+
+    /** 批量保存角色权限（先删后增） */
+    public void save(RolePermsSaveForm form) {
+        // 先删除角色的所有权限
+        mapper.delete(new LambdaQueryWrapper<RolePermsEntity>()
+                .eq(RolePermsEntity::getRoleId, form.getRoleId()));
+
+        // 批量插入新的权限关联
+        if (form.getPermissionIds() != null && !form.getPermissionIds().isEmpty()) {
+            List<RolePermsEntity> entityList = new ArrayList<>();
+            for (Long permId : form.getPermissionIds()) {
+                RolePermsEntity entity = new RolePermsEntity();
+                entity.setId(IdWorker.getId());
+                entity.setCreateTime(LocalDateTime.now());
+                entity.setCreateUser(UserHelper.getCurrentUserId());
+                entity.setRoleId(form.getRoleId());
+                entity.setPermissionId(permId);
+                entityList.add(entity);
+            }
+            mapper.insertBatch(entityList);
+        }
+    }
+
+    /** 删除角色权限关联 */
+    public void deleteById(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "角色权限关联ID不能为空");
+        }
+        RolePermsEntity entity = mapper.selectById(id);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "角色权限关联不存在");
+        }
+        mapper.deleteById(id);
+    }
+}

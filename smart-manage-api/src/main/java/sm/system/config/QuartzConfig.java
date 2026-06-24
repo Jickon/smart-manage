@@ -9,7 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
-import sm.cloud.sys.monitor.job.service.JobExecutionListener;
+import sm.domain.sys.monitor.job.service.JobExecutionListener;
 
 import javax.sql.DataSource;
 

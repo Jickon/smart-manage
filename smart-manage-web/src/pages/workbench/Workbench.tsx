@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { Spin, Modal } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { useWorkbenchStore } from '@/stores/workbench';
-import { getUserMenusByAppNumber } from '@/cloud/sys/menu/api';
+import { getUserMenusByAppNumber } from '@/domain/sys/menu/api';
 import AppSidebar from './AppSidebar';
 import ContentTabsBar from './ContentTabsBar';
 import PageRenderer from './PageRenderer';

@@ -8,7 +8,7 @@ import themeConfig from '@/styles/theme';
 import { getCurrentUser } from '@/api/user';
 import { useUserStore } from '@/stores/user';
 // 自动生成的组件注册表导入 — 由 pnpm gen:registry 生成
-import '@/cloud/common/registry/registry.gen';
+import '@/domain/common/registry/registry.gen';
 
 const queryClient = new QueryClient({
   defaultOptions: {

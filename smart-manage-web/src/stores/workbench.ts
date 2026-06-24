@@ -3,9 +3,9 @@ import {
   createAddNewTabKey,
   createBillTabKey,
   createListTabKey,
-} from '@/cloud/common/page/tabKeys';
-import { OperationType } from '@/cloud/common/page/types';
-import type { AppVO } from '@/cloud/sys/app/types';
+} from '@/domain/common/page/tabKeys';
+import { OperationType } from '@/domain/common/page/types';
+import type { AppVO } from '@/domain/sys/app/types';
 
 /** 内容页签最大数量（不含首页） */
 const MAX_CONTENT_TABS = 20;

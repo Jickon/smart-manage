@@ -1,0 +1,143 @@
+package sm.domain.sys.base.permission.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import sm.domain.sys.base.permission.model.entity.PermissionEntity;
+import sm.domain.sys.base.permission.model.form.PermissionListForm;
+import sm.domain.sys.base.permission.model.form.PermissionSaveForm;
+import sm.domain.sys.base.permission.model.form.PermissionSelectForm;
+import sm.domain.sys.base.permission.model.vo.PermissionCreateNewDataVO;
+import sm.domain.sys.base.permission.model.vo.PermissionDetailVO;
+import sm.domain.sys.base.permission.model.vo.PermissionListVO;
+import sm.domain.sys.base.permission.model.vo.PermissionSelectVO;
+import sm.domain.sys.base.permission.mapper.PermissionMapper;
+import sm.system.exception.BizException;
+import sm.system.response.PageResult;
+import sm.system.response.ResultEnum;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * @author Chekfu
+ */
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class PermissionService {
+	private final PermissionMapper mapper;
+	private final PermissionTxService txService;
+
+	public PageResult<PermissionListVO> listPage(PermissionListForm form) {
+		LambdaQueryWrapper<PermissionEntity> qw = new LambdaQueryWrapper<PermissionEntity>();
+		qw.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
+		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
+			String keyword = form.getKeyword().trim();
+			qw.and(condition -> condition.like(PermissionEntity::getName, keyword)
+					.or().like(PermissionEntity::getNumber, keyword));
+		}
+		qw.orderByAsc(PermissionEntity::getNumber);
+		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
+		List<PermissionListVO> records = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
+		return PageResult.of(result.getTotal(), records);
+	}
+
+	private PermissionListVO toListVo(PermissionEntity entity) {
+		PermissionListVO vo = new PermissionListVO();
+		vo.setId(entity.getId());
+		vo.setName(entity.getName());
+		vo.setNumber(entity.getNumber());
+		vo.setAppId(entity.getAppId());
+		return vo;
+	}
+
+	/**
+	 * 基础资料选择：分页查询权限。
+	 * 支持按应用、关键词过滤；按编码排序。
+	 */
+	public PageResult<PermissionSelectVO> select(PermissionSelectForm form) {
+		LambdaQueryWrapper<PermissionEntity> qw = new LambdaQueryWrapper<PermissionEntity>();
+		qw.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
+		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
+			String keyword = form.getKeyword().trim();
+			qw.and(condition -> condition.like(PermissionEntity::getNumber, keyword)
+					.or().like(PermissionEntity::getName, keyword));
+		}
+		qw.orderByAsc(PermissionEntity::getNumber);
+		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
+		List<PermissionSelectVO> records = result.getRecords().stream().map(this::toSelectVo).collect(Collectors.toList());
+		return PageResult.of(result.getTotal(), records);
+	}
+
+	private PermissionSelectVO toSelectVo(PermissionEntity e) {
+		PermissionSelectVO vo = new PermissionSelectVO();
+		vo.setId(e.getId());
+		vo.setNumber(e.getNumber());
+		vo.setName(e.getName());
+		vo.setAppId(e.getAppId());
+		return vo;
+	}
+
+	/**
+	 * 当前用户在指定组织下拥有的权限编码
+	 */
+	public List<String> getUserPermissions(Long userId, Long orgId) {
+		if (userId == null || orgId == null) {
+			return List.of();
+		}
+		return mapper.selectUserPermissionNumbers(userId, orgId, null);
+	}
+
+	/**
+	 * 当前用户在指定组织下按前缀过滤的权限编码
+	 */
+	public List<String> getUserPermissionsByPrefix(Long userId, Long orgId, String prefix) {
+		if (userId == null || orgId == null) {
+			return List.of();
+		}
+		return mapper.selectUserPermissionNumbers(userId, orgId, prefix);
+	}
+
+	public PermissionEntity getById(Long id) {
+		return mapper.selectById(id);
+	}
+
+	public PermissionDetailVO getDetail(Long id) {
+		if (id == null) {
+			throw new BizException(ResultEnum.PARAM_ERROR, "权限ID不能为空");
+		}
+		PermissionEntity entity = mapper.selectById(id);
+		if (entity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
+		}
+		return toDetailVo(entity);
+	}
+
+	private PermissionDetailVO toDetailVo(PermissionEntity entity) {
+		PermissionDetailVO vo = new PermissionDetailVO();
+		vo.setId(String.valueOf(entity.getId()));
+		vo.setName(entity.getName());
+		vo.setNumber(entity.getNumber());
+		vo.setAppId(entity.getAppId());
+		vo.setCreateTime(entity.getCreateTime());
+		vo.setUpdateTime(entity.getUpdateTime());
+		vo.setCreateUser(entity.getCreateUser());
+		vo.setUpdateUser(entity.getUpdateUser());
+		return vo;
+	}
+
+	public PermissionCreateNewDataVO createNewData() {
+		return new PermissionCreateNewDataVO();
+	}
+
+	public Long save(PermissionSaveForm form) {
+		return txService.save(form);
+	}
+
+	public void deleteById(Long id) {
+		txService.deleteById(id);
+	}
+}

@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { Empty, Spin } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
-import { fetchApps } from '@/cloud/sys/app/api';
-import type { AppVO } from '@/cloud/sys/app/types';
+import { fetchApps } from '@/domain/sys/app/api';
+import type { AppVO } from '@/domain/sys/app/types';
 import { openApp } from '@/services/navigationService';
 import './AppsView.css';
 

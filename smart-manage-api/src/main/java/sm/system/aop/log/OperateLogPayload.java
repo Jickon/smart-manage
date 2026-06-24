@@ -1,7 +1,7 @@
 package sm.system.aop.log;
 
 /**
- * 操作日志写入载荷 — 解耦 sm.system 与 sm.cloud 的依赖
+ * 操作日志写入载荷 — 解耦 sm.system 与 sm.domain 的依赖
  *
  * @author Chekfu
  */

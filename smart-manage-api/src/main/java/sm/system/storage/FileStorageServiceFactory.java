@@ -2,8 +2,8 @@ package sm.system.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import sm.cloud.sys.base.fileconfig.domain.vo.FileConfigDetailVO;
-import sm.cloud.sys.base.fileconfig.service.FileConfigService;
+import sm.domain.sys.base.fileconfig.model.vo.FileConfigDetailVO;
+import sm.domain.sys.base.fileconfig.service.FileConfigService;
 
 /**
  * 文件存储服务工厂——根据配置返回对应实现
