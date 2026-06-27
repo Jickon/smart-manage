@@ -57,11 +57,9 @@ const themeConfig = {
   },
   components: {
     // 侧边栏菜单
-    Menu: {
-    },
+    Menu: {},
     // 表格
-    Table: {
-    },
+    Table: {},
     Card: {
       lineWidth: 0,
     },

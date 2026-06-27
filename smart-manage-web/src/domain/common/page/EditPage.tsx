@@ -1,16 +1,5 @@
 import { useState } from 'react';
-import {
-  Spin,
-  Button,
-  Space,
-  Input,
-  InputNumber,
-  Select,
-  Switch,
-  Tag,
-  Result,
-  Collapse,
-} from 'antd';
+import { Spin, Button, Space, Input, InputNumber, Select, Switch, Result, Collapse } from 'antd';
 import type { ReactNode } from 'react';
 import { OperationType, BillStatus } from './types';
 import './EditPage.css';
@@ -28,6 +17,8 @@ export interface EditField {
   placeholder?: string;
   /** select 选项 */
   options?: { label: string; value: string | number }[];
+  /** 字段宽度，默认 260px；可设 "100%" 占整行、"50%" 占半行 等 */
+  width?: string;
 }
 
 interface EditPageProps {
@@ -43,18 +34,10 @@ interface EditPageProps {
   onRetry?: () => void;
   onSave?: () => Promise<void>;
   onSubmit?: () => Promise<void>;
-  onCancel?: () => void;
+  onExit?: () => void;
   /** 自定义头部操作区 */
   headerExtra?: ReactNode;
 }
-
-/** 单据状态文案映射 */
-const billStatusMap: Record<string, { label: string; color: string }> = {
-  [BillStatus.SAVED]: { label: '暂存', color: 'default' },
-  [BillStatus.SUBMITTED]: { label: '已提交', color: 'processing' },
-  [BillStatus.AUDITED]: { label: '审核通过', color: 'success' },
-  [BillStatus.CLOSED]: { label: '已关闭', color: 'warning' },
-};
 
 /** 是否可编辑：暂存或新增时允许编辑 */
 function isEditable(opType: OperationType, status?: BillStatus): boolean {
@@ -66,7 +49,6 @@ function isEditable(opType: OperationType, status?: BillStatus): boolean {
 
 /** 通用编辑页 — 不使用 Form 表单，直接字段布局 */
 const EditPage = ({
-  title,
   fields,
   values,
   onChange,
@@ -77,11 +59,10 @@ const EditPage = ({
   onRetry,
   onSave,
   onSubmit,
-  onCancel,
+  onExit,
   headerExtra,
 }: EditPageProps) => {
   const editable = isEditable(operationType, billStatus);
-  const statusInfo = billStatus ? billStatusMap[billStatus] : null;
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
@@ -131,7 +112,6 @@ const EditPage = ({
           {headerExtra}
           {editable && (
             <Space>
-              {onCancel && <Button onClick={onCancel}>取消</Button>}
               {onSave && (
                 <Button type="primary" loading={saving} onClick={handleSave}>
                   保存
@@ -142,19 +122,9 @@ const EditPage = ({
                   提交
                 </Button>
               )}
+              {onExit && <Button onClick={onExit}>退出</Button>}
             </Space>
           )}
-        </div>
-        <div className="sm-edit-header-meta">
-          <h3 className="sm-edit-title">{title}</h3>
-          {statusInfo && <Tag color={statusInfo.color}>{statusInfo.label}</Tag>}
-          <Tag>
-            {operationType === OperationType.ADDNEW
-              ? '新增'
-              : operationType === OperationType.VIEW
-                ? '查看'
-                : '编辑'}
-          </Tag>
         </div>
       </div>
 
@@ -236,10 +206,14 @@ const EditPage = ({
                       };
 
                       return (
-                        <div key={field.dataIndex} className="sm-edit-field">
+                        <div
+                          key={field.dataIndex}
+                          className="sm-edit-field"
+                          style={field.width ? { width: field.width } : undefined}
+                        >
                           <label className="sm-edit-field-label">
-                            {field.required && <span className="sm-edit-required">*</span>}
                             {field.label}
+                            {field.required && <span className="sm-edit-required">*</span>}
                           </label>
                           <div className="sm-edit-field-control">{renderField()}</div>
                         </div>

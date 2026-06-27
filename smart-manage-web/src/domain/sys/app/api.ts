@@ -1,13 +1,6 @@
 import request from '@/api/request';
 import type { PageResult, Result } from '@/types/api';
-import type {
-  AppVO,
-  CloudAppsVO,
-  AppListForm,
-  AppListVO,
-  AppDetailVO,
-  AppSaveForm,
-} from './types';
+import type { AppVO, CloudAppsVO, AppListForm, AppListVO, AppDetailVO, AppSaveForm } from './types';
 
 /** 获取当前用户可访问的应用列表（按领域分组） */
 export function fetchApps() {
@@ -23,9 +16,7 @@ export function openByNumber(number: string) {
 
 /** 全量云及应用（用于树选择） */
 export function fetchAppsAll() {
-  return request
-    .get<Result<CloudAppsVO[]>>('/sys/base/app/appsAll')
-    .then((res) => res.data.data);
+  return request.get<Result<CloudAppsVO[]>>('/sys/base/app/appsAll').then((res) => res.data.data);
 }
 
 export const appApi = {
@@ -40,9 +31,7 @@ export const appApi = {
       .then((res) => res.data.data),
 
   save: (form: AppSaveForm) =>
-    request
-      .post<Result<number>>('/sys/base/app/save', form)
-      .then((res) => res.data.data),
+    request.post<Result<number>>('/sys/base/app/save', form).then((res) => res.data.data),
 
   delete: (id: string) =>
     request

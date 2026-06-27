@@ -87,7 +87,7 @@ const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
           <div className="sm-edit-fields">
             <div className="sm-edit-field">
               <label className="sm-edit-field-label">
-                <span className="sm-edit-required">*</span>编码
+                编码<span className="sm-edit-required">*</span>
               </label>
               <Input
                 value={number}
@@ -97,7 +97,7 @@ const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
             </div>
             <div className="sm-edit-field">
               <label className="sm-edit-field-label">
-                <span className="sm-edit-required">*</span>名称
+                名称<span className="sm-edit-required">*</span>
               </label>
               <Input
                 value={name}
@@ -116,10 +116,7 @@ const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
             </div>
             <div className="sm-edit-field">
               <label className="sm-edit-field-label">启用</label>
-              <Switch
-                checked={enableFlag}
-                onChange={(v) => handleChange('enableFlag', v)}
-              />
+              <Switch checked={enableFlag} onChange={(v) => handleChange('enableFlag', v)} />
             </div>
           </div>
         </Spin>

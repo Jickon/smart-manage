@@ -14,9 +14,7 @@ export const cloudApi = {
       .then((res) => res.data.data),
 
   save: (form: CloudSaveForm) =>
-    request
-      .post<Result<number>>('/sys/base/cloud/save', form)
-      .then((res) => res.data.data),
+    request.post<Result<number>>('/sys/base/cloud/save', form).then((res) => res.data.data),
 
   delete: (id: string) =>
     request

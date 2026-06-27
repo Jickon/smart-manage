@@ -16,7 +16,7 @@ const fields: EditField[] = [
   { label: '图标', dataIndex: 'icon', type: 'text' },
   { label: '图标颜色', dataIndex: 'iconColor', type: 'text', placeholder: '如 #1677ff' },
   { label: '排序', dataIndex: 'seq', type: 'number' },
-  { label: '描述', dataIndex: 'description', type: 'textarea' },
+  { label: '描述', dataIndex: 'description', type: 'textarea', width: '100%' },
   { label: '启用', dataIndex: 'enableFlag', type: 'switch' },
   { label: '创建时间', dataIndex: 'createTime', type: 'readonly' },
   { label: '更新时间', dataIndex: 'updateTime', type: 'readonly' },
@@ -45,8 +45,7 @@ const AppEditPage = (props: PageComponentProps) => {
   });
 
   const detail = detailQuery.data;
-  const cloudOptions =
-    cloudQuery.data?.map((c) => ({ label: c.name, value: Number(c.id) })) ?? [];
+  const cloudOptions = cloudQuery.data?.map((c) => ({ label: c.name, value: Number(c.id) })) ?? [];
 
   // 派生值：用户编辑优先，其次详情数据，最后默认值
   const values: Record<string, unknown> = {
@@ -116,7 +115,7 @@ const AppEditPage = (props: PageComponentProps) => {
       error={detailQuery.error as Error | null}
       onRetry={() => detailQuery.refetch()}
       onSave={handleSave}
-      onCancel={() => {
+      onExit={() => {
         useWorkbenchStore.getState().removeContentTab(appNumber, tabKey);
       }}
     />
