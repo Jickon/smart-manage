@@ -25,7 +25,6 @@
   align-items: center;
   flex-shrink: 0;
   height: 32px;
-  margin-right: 12px;
   font-size: 14px;
   cursor: pointer;
   position: relative;
@@ -33,7 +32,7 @@
 }
 
 .sm-content-tab:hover {
-  color: #1677ff;
+  color: var(--ant-color-primary);
 }
 
 .sm-content-tab-home {
@@ -45,15 +44,19 @@
   color: var(--ant-color-primary);
 }
 
-/* 激活态底部指示器 */
-.sm-content-tab--active::after {
+/* 激活态底部指示器 — 只包裹文字，不含关闭按钮 */
+.sm-content-tab--active > span {
+  position: relative;
+}
+
+.sm-content-tab--active > span::after {
   content: '';
   display: block;
   position: absolute;
-  bottom: 0;
+  bottom: -6px;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   background: var(--ant-color-primary);
 }
 
