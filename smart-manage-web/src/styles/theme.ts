@@ -1,5 +1,4 @@
 /** Ant Design ConfigProvider 主题配置 — 全局设计令牌 */
-import { theme } from 'antd';
 
 const themeConfig = {
   token: {
@@ -57,25 +56,17 @@ const themeConfig = {
     // zIndexPopupBase 由 antd 内部控制，此处仅列参考值
   },
   components: {
-    // Header 应用标签页
-    Tabs: {
-      horizontalMargin: '0',
-    },
     // 侧边栏菜单
     Menu: {
-      itemBg: 'transparent',
-      subMenuItemBg: 'transparent',
     },
     // 表格
     Table: {
-      headerBg: '#fafafa',
-      rowHoverBg: '#f5f5f5',
     },
     Card: {
       lineWidth: 0,
     },
   },
-  algorithm: theme.compactAlgorithm,
+  // algorithm: theme.compactAlgorithm,
 };
 
 export default themeConfig;
