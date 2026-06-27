@@ -1,0 +1,53 @@
+/* === 通用 Modal 编辑模板 === */
+
+/* 弹框容器 — 去掉 antd 默认 padding */
+.sm-modal .ant-modal-container {
+  padding: 0;
+}
+
+/* 头部 */
+.sm-modal .ant-modal-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ebeff2;
+  margin-bottom: 0;
+}
+
+/* 标题区域撑满头部 */
+.sm-modal .ant-modal-title {
+  flex: 1;
+  overflow: visible;
+}
+
+/* 标题栏 */
+.sm-modal-title-bar {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* 主体 — 可滚动 */
+.sm-modal .ant-modal-body {
+  padding: 20px 30px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* 底部 */
+.sm-modal .ant-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 20px;
+  border-top: 1px solid #ebeff2;
+  margin-top: 0;
+}
+
+.sm-modal-footer-inner {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
