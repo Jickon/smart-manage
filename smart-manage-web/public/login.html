@@ -206,9 +206,7 @@
     loginLogoEl.src = normalizeAssetUrl(config.loginLogo, 'logo.svg');
     loginLogoEl.alt = systemName;
     bannerEl.style.backgroundImage =
-      'linear-gradient(135deg, rgba(22, 93, 255, 0.72), rgba(235, 32, 93, 0.72)), url("' +
-      normalizeAssetUrl(config.loginBanner, 'default-login-banner.png') +
-      '")';
+      'url("' + normalizeAssetUrl(config.loginBanner, 'default-login-banner.png') + '")';
   }
 
   function loadUiConfig() {
