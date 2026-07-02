@@ -32,7 +32,7 @@ const ListTableShell = ({
       <div className="sm-list-table-meta">
         <div className="sm-list-table-count">
           <span>共 {total} 条</span>
-          {selectedCount > 0 && <span>，已选当前页 {selectedCount} 条</span>}
+          {selectedCount > 0 && <span>已选当前页 {selectedCount} 条</span>}
         </div>
         <Pagination
           size="small"
