@@ -25,7 +25,7 @@ const ListFilterBar = ({
   return (
     <div className="sm-list-filter">
       <div className="sm-list-filter-main">
-        <h2 className="sm-list-filter-title">{title}</h2>
+        <h3 className="sm-list-filter-title">{title}</h3>
         <div className="sm-list-filter-summary">{!expanded && filterSummary}</div>
         <div className="sm-list-filter-search">
           <Search

@@ -1,7 +1,7 @@
+import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { Button, Result, Space, Spin, Table } from 'antd';
 import type { ColumnsType, TableRowSelection } from 'antd/es/table/interface';
-import type { ReactNode } from 'react';
 import ListFilterBar from './ListFilterBar';
 import ListTableShell from './ListTableShell';
 import './ListPage.css';
@@ -150,7 +150,7 @@ function ListPage<T>({
           onQuickSearch={onQuickSearch}
         />
         <div className="sm-list-toolbar">
-          <Space>
+          <Space size='medium'>
             {onAddNew && (
               <Button type="primary" onClick={onAddNew}>
                 新增

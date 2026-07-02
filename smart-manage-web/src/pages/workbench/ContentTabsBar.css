@@ -65,7 +65,7 @@
   font-size: 12px;
   opacity: 0;
   transition: opacity 0.15s;
-  padding: 0 2px;
+  padding: 0 8px 0 4px;
   background: none;
   border: none;
   cursor: pointer;
