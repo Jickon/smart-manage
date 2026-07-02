@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { message } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import ModalEditPage from '@/domain/common/page/ModalEditPage';
@@ -14,8 +14,18 @@ interface Props {
 
 /** 云编辑字段定义 */
 const fields: EditField[] = [
-  { label: '编码', dataIndex: 'number', type: 'text', required: true },
-  { label: '名称', dataIndex: 'name', type: 'text', required: true },
+  {
+    label: '编码',
+    dataIndex: 'number',
+    type: 'text',
+    rules: [{ required: true, message: '编码不能为空' }],
+  },
+  {
+    label: '名称',
+    dataIndex: 'name',
+    type: 'text',
+    rules: [{ required: true, message: '名称不能为空' }],
+  },
   { label: '排序', dataIndex: 'seq', type: 'number' },
   { label: '启用', dataIndex: 'enableFlag', type: 'switch' },
 ];
@@ -23,8 +33,6 @@ const fields: EditField[] = [
 /** 云编辑弹框 */
 const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
   const isAddNew = cloudId === null;
-  const [saving, setSaving] = useState(false);
-  const [edits, setEdits] = useState<Record<string, unknown>>({});
 
   const detailQuery = useQuery({
     queryKey: ['cloud-detail', cloudId],
@@ -35,58 +43,36 @@ const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
 
   const detail = detailQuery.data;
 
-  const values: Record<string, unknown> = {
-    number: edits.number ?? detail?.number ?? '',
-    name: edits.name ?? detail?.name ?? '',
-    seq: edits.seq ?? detail?.seq ?? null,
-    enableFlag: edits.enableFlag ?? detail?.enableFlag ?? true,
-  };
+  // Form 初始值，从详情数据派生
+  const initialValues = useMemo(() => {
+    if (!detail) return {};
+    return {
+      number: detail.number ?? '',
+      name: detail.name ?? '',
+      seq: detail.seq ?? undefined,
+      enableFlag: detail.enableFlag ?? true,
+    };
+  }, [detail]);
 
-  const handleChange = (dataIndex: string, value: unknown) => {
-    setEdits((prev) => ({ ...prev, [dataIndex]: value }));
-  };
-
-  const handleClose = () => {
-    if (saving) return;
-    setEdits({});
-    onClose();
-  };
-
-  const handleSave = async () => {
-    const name = (values.name as string) ?? '';
-    const number = (values.number as string) ?? '';
-    if (!name.trim() || !number.trim()) {
-      message.warning('名称和编码不能为空');
-      return;
-    }
-    setSaving(true);
-    try {
-      await cloudApi.save({
-        id: cloudId ? Number(cloudId) : undefined,
-        name: name.trim(),
-        number: number.trim(),
-        seq: (values.seq as number) ?? 0,
-        enableFlag: Boolean(values.enableFlag),
-      });
-      message.success(isAddNew ? '新增成功' : '保存成功');
-      setEdits({});
-      onSaved();
-      onClose();
-    } catch {
-      message.error('保存失败');
-    } finally {
-      setSaving(false);
-    }
+  const handleSave = async (values: Record<string, unknown>) => {
+    await cloudApi.save({
+      id: cloudId ? Number(cloudId) : undefined,
+      name: (values.name as string).trim(),
+      number: (values.number as string).trim(),
+      seq: (values.seq as number) ?? 0,
+      enableFlag: Boolean(values.enableFlag),
+    });
+    message.success(isAddNew ? '新增成功' : '保存成功');
+    onSaved();
   };
 
   return (
     <ModalEditPage
       title={isAddNew ? '新增云' : '编辑云'}
       open={open}
-      onClose={handleClose}
+      onClose={onClose}
       fields={fields}
-      values={values}
-      onChange={handleChange}
+      initialValues={initialValues}
       onSave={handleSave}
       loading={detailQuery.isLoading}
       error={detailQuery.error as Error | null}

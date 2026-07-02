@@ -1,4 +1,5 @@
-import { Button, Space, Result, Spin, Table } from 'antd';
+import { useMemo } from 'react';
+import { Button, Result, Space, Spin, Table } from 'antd';
 import type { ColumnsType, TableRowSelection } from 'antd/es/table/interface';
 import type { ReactNode } from 'react';
 import ListFilterBar from './ListFilterBar';
@@ -79,25 +80,33 @@ function ListPage<T>({
   selectedRowKeys,
   onSelectChange,
 }: ListPageProps<T>) {
-  const rowSelection: TableRowSelection<T> | undefined = selectMode
-    ? {
-        type: selectMode,
-        selectedRowKeys,
-        onChange: (keys) => onSelectChange?.(keys),
-        columnWidth: 36,
-      }
-    : undefined;
+  const rowSelection: TableRowSelection<T> | undefined = useMemo(
+    () =>
+      selectMode
+        ? {
+            type: selectMode,
+            selectedRowKeys,
+            onChange: (keys) => onSelectChange?.(keys),
+            columnWidth: 36,
+          }
+        : undefined,
+    [selectMode, selectedRowKeys, onSelectChange],
+  );
 
-  // 注入序号列 + 业务列
-  const fullColumns: ColumnsType<T> = [
-    {
-      title: '#',
-      width: 44,
-      align: 'center',
-      render: (_text, _record, index) => (pageNum - 1) * pageSize + index + 1,
-    },
-    ...columns,
-  ];
+  // 注入序号列 + 业务列（pageNum/pageSize 变化时更新序号公式）
+  const fullColumns: ColumnsType<T> = useMemo(
+    () => [
+      {
+        title: '#',
+        width: 44,
+        align: 'center',
+        fixed: 'left' as const,
+        render: (_text, _record, index) => (pageNum - 1) * pageSize + index + 1,
+      },
+      ...columns,
+    ],
+    [columns, pageNum, pageSize],
+  );
 
   // 错误态
   if (error) {
@@ -152,7 +161,7 @@ function ListPage<T>({
                 删除
               </Button>
             )}
-            {onRefresh && <Button onClick={onRefresh}>刷新</Button>}
+            {onRefresh && <Button type="primary" onClick={onRefresh}>刷新</Button>}
             {toolbarActions}
           </Space>
         </div>

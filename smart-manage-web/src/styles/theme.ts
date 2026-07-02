@@ -14,14 +14,15 @@ const themeConfig = {
     borderRadius: 2,
 
     // 中性色 — 表面/背景/边框/文字层级
+    colorBorder: '#999999',
+
     colorBgLayout: '#f5f5f5',
     colorBgContainer: '#ffffff',
     colorBgElevated: '#ffffff',
-    colorBorder: '#d9d9d9',
-    colorBorderSecondary: '#f0f0f0',
-    colorText: 'rgba(0, 0, 0, 0.88)',
-    colorTextSecondary: 'rgba(0, 0, 0, 0.65)',
-    colorTextTertiary: 'rgba(0, 0, 0, 0.45)',
+    colorBorderSecondary: '#d9d9d9',
+    colorText: '#333',
+    colorTextSecondary: '#666',
+    colorTextTertiary: '#999',
 
     // 间距
     paddingXS: 4,
@@ -59,9 +60,11 @@ const themeConfig = {
     // 侧边栏菜单
     Menu: {},
     // 表格
-    Table: {},
+    Table: {
+      "headerBg": "#f4f4f4",
+    },
     Card: {
-      lineWidth: 0,
+      "lineWidth": 0,
     },
   },
   // algorithm: theme.compactAlgorithm,

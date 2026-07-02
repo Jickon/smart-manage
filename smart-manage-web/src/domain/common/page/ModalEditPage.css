@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   padding: 10px 20px;
-  border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
   margin-bottom: 0;
 }
 
@@ -24,9 +24,6 @@
 .sm-modal-title-bar {
   display: flex;
   align-items: center;
-  width: 100%;
-  font-size: 14px;
-  font-weight: 500;
 }
 
 /* 主体 — 可滚动 */
@@ -42,7 +39,7 @@
   align-items: center;
   justify-content: center;
   padding: 18px 20px;
-  border-top: 1px solid #ebeff2;
+  border-top: 1px solid var(--ant-color-border-secondary);
   margin-top: 0;
 }
 

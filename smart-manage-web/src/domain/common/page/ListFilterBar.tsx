@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Button, Input } from 'antd';
-import { UpOutlined, DownOutlined } from '@ant-design/icons';
+import { DownOutlined, UpOutlined } from '@ant-design/icons';
 
 interface ListFilterBarProps {
   title: string;
@@ -30,6 +30,7 @@ const ListFilterBar = ({
         <div className="sm-list-filter-search">
           <Search
             allowClear
+            variant='underlined'
             placeholder={quickSearchPlaceholder}
             onSearch={(value) => onQuickSearch?.(value)}
           />

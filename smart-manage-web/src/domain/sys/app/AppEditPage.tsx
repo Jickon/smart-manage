@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { message } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import EditPage from '@/domain/common/page/EditPage';
@@ -10,9 +10,24 @@ import type { PageComponentProps } from '@/domain/common/page/types';
 
 /** 应用编辑字段定义 */
 const fields: EditField[] = [
-  { label: '编码', dataIndex: 'number', type: 'text', required: true },
-  { label: '名称', dataIndex: 'name', type: 'text', required: true },
-  { label: '所属云', dataIndex: 'cloudId', type: 'select', required: true },
+  {
+    label: '编码',
+    dataIndex: 'number',
+    type: 'text',
+    rules: [{ required: true, message: '编码不能为空' }],
+  },
+  {
+    label: '名称',
+    dataIndex: 'name',
+    type: 'text',
+    rules: [{ required: true, message: '名称不能为空' }],
+  },
+  {
+    label: '所属云',
+    dataIndex: 'cloudId',
+    type: 'select',
+    rules: [{ required: true, message: '所属云不能为空' }],
+  },
   { label: '图标', dataIndex: 'icon', type: 'text' },
   { label: '图标颜色', dataIndex: 'iconColor', type: 'text', placeholder: '如 #1677ff' },
   { label: '排序', dataIndex: 'seq', type: 'number' },
@@ -28,7 +43,6 @@ const AppEditPage = (props: PageComponentProps) => {
   const isAddNew = operationType === OperationType.ADDNEW;
   const replaceContentTab = useWorkbenchStore((s) => s.replaceContentTab);
   const activateContentTab = useWorkbenchStore((s) => s.activateContentTab);
-  const [edits, setEdits] = useState<Record<string, unknown>>({});
 
   // 详情查询（仅编辑模式）
   const detailQuery = useQuery({
@@ -45,43 +59,40 @@ const AppEditPage = (props: PageComponentProps) => {
   });
 
   const detail = detailQuery.data;
-  const cloudOptions = cloudQuery.data?.map((c) => ({ label: c.name, value: Number(c.id) })) ?? [];
+  const cloudOptions = useMemo(
+    () => cloudQuery.data?.map((c) => ({ label: c.name, value: Number(c.id) })) ?? [],
+    [cloudQuery.data],
+  );
 
-  // 派生值：用户编辑优先，其次详情数据，最后默认值
-  const values: Record<string, unknown> = {
-    number: edits.number ?? detail?.number ?? '',
-    name: edits.name ?? detail?.name ?? '',
-    cloudId: edits.cloudId ?? (detail?.cloud ? Number(detail.cloud.id) : undefined),
-    icon: edits.icon ?? detail?.icon ?? '',
-    iconColor: edits.iconColor ?? detail?.iconColor ?? '',
-    seq: edits.seq ?? detail?.seq ?? null,
-    description: edits.description ?? detail?.description ?? '',
-    enableFlag: edits.enableFlag ?? detail?.enableFlag ?? true,
-    createTime: detail?.createTime ?? '',
-    updateTime: detail?.updateTime ?? '',
-  };
+  // Form 初始值，从详情数据派生
+  const initialValues = useMemo(() => {
+    if (!detail) return {};
+    return {
+      number: detail.number ?? '',
+      name: detail.name ?? '',
+      cloudId: detail.cloud ? Number(detail.cloud.id) : undefined,
+      icon: detail.icon ?? '',
+      iconColor: detail.iconColor ?? '',
+      seq: detail.seq ?? undefined,
+      description: detail.description ?? '',
+      enableFlag: detail.enableFlag ?? true,
+      createTime: detail.createTime ?? '',
+      updateTime: detail.updateTime ?? '',
+    };
+  }, [detail]);
 
-  const handleChange = (dataIndex: string, value: unknown) => {
-    setEdits((prev) => ({ ...prev, [dataIndex]: value }));
-  };
-
-  const handleSave = async () => {
-    const name = (values.name as string) ?? '';
-    const number = (values.number as string) ?? '';
-    const cloudId = (values.cloudId as number) ?? 0;
-    if (!name.trim() || !number.trim() || !cloudId) {
-      message.warning('名称、编码和所属云不能为空');
-      return Promise.reject();
-    }
+  const handleSave = async (values: Record<string, unknown>) => {
+    const name = (values.name as string).trim();
+    const number = (values.number as string).trim();
     const savedId = await appApi.save({
       id: billId ? Number(billId) : undefined,
-      name: name.trim(),
-      number: number.trim(),
+      name,
+      number,
       icon: (values.icon as string) ?? '',
       iconColor: (values.iconColor as string) ?? '',
       seq: (values.seq as number) ?? 0,
       description: (values.description as string) ?? '',
-      cloudId,
+      cloudId: values.cloudId as number,
       enableFlag: Boolean(values.enableFlag),
     });
     // 新增成功后替换临时 tab key
@@ -100,16 +111,17 @@ const AppEditPage = (props: PageComponentProps) => {
     message.success(isAddNew ? '新增成功' : '保存成功');
   };
 
-  const resolvedFields = fields.map((f) =>
-    f.dataIndex === 'cloudId' ? { ...f, options: cloudOptions } : f,
+  // 为 cloudId select 注入动态选项
+  const resolvedFields = useMemo(
+    () => fields.map((f) => (f.dataIndex === 'cloudId' ? { ...f, options: cloudOptions } : f)),
+    [cloudOptions],
   );
 
   return (
     <EditPage
       title="应用管理"
       fields={resolvedFields}
-      values={values}
-      onChange={handleChange}
+      initialValues={initialValues}
       operationType={operationType ?? OperationType.EDIT}
       loading={detailQuery.isLoading}
       error={detailQuery.error as Error | null}
