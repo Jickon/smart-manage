@@ -36,6 +36,7 @@
 .sm-list-filter-title {
   flex-shrink: 0;
   margin: 0;
+  font-size: 16px;
 }
 
 .sm-list-filter-summary {
@@ -150,7 +151,7 @@
   justify-content: space-between;
   gap: 16px;
   padding-left: 8px;
-  min-height: 40px;
+  min-height: 32px;
   color: #1d2129;
   border-bottom: 1px solid #e5e6eb;
   font-size: 12px;
