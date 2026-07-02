@@ -155,6 +155,7 @@ const EditPage = ({
                           case 'text':
                             return (
                               <Input
+                                variant="underlined"
                                 value={(value as string) ?? ''}
                                 onChange={(event) => onChange(field.dataIndex, event.target.value)}
                                 placeholder={field.placeholder}
@@ -164,6 +165,7 @@ const EditPage = ({
                           case 'number':
                             return (
                               <InputNumber
+                                variant="underlined"
                                 className="sm-edit-control-full"
                                 value={(value as number) ?? undefined}
                                 onChange={(nextValue) => onChange(field.dataIndex, nextValue)}
@@ -182,6 +184,7 @@ const EditPage = ({
                           case 'textarea':
                             return (
                               <TextArea
+                                variant="underlined"
                                 value={(value as string) ?? ''}
                                 onChange={(event) => onChange(field.dataIndex, event.target.value)}
                                 placeholder={field.placeholder}
@@ -192,6 +195,7 @@ const EditPage = ({
                           case 'select':
                             return (
                               <Select
+                                variant="underlined"
                                 className="sm-edit-control-full"
                                 value={(value as string | number) ?? undefined}
                                 onChange={(nextValue) => onChange(field.dataIndex, nextValue)}

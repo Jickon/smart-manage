@@ -97,6 +97,7 @@ const ModalEditPage = ({
                   case 'text':
                     return (
                       <Input
+                        variant="underlined"
                         value={(value as string) ?? ''}
                         onChange={(event) => onChange(field.dataIndex, event.target.value)}
                         placeholder={field.placeholder}
@@ -105,6 +106,7 @@ const ModalEditPage = ({
                   case 'number':
                     return (
                       <InputNumber
+                        variant="underlined"
                         className="sm-edit-control-full"
                         value={(value as number) ?? undefined}
                         onChange={(nextValue) => onChange(field.dataIndex, nextValue)}
@@ -121,6 +123,7 @@ const ModalEditPage = ({
                   case 'textarea':
                     return (
                       <TextArea
+                        variant="underlined"
                         value={(value as string) ?? ''}
                         onChange={(event) => onChange(field.dataIndex, event.target.value)}
                         placeholder={field.placeholder}
@@ -130,6 +133,7 @@ const ModalEditPage = ({
                   case 'select':
                     return (
                       <Select
+                        variant="underlined"
                         className="sm-edit-control-full"
                         value={(value as string | number) ?? undefined}
                         onChange={(nextValue) => onChange(field.dataIndex, nextValue)}
