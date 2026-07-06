@@ -1,11 +1,24 @@
 import request from '@/api/request';
 import type { PageResult, Result } from '@/types/api';
-import type { CloudListForm, CloudListVO, CloudDetailVO, CloudSaveForm } from './types';
+import type {
+  CloudListForm,
+  CloudListVO,
+  CloudDetailVO,
+  CloudSelectForm,
+  CloudSelectVO,
+  CloudSaveForm,
+} from './types';
 
 export const cloudApi = {
   listPage: (form: CloudListForm) =>
     request
       .post<Result<PageResult<CloudListVO>>>('/sys/base/cloud/listPage', form)
+      .then((res) => res.data.data),
+
+  /** 基础资料选择器分页查询 */
+  select: (form: CloudSelectForm) =>
+    request
+      .post<Result<PageResult<CloudSelectVO>>>('/sys/base/cloud/select', form)
       .then((res) => res.data.data),
 
   detail: (id: string) =>

@@ -5,7 +5,9 @@ import EditPage from '@/domain/common/page/EditPage';
 import { OperationType } from '@/domain/common/page/types';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { useWorkbenchStore } from '@/stores/workbench';
-import { appApi, fetchAppsAll } from './api';
+import { appApi } from './api';
+import { cloudApi } from '@/domain/sys/cloud/api';
+import type { CloudSelectVO } from '@/domain/sys/cloud/types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
 /** 应用编辑字段定义 */
@@ -24,9 +26,23 @@ const fields: EditField[] = [
   },
   {
     label: '所属云',
-    dataIndex: 'cloudId',
-    type: 'select',
+    dataIndex: 'cloud',
+    type: 'ref-selector',
     rules: [{ required: true, message: '所属云不能为空' }],
+    refSelector: {
+      modalTitle: '选择所属云',
+      // 使用专用的 select 接口（区别于列表页的 listPage）
+      fetchFn: (params) =>
+        cloudApi
+          .select({ pageNum: params.pageNum, pageSize: params.pageSize, keyword: params.keyword })
+          .then((res) => res as unknown as { records: Record<string, unknown>[]; total: number }),
+      displayRender: (record) => (record as unknown as CloudSelectVO).name,
+      fieldNames: { key: 'id', label: 'name' },
+      columns: [
+        { title: '编码', dataIndex: 'number', width: 160 },
+        { title: '名称', dataIndex: 'name', width: 200 },
+      ],
+    },
   },
   { label: '图标', dataIndex: 'icon', type: 'text' },
   { label: '图标颜色', dataIndex: 'iconColor', type: 'text', placeholder: '如 #1677ff' },
@@ -51,18 +67,7 @@ const AppEditPage = (props: PageComponentProps) => {
     enabled: !!billId,
   });
 
-  // 云选项查询
-  const cloudQuery = useQuery({
-    queryKey: ['cloud-apps-all'],
-    queryFn: fetchAppsAll,
-    staleTime: 5 * 60 * 1000,
-  });
-
   const detail = detailQuery.data;
-  const cloudOptions = useMemo(
-    () => cloudQuery.data?.map((c) => ({ label: c.name, value: Number(c.id) })) ?? [],
-    [cloudQuery.data],
-  );
 
   // Form 初始值，从详情数据派生
   const initialValues = useMemo(() => {
@@ -70,7 +75,8 @@ const AppEditPage = (props: PageComponentProps) => {
     return {
       number: detail.number ?? '',
       name: detail.name ?? '',
-      cloudId: detail.cloud ? Number(detail.cloud.id) : undefined,
+      // RefSelector 传整个 cloud 对象（包含 id/number/name 供 displayRender 使用）
+      cloud: detail.cloud ?? null,
       icon: detail.icon ?? '',
       iconColor: detail.iconColor ?? '',
       seq: detail.seq ?? undefined,
@@ -84,6 +90,8 @@ const AppEditPage = (props: PageComponentProps) => {
   const handleSave = async (values: Record<string, unknown>) => {
     const name = (values.name as string).trim();
     const number = (values.number as string).trim();
+    // RefSelector 传整个对象，需从中提取 cloudId
+    const cloud = values.cloud as { id: string } | null;
     const savedId = await appApi.save({
       id: billId ? Number(billId) : undefined,
       name,
@@ -92,7 +100,7 @@ const AppEditPage = (props: PageComponentProps) => {
       iconColor: (values.iconColor as string) ?? '',
       seq: (values.seq as number) ?? 0,
       description: (values.description as string) ?? '',
-      cloudId: values.cloudId as number,
+      cloudId: cloud ? Number(cloud.id) : 0,
       enableFlag: Boolean(values.enableFlag),
     });
     // 新增成功后替换临时 tab key
@@ -111,16 +119,10 @@ const AppEditPage = (props: PageComponentProps) => {
     message.success(isAddNew ? '新增成功' : '保存成功');
   };
 
-  // 为 cloudId select 注入动态选项
-  const resolvedFields = useMemo(
-    () => fields.map((f) => (f.dataIndex === 'cloudId' ? { ...f, options: cloudOptions } : f)),
-    [cloudOptions],
-  );
-
   return (
     <EditPage
       title="应用管理"
-      fields={resolvedFields}
+      fields={fields}
       initialValues={initialValues}
       operationType={operationType ?? OperationType.EDIT}
       loading={detailQuery.isLoading}

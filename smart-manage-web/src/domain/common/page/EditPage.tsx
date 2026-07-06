@@ -14,6 +14,7 @@ import {
 import type { Rule } from 'antd/es/form';
 import type { ReactNode } from 'react';
 import { OperationType, BillStatus } from './types';
+import RefSelector from '@/domain/common/component/RefSelector';
 import './EditPage.css';
 
 const { TextArea } = Input;
@@ -22,7 +23,7 @@ const { TextArea } = Input;
 export interface EditField {
   label: string;
   dataIndex: string;
-  type: 'text' | 'number' | 'switch' | 'textarea' | 'select' | 'readonly';
+  type: 'text' | 'number' | 'switch' | 'textarea' | 'select' | 'readonly' | 'ref-selector';
   /** antd Form 校验规则，如 [{ required: true, message: '编码不能为空' }] */
   rules?: Rule[];
   disabled?: boolean;
@@ -32,6 +33,35 @@ export interface EditField {
   options?: { label: string; value: string | number }[];
   /** 字段宽度，默认 260px；可设 "100%" 占整行、"50%" 占半行 等 */
   width?: string;
+  /** RefSelector 配置 — type === 'ref-selector' 时必填 */
+  refSelector?: {
+    mode?: 'default' | 'multiple' | 'tree-table';
+    modalTitle: string;
+    /** 数据获取函数，传入分页/搜索参数，返回分页结果 */
+    fetchFn: (params: {
+      pageNum: number;
+      pageSize: number;
+      keyword?: string;
+      parentId?: string;
+    }) => Promise<{ records: Record<string, unknown>[]; total: number }>;
+    /** 选中记录的展示渲染 */
+    displayRender: (record: Record<string, unknown>) => ReactNode;
+    /** 字段名映射 */
+    fieldNames: { key: string; label: string };
+    /** 表格列定义 */
+    columns: {
+      title: string;
+      dataIndex: string;
+      width?: number | string;
+      render?: (text: unknown, record: Record<string, unknown>, index: number) => ReactNode;
+    }[];
+    /** 每页条数，默认 20 */
+    pageSize?: number;
+    /** 树表模式：树形数据 */
+    treeData?: Record<string, unknown>[];
+    /** 树表模式：树字段映射 */
+    treeFieldNames?: { key: string; title: string; children: string };
+  };
 }
 
 interface EditPageProps {
@@ -99,6 +129,22 @@ function renderFormControl(field: EditField, disabled: boolean) {
           placeholder={field.placeholder}
           disabled={disabled}
           options={field.options}
+        />
+      );
+    case 'ref-selector':
+      return (
+        <RefSelector<Record<string, unknown>>
+          placeholder={field.placeholder}
+          disabled={disabled}
+          modalTitle={field.refSelector?.modalTitle ?? ''}
+          fetchFn={field.refSelector!.fetchFn}
+          displayRender={field.refSelector!.displayRender}
+          fieldNames={field.refSelector!.fieldNames}
+          columns={field.refSelector!.columns}
+          mode={field.refSelector?.mode}
+          pageSize={field.refSelector?.pageSize}
+          treeData={field.refSelector?.treeData}
+          treeFieldNames={field.refSelector?.treeFieldNames}
         />
       );
     default:

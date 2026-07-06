@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Spin, Button, Modal, Input, InputNumber, Select, Switch, Result, Form } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import type { EditField } from './EditPage';
+import RefSelector from '@/domain/common/component/RefSelector';
 import './EditPage.css';
 import './ModalEditPage.css';
 
@@ -60,6 +61,22 @@ function renderFormControl(field: EditField, disabled: boolean) {
           placeholder={field.placeholder}
           disabled={disabled}
           options={field.options}
+        />
+      );
+    case 'ref-selector':
+      return (
+        <RefSelector<Record<string, unknown>>
+          placeholder={field.placeholder}
+          disabled={disabled}
+          modalTitle={field.refSelector?.modalTitle ?? ''}
+          fetchFn={field.refSelector!.fetchFn}
+          displayRender={field.refSelector!.displayRender}
+          fieldNames={field.refSelector!.fieldNames}
+          columns={field.refSelector!.columns}
+          mode={field.refSelector?.mode}
+          pageSize={field.refSelector?.pageSize}
+          treeData={field.refSelector?.treeData}
+          treeFieldNames={field.refSelector?.treeFieldNames}
         />
       );
     default:
@@ -121,7 +138,7 @@ const ModalEditPage = ({
       title={
         <div className="sm-modal-title-bar">
           <span style={{ flex: 1 }}>{title}</span>
-          <Button type="text" icon={<CloseOutlined />} onClick={handleClose} />
+          <Button type="link" icon={<CloseOutlined />} onClick={handleClose} />
         </div>
       }
       closeIcon={null}

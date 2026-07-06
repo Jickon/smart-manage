@@ -30,7 +30,7 @@ const ListFilterBar = ({
         <div className="sm-list-filter-search">
           <Search
             allowClear
-            variant='underlined'
+            variant="underlined"
             placeholder={quickSearchPlaceholder}
             onSearch={(value) => onQuickSearch?.(value)}
           />

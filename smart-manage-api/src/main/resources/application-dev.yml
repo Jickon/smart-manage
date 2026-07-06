@@ -127,6 +127,9 @@ spring:
 jetcache:
   statIntervalMinutes: 15
   areaInCacheName: false
+  # 反序列化安全过滤器白名单 — 允许本项目的实体类反序列化
+  decodeFilterAllowPatterns:
+    - sm.
   local:
     default:
       type: caffeine

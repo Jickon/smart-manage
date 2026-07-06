@@ -61,10 +61,10 @@ const themeConfig = {
     Menu: {},
     // 表格
     Table: {
-      "headerBg": "#f4f4f4",
+      headerBg: '#f4f4f4',
     },
     Card: {
-      "lineWidth": 0,
+      lineWidth: 0,
     },
   },
   // algorithm: theme.compactAlgorithm,

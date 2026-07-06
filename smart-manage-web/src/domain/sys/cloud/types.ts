@@ -28,6 +28,20 @@ export interface CloudDetailVO {
   updateUser?: string;
 }
 
+/** 云选择器查询参数 */
+export interface CloudSelectForm extends PageForm {
+  keyword?: string;
+  enableFlag?: boolean;
+}
+
+/** 云选择器列表项 */
+export interface CloudSelectVO {
+  id: string;
+  name: string;
+  number: string;
+  enableFlag: boolean;
+}
+
 /** 云保存 */
 export interface CloudSaveForm {
   id?: number;

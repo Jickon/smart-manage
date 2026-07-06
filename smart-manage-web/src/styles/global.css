@@ -17,6 +17,14 @@ body {
   height: 100%;
 }
 
+/* 认证检查 — 全屏居中加载 */
+.sm-auth-container {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* 自定义滚动条 */
 ::-webkit-scrollbar {
   width: 6px;

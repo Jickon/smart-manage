@@ -150,7 +150,7 @@ function ListPage<T>({
           onQuickSearch={onQuickSearch}
         />
         <div className="sm-list-toolbar">
-          <Space size='medium'>
+          <Space size="medium">
             {onAddNew && (
               <Button type="primary" onClick={onAddNew}>
                 新增
@@ -161,7 +161,11 @@ function ListPage<T>({
                 删除
               </Button>
             )}
-            {onRefresh && <Button type="primary" onClick={onRefresh}>刷新</Button>}
+            {onRefresh && (
+              <Button type="primary" onClick={onRefresh}>
+                刷新
+              </Button>
+            )}
             {toolbarActions}
           </Space>
         </div>
