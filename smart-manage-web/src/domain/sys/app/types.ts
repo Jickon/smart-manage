@@ -23,7 +23,7 @@ export interface CloudAppsVO {
 
 /** 应用列表查询 */
 export interface AppListForm extends PageForm {
-  cloudId?: number;
+  cloudId?: string;
   keyword?: string;
 }
 
@@ -64,13 +64,13 @@ export interface AppDetailVO {
 
 /** 应用保存 */
 export interface AppSaveForm {
-  id?: number;
+  id?: string;
   name: string;
   number: string;
   icon?: string;
   iconColor?: string;
   seq?: number;
   description?: string;
-  cloudId: number;
+  cloudId: string;
   enableFlag: boolean;
 }

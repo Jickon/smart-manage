@@ -16,7 +16,7 @@ const APP_EDIT_KEY = 'sys/base/app/edit';
 
 /** 应用列表页 — 左树（云）右表（应用） */
 const AppListPage = (props: PageComponentProps) => {
-  const [selectedCloudId, setSelectedCloudId] = useState<number | undefined>(undefined);
+  const [selectedCloudId, setSelectedCloudId] = useState<string | undefined>(undefined);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const openBillTab = useWorkbenchStore((s) => s.openBillTab);
   const openAddNewTab = useWorkbenchStore((s) => s.openAddNewTab);
@@ -59,7 +59,7 @@ const AppListPage = (props: PageComponentProps) => {
     if (keys.length === 0 || keys[0] === 'root') {
       setSelectedCloudId(undefined);
     } else {
-      setSelectedCloudId(Number(keys[0]));
+      setSelectedCloudId(String(keys[0]));
     }
   };
 

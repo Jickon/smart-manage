@@ -68,15 +68,16 @@ function renderFormControl(field: EditField, disabled: boolean) {
         <RefSelector<Record<string, unknown>>
           placeholder={field.placeholder}
           disabled={disabled}
-          modalTitle={field.refSelector?.modalTitle ?? ''}
-          fetchFn={field.refSelector!.fetchFn}
-          displayRender={field.refSelector!.displayRender}
-          fieldNames={field.refSelector!.fieldNames}
-          columns={field.refSelector!.columns}
-          mode={field.refSelector?.mode}
-          pageSize={field.refSelector?.pageSize}
-          treeData={field.refSelector?.treeData}
-          treeFieldNames={field.refSelector?.treeFieldNames}
+          selectorKey={field.refSelector.selectorKey}
+          modalTitle={field.refSelector.modalTitle}
+          fetchFn={field.refSelector.fetchFn}
+          displayRender={field.refSelector.displayRender}
+          fieldNames={field.refSelector.fieldNames}
+          columns={field.refSelector.columns}
+          mode={field.refSelector.mode}
+          pageSize={field.refSelector.pageSize}
+          treeData={field.refSelector.treeData}
+          treeFieldNames={field.refSelector.treeFieldNames}
         />
       );
     default:

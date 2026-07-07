@@ -19,50 +19,62 @@ import './EditPage.css';
 
 const { TextArea } = Input;
 
-/** 编辑字段定义 */
-export interface EditField {
+/** 编辑字段公共属性 */
+export interface EditFieldBase {
   label: string;
   dataIndex: string;
-  type: 'text' | 'number' | 'switch' | 'textarea' | 'select' | 'readonly' | 'ref-selector';
   /** antd Form 校验规则，如 [{ required: true, message: '编码不能为空' }] */
   rules?: Rule[];
   disabled?: boolean;
   /** 占位提示 */
   placeholder?: string;
-  /** select 选项 */
-  options?: { label: string; value: string | number }[];
   /** 字段宽度，默认 260px；可设 "100%" 占整行、"50%" 占半行 等 */
   width?: string;
-  /** RefSelector 配置 — type === 'ref-selector' 时必填 */
-  refSelector?: {
-    mode?: 'default' | 'multiple' | 'tree-table';
-    modalTitle: string;
-    /** 数据获取函数，传入分页/搜索参数，返回分页结果 */
-    fetchFn: (params: {
-      pageNum: number;
-      pageSize: number;
-      keyword?: string;
-      parentId?: string;
-    }) => Promise<{ records: Record<string, unknown>[]; total: number }>;
-    /** 选中记录的展示渲染 */
-    displayRender: (record: Record<string, unknown>) => ReactNode;
-    /** 字段名映射 */
-    fieldNames: { key: string; label: string };
-    /** 表格列定义 */
-    columns: {
-      title: string;
-      dataIndex: string;
-      width?: number | string;
-      render?: (text: unknown, record: Record<string, unknown>, index: number) => ReactNode;
-    }[];
-    /** 每页条数，默认 20 */
-    pageSize?: number;
-    /** 树表模式：树形数据 */
-    treeData?: Record<string, unknown>[];
-    /** 树表模式：树字段映射 */
-    treeFieldNames?: { key: string; title: string; children: string };
-  };
 }
+
+/** RefSelector 字段配置 — type === 'ref-selector' 时必填 */
+export interface RefSelectorFieldConfig {
+  /** 选择器标识，用于隔离不同实例的查询缓存 */
+  selectorKey: string | readonly unknown[];
+  mode?: 'default' | 'multiple' | 'tree-table';
+  modalTitle: string;
+  /** 数据获取函数，传入分页/搜索参数，返回分页结果 */
+  fetchFn: (params: {
+    pageNum: number;
+    pageSize: number;
+    keyword?: string;
+    parentId?: string;
+  }) => Promise<{ records: Record<string, unknown>[]; total: number }>;
+  /** 选中记录的展示渲染 */
+  displayRender: (record: Record<string, unknown>) => ReactNode;
+  /** 字段名映射 */
+  fieldNames: { key: string; label: string };
+  /** 表格列定义 */
+  columns: {
+    title: string;
+    dataIndex: string;
+    width?: number | string;
+    render?: (text: unknown, record: Record<string, unknown>, index: number) => ReactNode;
+  }[];
+  /** 每页条数，默认 20 */
+  pageSize?: number;
+  /** 树表模式：树形数据 */
+  treeData?: Record<string, unknown>[];
+  /** 树表模式：树字段映射 */
+  treeFieldNames?: { key: string; title: string; children: string };
+}
+
+/** 编辑字段定义 — 按 type 分流为判别联合类型 */
+export type EditField = EditFieldBase &
+  (
+    | { type: 'text' }
+    | { type: 'number' }
+    | { type: 'switch' }
+    | { type: 'textarea' }
+    | { type: 'select'; options?: { label: string; value: string | number }[] }
+    | { type: 'readonly' }
+    | { type: 'ref-selector'; refSelector: RefSelectorFieldConfig }
+  );
 
 interface EditPageProps {
   title: string;
@@ -136,15 +148,16 @@ function renderFormControl(field: EditField, disabled: boolean) {
         <RefSelector<Record<string, unknown>>
           placeholder={field.placeholder}
           disabled={disabled}
-          modalTitle={field.refSelector?.modalTitle ?? ''}
-          fetchFn={field.refSelector!.fetchFn}
-          displayRender={field.refSelector!.displayRender}
-          fieldNames={field.refSelector!.fieldNames}
-          columns={field.refSelector!.columns}
-          mode={field.refSelector?.mode}
-          pageSize={field.refSelector?.pageSize}
-          treeData={field.refSelector?.treeData}
-          treeFieldNames={field.refSelector?.treeFieldNames}
+          selectorKey={field.refSelector.selectorKey}
+          modalTitle={field.refSelector.modalTitle}
+          fetchFn={field.refSelector.fetchFn}
+          displayRender={field.refSelector.displayRender}
+          fieldNames={field.refSelector.fieldNames}
+          columns={field.refSelector.columns}
+          mode={field.refSelector.mode}
+          pageSize={field.refSelector.pageSize}
+          treeData={field.refSelector.treeData}
+          treeFieldNames={field.refSelector.treeFieldNames}
         />
       );
     default:

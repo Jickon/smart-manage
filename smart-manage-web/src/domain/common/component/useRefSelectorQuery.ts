@@ -23,6 +23,8 @@ export type RefSelectorFetchFn<T> = (
 
 interface UseRefSelectorQueryOptions<T> {
   fetchFn: RefSelectorFetchFn<T>;
+  /** 选择器标识，用于隔离不同实例的查询缓存。简单场景传 'sys-cloud'，复杂场景传 ['sys-org-user', orgId] */
+  selectorKey: string | readonly unknown[];
   initialPageSize?: number;
   /** 控制是否触发请求，通常绑定 modalOpen */
   enabled: boolean;
@@ -36,6 +38,7 @@ interface UseRefSelectorQueryOptions<T> {
  */
 export function useRefSelectorQuery<T>({
   fetchFn,
+  selectorKey,
   initialPageSize = 20,
   enabled,
 }: UseRefSelectorQueryOptions<T>) {
@@ -46,7 +49,7 @@ export function useRefSelectorQuery<T>({
 
   /** 参数变更自动触发 refetch（TanStack Query 基于 queryKey 缓存） */
   const query = useQuery({
-    queryKey: ['ref-selector', pageNum, pageSize, keyword, parentId],
+    queryKey: ['ref-selector', selectorKey, pageNum, pageSize, keyword, parentId],
     queryFn: () =>
       fetchFn({
         pageNum,

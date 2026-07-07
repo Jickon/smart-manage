@@ -26,15 +26,11 @@ export const appApi = {
       .then((res) => res.data.data),
 
   detail: (id: string) =>
-    request
-      .post<Result<AppDetailVO>>('/sys/base/app/detail', { id: Number(id) })
-      .then((res) => res.data.data),
+    request.post<Result<AppDetailVO>>('/sys/base/app/detail', { id }).then((res) => res.data.data),
 
   save: (form: AppSaveForm) =>
-    request.post<Result<number>>('/sys/base/app/save', form).then((res) => res.data.data),
+    request.post<Result<string>>('/sys/base/app/save', form).then((res) => res.data.data),
 
   delete: (id: string) =>
-    request
-      .post<Result<string>>('/sys/base/app/delete', { id: Number(id) })
-      .then((res) => res.data.data),
+    request.post<Result<string>>('/sys/base/app/delete', { id }).then((res) => res.data.data),
 };

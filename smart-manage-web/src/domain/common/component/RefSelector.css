@@ -256,6 +256,19 @@
   min-height: 0;
 }
 
+/* ---- 错误态 ---- */
+
+.sm-ref-selector-error-body {
+  justify-content: center;
+  align-items: center;
+}
+
+/* ---- Empty 空态 ---- */
+
+.sm-ref-selector-empty {
+  margin-top: 40px;
+}
+
 /* ---- Footer 底部按钮 ---- */
 
 .sm-ref-selector-footer {

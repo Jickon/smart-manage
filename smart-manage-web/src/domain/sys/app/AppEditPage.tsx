@@ -30,6 +30,7 @@ const fields: EditField[] = [
     type: 'ref-selector',
     rules: [{ required: true, message: '所属云不能为空' }],
     refSelector: {
+      selectorKey: 'sys-cloud',
       modalTitle: '选择所属云',
       // 使用专用的 select 接口（区别于列表页的 listPage）
       fetchFn: (params) =>
@@ -90,17 +91,19 @@ const AppEditPage = (props: PageComponentProps) => {
   const handleSave = async (values: Record<string, unknown>) => {
     const name = (values.name as string).trim();
     const number = (values.number as string).trim();
-    // RefSelector 传整个对象，需从中提取 cloudId
+    // RefSelector 传整个对象，从中提取 cloud
     const cloud = values.cloud as { id: string } | null;
+    if (!cloud?.id) throw new Error('所属云不能为空');
     const savedId = await appApi.save({
-      id: billId ? Number(billId) : undefined,
+      id: billId ?? undefined,
       name,
       number,
       icon: (values.icon as string) ?? '',
       iconColor: (values.iconColor as string) ?? '',
       seq: (values.seq as number) ?? 0,
       description: (values.description as string) ?? '',
-      cloudId: cloud ? Number(cloud.id) : 0,
+      // 雪花 ID 保持字符串，前端不转 Number
+      cloudId: cloud.id,
       enableFlag: Boolean(values.enableFlag),
     });
     // 新增成功后替换临时 tab key
