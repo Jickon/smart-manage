@@ -147,7 +147,7 @@ const ModalEditPage = ({
       onCancel={handleClose}
       centered
       maskClosable={false}
-      className="sm-modal"
+      className="sm-modal sm-modal-edit"
       destroyOnClose
       width={width}
       footer={
@@ -206,13 +206,7 @@ const ModalEditPage = ({
                     rules={field.rules}
                     valuePropName={valuePropName}
                     className="sm-edit-field"
-                    style={
-                      field.type === 'switch'
-                        ? { flex: '0 0 auto', width: 'auto' }
-                        : field.width
-                          ? { width: field.width }
-                          : undefined
-                    }
+                    style={field.width ? { width: field.width } : undefined}
                   >
                     {renderFormControl(field, disabled)}
                   </Form.Item>

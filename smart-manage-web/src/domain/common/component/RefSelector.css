@@ -94,6 +94,8 @@
   flex-direction: column;
   min-height: 360px;
   max-height: 56vh;
+  border-top: 1px solid var(--ant-color-border-secondary);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
 }
 
 /* 元信息栏（总条数 + 分页） */
@@ -119,7 +121,7 @@
 .sm-ref-selector-table-body {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
 }
 
 .sm-ref-selector-table-body .ant-table-wrapper {
@@ -154,7 +156,6 @@
 .sm-ref-selector-table-body .ant-table-body {
   flex: 1;
   min-height: 0;
-  overflow: auto !important;
 }
 
 /* ---- 多选模式：表格 + 右侧已选面板 ---- */

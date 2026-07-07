@@ -25,15 +25,20 @@
   align-items: center;
 }
 
-/* 主体 — 可滚动 */
-.sm-modal .ant-modal-body {
+/* 主体 — 可滚动（仅 Modal 编辑页居中，RefSelector 等不生效） */
+.sm-modal-edit .ant-modal-body {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   max-height: 60vh;
   overflow-y: auto;
   border-top: 1px solid var(--ant-color-border-secondary);
   border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+/* 字段在 Modal 编辑页居中排列 */
+.sm-modal-edit .sm-edit-fields {
+  justify-content: center;
 }
 
 /* 底部 */
