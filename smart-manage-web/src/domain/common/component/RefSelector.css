@@ -22,10 +22,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 2px 0;
   font-size: var(--ant-font-size);
   line-height: var(--ant-control-height);
   color: var(--ant-color-text);
+  padding: var(--ant-input-padding-block) var(--ant-input-padding-inline);
 }
 
 /* 清空按钮 — 默认隐藏，hover 触发器时显示 */

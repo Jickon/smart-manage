@@ -87,10 +87,8 @@
 
 /* === Form.Item 样式覆盖 === */
 
-.sm-edit-form .ant-form-item-label > label {
-  font-size: 12px;
-  color: #666;
-  height: auto;
+.sm-edit-form .ant-form-item-label {
+  padding-bottom: 0;
 }
 
 /* margin-bottom 设置为错误提示行高，让 antd margin-offset 机制精确补偿 */
