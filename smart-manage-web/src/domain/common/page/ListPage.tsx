@@ -93,6 +93,33 @@ function ListPage<T>({
     [selectMode, selectedRowKeys, onSelectChange],
   );
 
+  /** 点击行选中/取消选中 */
+  const onRow = useMemo(
+    () =>
+      selectMode && onSelectChange
+        ? (record: T) => ({
+            onClick: () => {
+              const key =
+                typeof rowKey === 'function' ? rowKey(record) : String(record[rowKey as keyof T]);
+              const prevKeys = selectedRowKeys ?? [];
+
+              let nextKeys: React.Key[];
+              if (selectMode === 'radio') {
+                // 单选：点击同一行不做取消，点不同行切换
+                nextKeys = prevKeys.includes(key) ? prevKeys : [key];
+              } else {
+                // 多选：点击切换该行的选中状态
+                nextKeys = prevKeys.includes(key)
+                  ? prevKeys.filter((k) => k !== key)
+                  : [...prevKeys, key];
+              }
+              onSelectChange?.(nextKeys);
+            },
+          })
+        : undefined,
+    [selectMode, rowKey, onSelectChange, selectedRowKeys],
+  );
+
   // 注入序号列 + 业务列（pageNum/pageSize 变化时更新序号公式）
   const fullColumns: ColumnsType<T> = useMemo(
     () => [
@@ -179,6 +206,7 @@ function ListPage<T>({
                 className="sm-list-table"
                 rowKey={rowKey}
                 rowSelection={rowSelection}
+                onRow={onRow}
                 columns={fullColumns}
                 dataSource={dataSource}
                 size="small"
