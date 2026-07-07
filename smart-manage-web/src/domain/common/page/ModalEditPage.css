@@ -9,8 +9,7 @@
 .sm-modal .ant-modal-header {
   display: flex;
   align-items: center;
-  padding: 10px 20px;
-  border-bottom: 1px solid var(--ant-color-border-secondary);
+  padding: 6px 18px;
   margin-bottom: 0;
 }
 
@@ -28,9 +27,13 @@
 
 /* 主体 — 可滚动 */
 .sm-modal .ant-modal-body {
-  padding: 20px 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   max-height: 60vh;
   overflow-y: auto;
+  border-top: 1px solid var(--ant-color-border-secondary);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
 }
 
 /* 底部 */
@@ -38,9 +41,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18px 20px;
-  border-top: 1px solid var(--ant-color-border-secondary);
   margin-top: 0;
+  min-height: 48px;
 }
 
 .sm-modal-footer-inner {
