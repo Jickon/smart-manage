@@ -13,7 +13,7 @@ import sm.domain.sys.monitor.sql.model.vo.SqlLogListVO;
 import sm.domain.sys.monitor.sql.model.vo.SqlResultVO;
 import sm.domain.sys.monitor.sql.mapper.SqlLogMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.util.ServletUtil;
 import sm.system.util.StringUtil;
 
@@ -119,7 +119,7 @@ public class SqlService {
     /**
      * 分页查询执行历史
      */
-    public PageResult<SqlLogListVO> listPage(SqlLogListForm form) {
+    public PageData<SqlLogListVO> listPage(SqlLogListForm form) {
         LambdaQueryWrapper<SqlLogEntity> qw = new LambdaQueryWrapper<SqlLogEntity>();
         if (StringUtil.isNotBlank(form.getKeyword())) {
             qw.like(SqlLogEntity::getSqlText, form.getKeyword());
@@ -131,7 +131,7 @@ public class SqlService {
 
         Page<SqlLogEntity> page = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
         List<SqlLogListVO> vos = page.getRecords().stream().map(this::toListVo).collect(java.util.stream.Collectors.toList());
-        return PageResult.of(page.getTotal(), vos);
+        return PageData.of(page.getTotal(), form.getPageNum(), form.getPageSize(), vos);
     }
 
     private SqlLogListVO toListVo(SqlLogEntity e) {

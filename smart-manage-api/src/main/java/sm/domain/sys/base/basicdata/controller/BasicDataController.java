@@ -16,7 +16,7 @@ import sm.domain.sys.base.basicdata.model.vo.BasicDataDetailVO;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataListVO;
 import sm.domain.sys.base.basicdata.service.BasicDataService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -33,7 +33,7 @@ public class BasicDataController {
     @PostMapping("/sys/base/basic-data/listPage")
     @Operation(summary = "基础数据列表", description = "获取基础数据分页列表")
     @SaCheckPermission("sys:base:basic-data:listPage")
-    public Result<PageResult<BasicDataListVO>> listPage(@RequestBody BasicDataListForm form) {
+    public Result<PageData<BasicDataListVO>> listPage(@RequestBody BasicDataListForm form) {
         return Result.success(service.listPage(form));
     }
 

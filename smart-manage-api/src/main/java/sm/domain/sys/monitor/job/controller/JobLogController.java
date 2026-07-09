@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import sm.domain.sys.monitor.job.model.form.JobLogListForm;
 import sm.domain.sys.monitor.job.model.vo.JobLogListVO;
 import sm.domain.sys.monitor.job.service.JobLogService;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 import java.util.List;
@@ -30,7 +30,7 @@ public class JobLogController {
     @PostMapping("/sys/monitor/job/log/listPage")
     @Operation(summary = "执行实例列表", description = "获取任务执行实例分页列表，支持按状态筛选")
     @SaCheckPermission("sys:monitor:job-log:listPage")
-    public Result<PageResult<JobLogListVO>> listPage(@RequestBody JobLogListForm form) {
+    public Result<PageData<JobLogListVO>> listPage(@RequestBody JobLogListForm form) {
         return Result.success(service.listPage(form));
     }
 

@@ -16,7 +16,7 @@ import sm.domain.sys.base.app.model.vo.*;
 import sm.domain.sys.base.app.service.AppService;
 import sm.domain.sys.base.common.helper.UserHelper;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class AppController {
 	@Operation(summary = "应用列表", description = "获取应用分页列表数据")
 	@PostMapping("/sys/base/app/listPage")
 	@SaCheckPermission("sys:base:app:listPage")
-	public Result<PageResult<AppListVO>> listPage(@RequestBody AppListForm form) {
+	public Result<PageData<AppListVO>> listPage(@RequestBody AppListForm form) {
 		return Result.success(service.listPage(form));
 	}
 

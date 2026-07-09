@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { PaginationProps } from 'antd';
+import type { PageData } from '@/types/api';
 
 /** 标准列表查询参数 */
 export interface ListPageQueryParams {
@@ -10,10 +11,7 @@ export interface ListPageQueryParams {
 }
 
 /** 标准列表查询结果 */
-export interface ListPageQueryResult<T> {
-  records: T[];
-  total: number;
-}
+export type ListPageQueryResult<T> = PageData<T>;
 
 /** useListPageQuery 配置 */
 interface UseListPageQueryOptions<T> {

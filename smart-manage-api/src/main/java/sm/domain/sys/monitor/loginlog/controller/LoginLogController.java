@@ -12,7 +12,7 @@ import sm.domain.sys.monitor.loginlog.model.form.LoginLogListForm;
 import sm.domain.sys.monitor.loginlog.model.vo.LoginLogListVO;
 import sm.domain.sys.monitor.loginlog.service.LoginLogQueryService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 @RestController
@@ -24,7 +24,7 @@ public class LoginLogController {
 	@PostMapping("/sys/log/login/listPage")
 	@Operation(summary = "登录日志分页")
 	@SaCheckPermission("sys:log:login:listPage")
-	public Result<PageResult<LoginLogListVO>> listPage(@Valid @RequestBody LoginLogListForm form) {
+	public Result<PageData<LoginLogListVO>> listPage(@Valid @RequestBody LoginLogListForm form) {
 		return Result.success(loginLogQueryService.listPage(form));
 	}
 

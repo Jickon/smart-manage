@@ -16,7 +16,7 @@ import sm.domain.sys.monitor.job.model.vo.JobListVO;
 import sm.domain.sys.monitor.job.mapper.JobLogMapper;
 import sm.domain.sys.monitor.job.mapper.JobMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.LinkedHashMap;
@@ -42,7 +42,7 @@ public class JobService {
 
     // ==================== 查询 ====================
 
-    public PageResult<JobListVO> listPage(JobListForm form) {
+    public PageData<JobListVO> listPage(JobListForm form) {
         LambdaQueryWrapper<JobEntity> qw = new LambdaQueryWrapper<JobEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
@@ -56,7 +56,7 @@ public class JobService {
         Page<JobEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
         Page<JobEntity> result = mapper.selectPage(page, qw);
         List<JobListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotal(), vos);
+        return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
     }
 
     public JobDetailVO getById(Long id) {

@@ -19,7 +19,7 @@ import sm.domain.sys.base.role.model.vo.RoleSelectVO;
 import sm.domain.sys.base.role.service.RoleService;
 import sm.system.aop.log.BizLog;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -37,14 +37,14 @@ public class RoleController {
 	@PostMapping("/sys/base/role/listPage")
 	@SaCheckPermission("sys:base:role:listPage")
 	@BizLog("角色分页查询")
-	public Result<PageResult<RoleListVO>> listPage(@RequestBody RoleListForm form) {
+	public Result<PageData<RoleListVO>> listPage(@RequestBody RoleListForm form) {
 		return Result.success(service.listPage(form));
 	}
 
 	@Operation(summary = "角色选择", description = "基础资料选择：获取角色分页列表数据")
 	@PostMapping("/sys/base/role/select")
 	@SaCheckPermission("sys:base:role:select")
-	public Result<PageResult<RoleSelectVO>> select(@RequestBody RoleSelectForm form) {
+	public Result<PageData<RoleSelectVO>> select(@RequestBody RoleSelectForm form) {
 		return Result.success(service.select(form));
 	}
 

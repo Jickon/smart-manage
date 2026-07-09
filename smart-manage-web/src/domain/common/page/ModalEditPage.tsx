@@ -33,6 +33,10 @@ function renderFormControl(field: EditField, disabled: boolean) {
   switch (field.type) {
     case 'text':
       return <Input variant="underlined" placeholder={field.placeholder} disabled={disabled} />;
+    case 'password':
+      return (
+        <Input.Password variant="underlined" placeholder={field.placeholder} disabled={disabled} />
+      );
     case 'number':
       return (
         <InputNumber

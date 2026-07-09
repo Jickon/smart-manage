@@ -16,7 +16,7 @@ import sm.domain.sys.base.sysparam.model.vo.SysParamCreateNewDataVO;
 import sm.domain.sys.base.sysparam.model.vo.SysParamVO;
 import sm.domain.sys.base.sysparam.service.SysParamService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -34,7 +34,7 @@ public class SysParamController {
     @PostMapping("/sys/base/param/listPage")
     @Operation(summary = "系统参数列表")
     @SaCheckPermission("sys:base:param:listPage")
-    public Result<PageResult<SysParamVO>> listPage(@RequestBody SysParamListForm form) {
+    public Result<PageData<SysParamVO>> listPage(@RequestBody SysParamListForm form) {
         return Result.success(service.listPage(form));
     }
 

@@ -18,7 +18,7 @@ import sm.domain.sys.base.permission.model.vo.PermissionListVO;
 import sm.domain.sys.base.permission.model.vo.PermissionSelectVO;
 import sm.domain.sys.base.permission.service.PermissionService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -35,14 +35,14 @@ public class PermissionController {
 	@Operation(summary = "权限列表", description = "获取权限分页列表数据")
 	@PostMapping("/sys/base/permission/listPage")
 	@SaCheckPermission("sys:base:permission:listPage")
-	public Result<PageResult<PermissionListVO>> listPage(@RequestBody PermissionListForm form) {
+	public Result<PageData<PermissionListVO>> listPage(@RequestBody PermissionListForm form) {
 		return Result.success(service.listPage(form));
 	}
 
 	@Operation(summary = "权限选择", description = "基础资料选择：获取权限分页列表数据")
 	@PostMapping("/sys/base/permission/select")
 	@SaCheckPermission("sys:base:permission:select")
-	public Result<PageResult<PermissionSelectVO>> select(@RequestBody PermissionSelectForm form) {
+	public Result<PageData<PermissionSelectVO>> select(@RequestBody PermissionSelectForm form) {
 		return Result.success(service.select(form));
 	}
 

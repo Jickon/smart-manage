@@ -16,7 +16,7 @@ import sm.domain.sys.base.uiconfig.model.vo.UiConfigDetailVO;
 import sm.domain.sys.base.uiconfig.model.vo.UiConfigListVO;
 import sm.domain.sys.base.uiconfig.service.UiConfigService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -34,7 +34,7 @@ public class UiConfigController {
     @PostMapping("/sys/base/ui-config/listPage")
     @Operation(summary = "界面配置列表", description = "获取界面配置分页列表")
     @SaCheckPermission("sys:base:ui-config:listPage")
-    public Result<PageResult<UiConfigListVO>> listPage(@RequestBody UiConfigListForm form) {
+    public Result<PageData<UiConfigListVO>> listPage(@RequestBody UiConfigListForm form) {
         return Result.success(service.listPage(form));
     }
 

@@ -1,5 +1,5 @@
 import request from '@/api/request';
-import type { PageResult, Result } from '@/types/api';
+import type { PageData, Result } from '@/types/api';
 import type { AppVO, CloudAppsVO, AppListForm, AppListVO, AppDetailVO, AppSaveForm } from './types';
 
 /** 获取当前用户可访问的应用列表（按领域分组） */
@@ -22,7 +22,7 @@ export function fetchAppsAll() {
 export const appApi = {
   listPage: (form: AppListForm) =>
     request
-      .post<Result<PageResult<AppListVO>>>('/sys/base/app/listPage', form)
+      .post<Result<PageData<AppListVO>>>('/sys/base/app/listPage', form)
       .then((res) => res.data.data),
 
   detail: (id: string) =>

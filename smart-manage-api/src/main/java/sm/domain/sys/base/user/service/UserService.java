@@ -22,7 +22,7 @@ import sm.domain.sys.base.user.model.vo.UserInfoVO;
 import sm.domain.sys.base.user.model.vo.UserListVO;
 import sm.domain.sys.base.user.mapper.UserMapper;
 import sm.system.helper.Argon2Helper;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.util.BeanUtil;
 
 import java.util.List;
@@ -46,7 +46,7 @@ public class UserService {
 	@Value("${smart-manage.org.default-id:1}")
 	private Long defaultOrgId;
 
-	public PageResult<UserListVO> listPage(UserListForm form) {
+	public PageData<UserListVO> listPage(UserListForm form) {
 		LambdaQueryWrapper<UserEntity> qw = new LambdaQueryWrapper<UserEntity>().orderByAsc(UserEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String kw = "%" + form.getKeyword().trim() + "%";
@@ -55,7 +55,7 @@ public class UserService {
 		Page<UserEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
 		Page<UserEntity> result = mapper.selectPage(page, qw);
 		var vos = result.getRecords().stream().map(this::toUserListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), vos);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
 	}
 
 	private UserListVO toUserListVo(UserEntity entity) {

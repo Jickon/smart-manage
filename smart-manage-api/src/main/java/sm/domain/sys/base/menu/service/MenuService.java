@@ -16,7 +16,7 @@ import sm.domain.sys.base.menu.model.form.MenuSelectForm;
 import sm.domain.sys.base.menu.model.vo.*;
 import sm.domain.sys.base.menu.mapper.MenuMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public class MenuService {
 		return p.toLowerCase();
 	}
 
-	public PageResult<MenuListVO> listPage(MenuListForm form) {
+	public PageData<MenuListVO> listPage(MenuListForm form) {
 		LambdaQueryWrapper<MenuEntity> qw = new LambdaQueryWrapper<MenuEntity>();
 		qw.eq(form.getAppId() != null, MenuEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
@@ -67,7 +67,7 @@ public class MenuService {
 		qw.orderByAsc(MenuEntity::getSort).orderByAsc(MenuEntity::getId);
 		Page<MenuEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
 		List<MenuListVO> records = result.getRecords().stream().map(this::toMenuListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), records);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
 	}
 
 	private MenuListVO toMenuListVo(MenuEntity e) {
@@ -88,7 +88,7 @@ public class MenuService {
 	 * 基础资料选择：分页查询菜单。
 	 * 支持按应用、层级、排除自身、是否启用、关键词过滤；按 sort、id 排序。
 	 */
-	public PageResult<MenuSelectVO> select(MenuSelectForm form) {
+	public PageData<MenuSelectVO> select(MenuSelectForm form) {
 		LambdaQueryWrapper<MenuEntity> wrapper = new LambdaQueryWrapper<MenuEntity>();
 		wrapper.eq(form.getAppId() != null, MenuEntity::getAppId, form.getAppId())
 				.eq(form.getLevel() != null, MenuEntity::getLevel, form.getLevel())
@@ -102,7 +102,7 @@ public class MenuService {
 		wrapper.orderByAsc(MenuEntity::getSort).orderByAsc(MenuEntity::getId);
 		Page<MenuEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), wrapper);
 		List<MenuSelectVO> records = result.getRecords().stream().map(this::toMenuSelectVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), records);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
 	}
 
 	private MenuSelectVO toMenuSelectVo(MenuEntity e) {

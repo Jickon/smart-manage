@@ -10,7 +10,7 @@ import sm.domain.sys.base.app.model.form.AppSaveForm;
 import sm.domain.sys.base.app.model.vo.*;
 import sm.domain.sys.base.app.mapper.AppMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.ArrayList;
@@ -29,9 +29,9 @@ public class AppService {
 	private final AppMapper mapper;
 	private final AppTxService txService;
 
-	public PageResult<AppListVO> listPage(AppListForm form) {
+	public PageData<AppListVO> listPage(AppListForm form) {
 		Page<AppListVO> result = mapper.selectListPage(new Page<>(form.getPageNum(), form.getPageSize()), form);
-		return PageResult.of(result.getTotal(), result.getRecords());
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), result.getRecords());
 	}
 
 	public AppEntity getById(Long id) {

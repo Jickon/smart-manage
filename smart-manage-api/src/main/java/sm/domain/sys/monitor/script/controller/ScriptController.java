@@ -16,7 +16,7 @@ import sm.domain.sys.monitor.script.model.vo.ScriptListVO;
 import sm.domain.sys.monitor.script.model.vo.ScriptResultVO;
 import sm.domain.sys.monitor.script.service.ScriptService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -39,7 +39,7 @@ public class ScriptController {
     @PostMapping("/sys/monitor/script/listPage")
     @Operation(summary = "脚本分页查询")
     @SaCheckPermission("sys:monitor:script:listPage")
-    public Result<PageResult<ScriptListVO>> listPage(@Valid @RequestBody ScriptListForm form) {
+    public Result<PageData<ScriptListVO>> listPage(@Valid @RequestBody ScriptListForm form) {
         return Result.success(scriptService.listPage(form));
     }
 

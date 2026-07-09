@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import sm.domain.sys.base.org.model.form.OrgListForm;
 import sm.domain.sys.base.org.model.vo.OrgListVO;
 import sm.domain.sys.base.org.service.OrgService;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -23,7 +23,7 @@ public class OrgController {
 
 	@Operation(summary = "组织列表", description = "获取组织分页列表数据")
 	@PostMapping("/sys/base/org/listPage")
-	public Result<PageResult<OrgListVO>> listPage(@RequestBody OrgListForm form) {
+	public Result<PageData<OrgListVO>> listPage(@RequestBody OrgListForm form) {
 		return Result.success(service.listPage(form));
 	}
 }

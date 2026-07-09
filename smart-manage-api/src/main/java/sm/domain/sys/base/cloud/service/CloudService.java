@@ -15,7 +15,7 @@ import sm.domain.sys.base.cloud.model.vo.CloudListVO;
 import sm.domain.sys.base.cloud.model.vo.CloudSelectVO;
 import sm.domain.sys.base.cloud.mapper.CloudMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
@@ -28,7 +28,7 @@ public class CloudService {
 	private final CloudMapper mapper;
 	private final CloudTxService txService;
 
-	public PageResult<CloudListVO> listPage(CloudListForm form) {
+	public PageData<CloudListVO> listPage(CloudListForm form) {
 		LambdaQueryWrapper<CloudEntity> qw = new LambdaQueryWrapper<CloudEntity>();
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String kw = "%" + form.getKeyword().trim() + "%";
@@ -41,10 +41,10 @@ public class CloudService {
 		Page<CloudEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
 		Page<CloudEntity> result = mapper.selectPage(page, qw);
 		List<CloudListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), vos);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
 	}
 
-	public PageResult<CloudSelectVO> select(CloudSelectForm form) {
+	public PageData<CloudSelectVO> select(CloudSelectForm form) {
 		LambdaQueryWrapper<CloudEntity> qw = new LambdaQueryWrapper<CloudEntity>();
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String kw = "%" + form.getKeyword().trim() + "%";
@@ -57,7 +57,7 @@ public class CloudService {
 		Page<CloudEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
 		Page<CloudEntity> result = mapper.selectPage(page, qw);
 		List<CloudSelectVO> vos = result.getRecords().stream().map(this::toSelectVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), vos);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
 	}
 
 	private CloudListVO toListVo(CloudEntity e) {

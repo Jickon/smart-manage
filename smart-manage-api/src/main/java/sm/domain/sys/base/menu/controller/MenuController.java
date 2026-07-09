@@ -14,7 +14,7 @@ import sm.domain.sys.base.menu.model.form.*;
 import sm.domain.sys.base.menu.model.vo.*;
 import sm.domain.sys.base.menu.service.MenuService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -31,14 +31,14 @@ public class MenuController {
 	@Operation(summary = "菜单列表", description = "获取菜单分页列表数据")
 	@PostMapping("/sys/base/menu/listPage")
 	@SaCheckPermission("sys:base:menu:listPage")
-	public Result<PageResult<MenuListVO>> listPage(@RequestBody MenuListForm form) {
+	public Result<PageData<MenuListVO>> listPage(@RequestBody MenuListForm form) {
 		return Result.success(service.listPage(form));
 	}
 
 	@Operation(summary = "菜单选择", description = "基础资料选择：获取菜单分页列表数据")
 	@PostMapping("/sys/base/menu/select")
 	@SaCheckPermission("sys:base:menu:select")
-	public Result<PageResult<MenuSelectVO>> select(@RequestBody MenuSelectForm form) {
+	public Result<PageData<MenuSelectVO>> select(@RequestBody MenuSelectForm form) {
 		return Result.success(service.select(form));
 	}
 

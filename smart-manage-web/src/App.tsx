@@ -11,6 +11,8 @@ import { useUserStore } from '@/stores/user';
 // 自动生成的组件注册表导入 — 由 pnpm gen:registry 生成
 import '@/domain/common/registry/registry.gen';
 
+const UNAUTHORIZED_CODE = 100401;
+
 /** 认证状态 — 启动时校验 token 有效性 */
 type AuthState = 'loading' | 'authenticated' | 'error';
 
@@ -46,7 +48,7 @@ export default function App() {
 
   const handleAuthError = useCallback((err: unknown) => {
     // 401 由 request.ts 拦截器处理跳转，此处保持 loading 避免闪屏
-    if (err instanceof ApiError && err.code === 401) {
+    if (err instanceof ApiError && err.code === UNAUTHORIZED_CODE) {
       return;
     }
     setAuthState('error');

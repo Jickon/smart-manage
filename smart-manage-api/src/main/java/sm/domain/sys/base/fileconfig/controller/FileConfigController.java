@@ -17,7 +17,7 @@ import sm.domain.sys.base.fileconfig.model.form.FtpTestForm;
 import sm.domain.sys.base.fileconfig.model.vo.FileConfigDetailVO;
 import sm.domain.sys.base.fileconfig.service.FileConfigService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -35,7 +35,7 @@ public class FileConfigController {
     @PostMapping("/sys/base/file-config/listPage")
     @Operation(summary = "文件配置列表")
     @SaCheckPermission("sys:base:file-config:listPage")
-    public Result<PageResult<FileConfigDetailVO>> listPage(@RequestBody FileConfigListForm form) {
+    public Result<PageData<FileConfigDetailVO>> listPage(@RequestBody FileConfigListForm form) {
         return Result.success(service.listPage(form));
     }
 

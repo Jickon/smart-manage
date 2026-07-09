@@ -13,7 +13,7 @@ import sm.domain.sys.monitor.operatelog.model.vo.OperateLogDetailVO;
 import sm.domain.sys.monitor.operatelog.model.vo.OperateLogListVO;
 import sm.domain.sys.monitor.operatelog.service.OperateLogQueryService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 @RestController
@@ -25,7 +25,7 @@ public class OperateLogController {
 	@PostMapping("/sys/log/operate/listPage")
 	@Operation(summary = "操作日志分页")
 	@SaCheckPermission("sys:log:operate:listPage")
-	public Result<PageResult<OperateLogListVO>> listPage(@Valid @RequestBody OperateLogListForm form) {
+	public Result<PageData<OperateLogListVO>> listPage(@Valid @RequestBody OperateLogListForm form) {
 		return Result.success(service.listPage(form));
 	}
 

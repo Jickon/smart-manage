@@ -16,7 +16,7 @@ import sm.domain.sys.base.basicdata.model.vo.BasicDataDetailVO;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataListVO;
 import sm.domain.sys.base.basicdata.mapper.BasicDataMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
@@ -35,7 +35,7 @@ public class BasicDataService {
     private final BasicDataItemMapper itemMapper;
     private final BasicDataTxService txService;
 
-    public PageResult<BasicDataListVO> listPage(BasicDataListForm form) {
+    public PageData<BasicDataListVO> listPage(BasicDataListForm form) {
         LambdaQueryWrapper<BasicDataEntity> qw = new LambdaQueryWrapper<BasicDataEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
@@ -45,7 +45,7 @@ public class BasicDataService {
         Page<BasicDataEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
         Page<BasicDataEntity> result = mapper.selectPage(page, qw);
         List<BasicDataListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotal(), vos);
+        return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
     }
 
     private BasicDataListVO toListVo(BasicDataEntity entity) {

@@ -10,7 +10,7 @@ import sm.domain.sys.monitor.loginlog.model.form.LoginLogListForm;
 import sm.domain.sys.monitor.loginlog.model.vo.LoginLogListVO;
 import sm.domain.sys.monitor.loginlog.mapper.LoginLogMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.stream.Collectors;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class LoginLogQueryService {
 	private final LoginLogMapper loginLogMapper;
 
-	public PageResult<LoginLogListVO> listPage(LoginLogListForm form) {
+	public PageData<LoginLogListVO> listPage(LoginLogListForm form) {
 		LambdaQueryWrapper<LoginLogEntity> qw = new LambdaQueryWrapper<LoginLogEntity>();
 		if (StringUtils.hasText(form.getKeyword())) {
 			String kw = "%" + form.getKeyword().trim() + "%";
@@ -39,7 +39,7 @@ public class LoginLogQueryService {
 		Page<LoginLogEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
 		Page<LoginLogEntity> result = loginLogMapper.selectPage(page, qw);
 		var records = result.getRecords().stream().map(this::toVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), records);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
 	}
 
 	public LoginLogListVO getById(Long id) {

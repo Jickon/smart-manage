@@ -9,7 +9,7 @@ import sm.domain.sys.monitor.job.model.entity.JobLogEntity;
 import sm.domain.sys.monitor.job.model.form.JobLogListForm;
 import sm.domain.sys.monitor.job.model.vo.JobLogListVO;
 import sm.domain.sys.monitor.job.mapper.JobLogMapper;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +26,7 @@ public class JobLogService {
 
     private final JobLogMapper mapper;
 
-    public PageResult<JobLogListVO> listPage(JobLogListForm form) {
+    public PageData<JobLogListVO> listPage(JobLogListForm form) {
         LambdaQueryWrapper<JobLogEntity> qw = new LambdaQueryWrapper<JobLogEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             qw.like(JobLogEntity::getJobName, "%" + form.getKeyword().trim() + "%");
@@ -42,7 +42,7 @@ public class JobLogService {
         Page<JobLogEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
         Page<JobLogEntity> result = mapper.selectPage(page, qw);
         List<JobLogListVO> vos = result.getRecords().stream().map(this::toVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotal(), vos);
+        return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
     }
 
     public List<JobLogListVO> running() {

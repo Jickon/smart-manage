@@ -15,7 +15,7 @@ import sm.domain.sys.base.role.model.vo.RoleListVO;
 import sm.domain.sys.base.role.model.vo.RoleSelectVO;
 import sm.domain.sys.base.role.mapper.RoleMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class RoleService {
 	private final RoleMapper mapper;
 	private final RoleTxService txService;
 
-	public PageResult<RoleListVO> listPage(RoleListForm form) {
+	public PageData<RoleListVO> listPage(RoleListForm form) {
 		LambdaQueryWrapper<RoleEntity> qw = new LambdaQueryWrapper<RoleEntity>()
 				.orderByAsc(RoleEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
@@ -43,13 +43,13 @@ public class RoleService {
 		Page<RoleEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
 		Page<RoleEntity> result = mapper.selectPage(page, qw);
 		var vos = result.getRecords().stream().map(this::toRoleListVO).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), vos);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
 	}
 
 	/**
 	 * 基础资料选择：分页查询角色。
 	 */
-	public PageResult<RoleSelectVO> select(RoleSelectForm form) {
+	public PageData<RoleSelectVO> select(RoleSelectForm form) {
 		LambdaQueryWrapper<RoleEntity> qw = new LambdaQueryWrapper<RoleEntity>()
 				.orderByAsc(RoleEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
@@ -59,7 +59,7 @@ public class RoleService {
 		Page<RoleEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
 		Page<RoleEntity> result = mapper.selectPage(page, qw);
 		List<RoleSelectVO> voList = result.getRecords().stream().map(this::toRoleSelectVO).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), voList);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), voList);
 	}
 
 	private RoleSelectVO toRoleSelectVO(RoleEntity e) {

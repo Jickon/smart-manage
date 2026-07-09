@@ -15,7 +15,7 @@ import sm.domain.sys.base.permission.model.vo.PermissionListVO;
 import sm.domain.sys.base.permission.model.vo.PermissionSelectVO;
 import sm.domain.sys.base.permission.mapper.PermissionMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public class PermissionService {
 	private final PermissionMapper mapper;
 	private final PermissionTxService txService;
 
-	public PageResult<PermissionListVO> listPage(PermissionListForm form) {
+	public PageData<PermissionListVO> listPage(PermissionListForm form) {
 		LambdaQueryWrapper<PermissionEntity> qw = new LambdaQueryWrapper<PermissionEntity>();
 		qw.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
@@ -42,7 +42,7 @@ public class PermissionService {
 		qw.orderByAsc(PermissionEntity::getNumber);
 		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
 		List<PermissionListVO> records = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), records);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
 	}
 
 	private PermissionListVO toListVo(PermissionEntity entity) {
@@ -58,7 +58,7 @@ public class PermissionService {
 	 * 基础资料选择：分页查询权限。
 	 * 支持按应用、关键词过滤；按编码排序。
 	 */
-	public PageResult<PermissionSelectVO> select(PermissionSelectForm form) {
+	public PageData<PermissionSelectVO> select(PermissionSelectForm form) {
 		LambdaQueryWrapper<PermissionEntity> qw = new LambdaQueryWrapper<PermissionEntity>();
 		qw.eq(form.getAppId() != null, PermissionEntity::getAppId, form.getAppId());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
@@ -69,7 +69,7 @@ public class PermissionService {
 		qw.orderByAsc(PermissionEntity::getNumber);
 		Page<PermissionEntity> result = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
 		List<PermissionSelectVO> records = result.getRecords().stream().map(this::toSelectVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), records);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
 	}
 
 	private PermissionSelectVO toSelectVo(PermissionEntity e) {

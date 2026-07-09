@@ -16,7 +16,7 @@ import sm.domain.sys.monitor.script.model.vo.ScriptResultVO;
 import sm.domain.sys.monitor.script.mapper.ScriptMapper;
 import sm.system.exception.BizException;
 import sm.system.helper.SpringContextHelper;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.util.StringUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -157,7 +157,7 @@ public class ScriptService {
 
     // ---- 脚本 CRUD ----
 
-    public PageResult<ScriptListVO> listPage(ScriptListForm form) {
+    public PageData<ScriptListVO> listPage(ScriptListForm form) {
         LambdaQueryWrapper<ScriptEntity> qw = new LambdaQueryWrapper<ScriptEntity>();
         if (StringUtil.isNotBlank(form.getKeyword())) {
             qw.like(ScriptEntity::getNumber, form.getKeyword());
@@ -166,7 +166,7 @@ public class ScriptService {
 
         Page<ScriptEntity> page = mapper.selectPage(new Page<>(form.getPageNum(), form.getPageSize()), qw);
         List<ScriptListVO> vos = page.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageResult.of(page.getTotal(), vos);
+        return PageData.of(page.getTotal(), form.getPageNum(), form.getPageSize(), vos);
     }
 
     public ScriptDetailVO detail(Long id) {

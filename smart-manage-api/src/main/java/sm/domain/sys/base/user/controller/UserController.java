@@ -18,7 +18,7 @@ import sm.domain.sys.base.user.model.vo.UserListVO;
 import sm.domain.sys.base.user.service.UserService;
 import sm.system.exception.BizException;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 import sm.system.response.ResultEnum;
 import sm.system.util.BeanUtil;
@@ -39,7 +39,7 @@ public class UserController {
 	@PostMapping("/sys/base/user/listPage")
 	@Operation(summary = "用户列表", description = "获取用户分页列表数据")
 	@SaCheckPermission("sys:base:user:listPage")
-	public Result<PageResult<UserListVO>> listPage(@RequestBody UserListForm form) {
+	public Result<PageData<UserListVO>> listPage(@RequestBody UserListForm form) {
 		return Result.success(service.listPage(form));
 	}
 

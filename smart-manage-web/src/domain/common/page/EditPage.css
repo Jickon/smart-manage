@@ -107,3 +107,18 @@
   color: #1d2129;
   font-size: 14px;
 }
+
+/* === headerExtra 区域 — 与编辑 body 对齐但无默认间距 === */
+
+.sm-edit-header-extra {
+  padding: 0;
+  margin-top: -8px;
+}
+
+/* === 垂直 checkbox 列布局（权限/角色分配面板） === */
+
+.sm-edit-checkbox-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}

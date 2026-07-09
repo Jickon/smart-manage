@@ -7,7 +7,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.domain.sys.base.role.model.entity.RoleEntity;
 import sm.domain.sys.base.role.model.form.RoleSaveForm;
+import sm.domain.sys.base.role.model.form.RoleSaveWithPermsForm;
 import sm.domain.sys.base.role.mapper.RoleMapper;
+import sm.domain.sys.base.roleperms.model.form.RolePermsSaveForm;
+import sm.domain.sys.base.roleperms.service.RolePermsTxService;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
 
@@ -22,6 +25,21 @@ import sm.system.response.ResultEnum;
 @Transactional(rollbackFor = Exception.class)
 public class RoleTxService {
     private final RoleMapper mapper;
+    private final RolePermsTxService rolePermsTxService;
+
+    /**
+     * 聚合保存：角色 + 权限分配，在同一事务内完成。
+     */
+    public Long saveWithPerms(RoleSaveWithPermsForm form) {
+        // 1. 保存角色
+        Long roleId = save(form);
+        // 2. 保存角色权限（先删后增）
+        RolePermsSaveForm permsForm = new RolePermsSaveForm();
+        permsForm.setRoleId(roleId);
+        permsForm.setPermissionIds(form.getPermissionIds());
+        rolePermsTxService.save(permsForm);
+        return roleId;
+    }
 
     public Long save(RoleSaveForm form) {
         // 检查角色编码唯一性

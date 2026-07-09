@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import sm.domain.sys.base.userrole.model.form.UserRoleListByCurrentOrgUserForm;
 import sm.domain.sys.base.userrole.model.form.UserRoleListByUserForm;
 import sm.domain.sys.base.userrole.model.form.UserRoleSaveForm;
 import sm.domain.sys.base.userrole.model.vo.UserRoleVO;
@@ -27,6 +28,13 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserRoleController {
 	private final UserRoleService service;
+
+	@Operation(summary = "用户角色列表-当前组织", description = "获取用户在当前组织下的角色列表，组织由服务端上下文决定")
+	@SaCheckPermission("sys:base:userrole:list")
+	@PostMapping("/sys/base/userrole/listByCurrentOrgUser")
+	public Result<List<UserRoleVO>> listByCurrentOrgUser(@RequestBody @Valid UserRoleListByCurrentOrgUserForm form) {
+		return Result.success(service.getUserRolesByCurrentOrg(form.getUserId()));
+	}
 
 	@Operation(summary = "用户角色列表", description = "获取用户在指定组织下的角色列表")
 	@SaCheckPermission("sys:base:userrole:list")

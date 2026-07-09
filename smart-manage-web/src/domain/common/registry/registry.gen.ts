@@ -9,6 +9,18 @@ import '../../sys/app/pageRegistration';
 // src\domain\sys\cloud\pageRegistration.ts → sys/base/cloud
 import '../../sys/cloud/pageRegistration';
 
+// src\domain\sys\menu\pageRegistration.ts → sys/base/menu
+import '../../sys/menu/pageRegistration';
+
+// src\domain\sys\permission\pageRegistration.ts → sys/base/permission
+import '../../sys/permission/pageRegistration';
+
+// src\domain\sys\role\pageRegistration.ts → sys/base/role
+import '../../sys/role/pageRegistration';
+
+// src\domain\sys\user\pageRegistration.ts → sys/base/user
+import '../../sys/user/pageRegistration';
+
 // 构建期已校验无重复 key，运行时二次确认
 import { validateRegistry } from './componentRegistry';
 validateRegistry();

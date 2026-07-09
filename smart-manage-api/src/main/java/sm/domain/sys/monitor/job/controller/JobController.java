@@ -15,7 +15,7 @@ import sm.domain.sys.monitor.job.model.vo.JobDetailVO;
 import sm.domain.sys.monitor.job.model.vo.JobListVO;
 import sm.domain.sys.monitor.job.service.JobService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 import java.util.List;
@@ -36,7 +36,7 @@ public class JobController {
     @PostMapping("/sys/monitor/job/listPage")
     @Operation(summary = "任务列表", description = "获取任务分页列表")
     @SaCheckPermission("sys:monitor:job:listPage")
-    public Result<PageResult<JobListVO>> listPage(@RequestBody JobListForm form) {
+    public Result<PageData<JobListVO>> listPage(@RequestBody JobListForm form) {
         return Result.success(service.listPage(form));
     }
 

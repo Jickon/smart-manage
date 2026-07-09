@@ -14,7 +14,7 @@ import sm.domain.sys.base.sysparam.model.vo.SysParamCreateNewDataVO;
 import sm.domain.sys.base.sysparam.model.vo.SysParamVO;
 import sm.domain.sys.base.sysparam.mapper.SysParamMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.HashMap;
@@ -36,7 +36,7 @@ public class SysParamService {
     private final SysParamTxService txService;
 
     /** 管理端分页列表 */
-    public PageResult<SysParamVO> listPage(SysParamListForm form) {
+    public PageData<SysParamVO> listPage(SysParamListForm form) {
         LambdaQueryWrapper<SysParamEntity> qw = new LambdaQueryWrapper<SysParamEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
@@ -46,7 +46,7 @@ public class SysParamService {
         Page<SysParamEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
         Page<SysParamEntity> result = mapper.selectPage(page, qw);
         List<SysParamVO> vos = result.getRecords().stream().map(this::toVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotal(), vos);
+        return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
     }
 
     /** 详情 */

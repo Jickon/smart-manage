@@ -56,7 +56,7 @@ public class ExceptionResult {
 			result = Result.error(ResultEnum.BAD_REQUEST.getCode(), "不支持当前请求方式:" + ex.getMethod());
 		} else {
 			log.error("服务器异常：{}，请求地址:{}, 具体信息:{}", e.getClass().getName(), ServletUtil.getRequest().getRequestURL(), e.getMessage(), e);
-			result = Result.error(e);
+			result = Result.error(ResultEnum.SERVER_ERROR);
 		}
 
 		return result;

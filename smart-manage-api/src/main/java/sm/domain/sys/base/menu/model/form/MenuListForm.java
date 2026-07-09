@@ -15,6 +15,9 @@ public class MenuListForm extends PageForm {
 	@Schema(description = "按应用筛选")
 	private Long appId;
 
+	@Schema(description = "按父菜单筛选")
+	private Long parentId;
+
 	@Schema(description = "关键词（名称、路径模糊匹配）")
 	private String keyword;
 }

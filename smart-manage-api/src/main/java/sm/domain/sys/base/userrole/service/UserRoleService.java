@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import sm.domain.sys.base.userrole.model.entity.UserRoleEntity;
+import sm.domain.sys.base.common.helper.UserHelper;
 import sm.domain.sys.base.userrole.model.form.UserRoleSaveForm;
 import sm.domain.sys.base.userrole.model.vo.UserRoleVO;
 import sm.domain.sys.base.userrole.mapper.UserRoleMapper;
@@ -28,6 +29,14 @@ public class UserRoleService {
 	 * 获取用户在指定组织下的角色列表
 	 */
 	public List<UserRoleVO> getUserRoles(Long userId, Long orgId) {
+		return mapper.selectByUserAndOrg(userId, orgId);
+	}
+
+	/**
+	 * 获取用户在当前组织下的角色列表，orgId 由服务端上下文决定。
+	 */
+	public List<UserRoleVO> getUserRolesByCurrentOrg(Long userId) {
+		Long orgId = UserHelper.getCurrentOrgId();
 		return mapper.selectByUserAndOrg(userId, orgId);
 	}
 

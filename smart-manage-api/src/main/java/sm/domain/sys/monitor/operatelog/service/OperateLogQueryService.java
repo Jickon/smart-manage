@@ -11,7 +11,7 @@ import sm.domain.sys.monitor.operatelog.model.vo.OperateLogDetailVO;
 import sm.domain.sys.monitor.operatelog.model.vo.OperateLogListVO;
 import sm.domain.sys.monitor.operatelog.mapper.OperateLogMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.stream.Collectors;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class OperateLogQueryService {
 	private final OperateLogMapper mapper;
 
-	public PageResult<OperateLogListVO> listPage(OperateLogListForm form) {
+	public PageData<OperateLogListVO> listPage(OperateLogListForm form) {
 		LambdaQueryWrapper<OperateLogEntity> qw = new LambdaQueryWrapper<OperateLogEntity>();
 		if (StringUtils.hasText(form.getKeyword())) {
 			String kw = "%" + form.getKeyword().trim() + "%";
@@ -40,7 +40,7 @@ public class OperateLogQueryService {
 		Page<OperateLogEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
 		Page<OperateLogEntity> result = mapper.selectPage(page, qw);
 		var records = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-		return PageResult.of(result.getTotal(), records);
+		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
 	}
 
 	public OperateLogDetailVO getById(Long id) {

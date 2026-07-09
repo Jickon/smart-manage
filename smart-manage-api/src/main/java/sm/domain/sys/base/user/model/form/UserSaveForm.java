@@ -23,4 +23,19 @@ public class UserSaveForm {
 
 	@Schema(description = "昵称")
 	private String nickname;
+
+	@Schema(description = "邮箱")
+	private String email;
+
+	@Schema(description = "手机号")
+	private String phone;
+
+	@Schema(description = "头像地址")
+	private String avatar;
+
+	@Schema(description = "主题色")
+	private String themeColor;
+
+	@Schema(description = "启用标识")
+	private Boolean enableFlag;
 }

@@ -6,8 +6,10 @@ export interface Result<T = unknown> {
   traceId: string;
 }
 
-/** 分页响应 */
-export interface PageResult<T> {
+/** 分页数据载荷，依托 Result<T> 返回 */
+export interface PageData<T> {
+  pageNum: number;
+  pageSize: number;
   total: number;
   records: T[];
 }

@@ -219,7 +219,7 @@
         return res.json();
       })
       .then(function (result) {
-        if (result.code === 200 && result.data) {
+        if (result.code === 0 && result.data) {
           applyUiConfig(result.data);
         }
       })
@@ -238,7 +238,7 @@
         return res.json();
       })
       .then(function (result) {
-        if (result.code === 200) {
+        if (result.code === 0) {
           captchaId = result.data.captchaId;
           captchaImgEl.src = result.data.imageData;
         } else {
@@ -334,7 +334,7 @@
         return res.json();
       })
       .then(function (result) {
-        if (result.code === 200 && result.data && result.data.token) {
+        if (result.code === 0 && result.data && result.data.token) {
           localStorage.setItem('token', result.data.token);
           persistRememberedUsername(username);
           var redirect = getSafeRedirectUrl();

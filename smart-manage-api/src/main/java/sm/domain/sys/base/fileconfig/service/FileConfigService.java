@@ -13,7 +13,7 @@ import sm.domain.sys.base.fileconfig.model.form.FileConfigSaveForm;
 import sm.domain.sys.base.fileconfig.model.vo.FileConfigDetailVO;
 import sm.domain.sys.base.fileconfig.mapper.FileConfigMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
@@ -32,7 +32,7 @@ public class FileConfigService {
     private final FileConfigMapper mapper;
     private final FileConfigTxService txService;
 
-    public PageResult<FileConfigDetailVO> listPage(FileConfigListForm form) {
+    public PageData<FileConfigDetailVO> listPage(FileConfigListForm form) {
         LambdaQueryWrapper<FileConfigEntity> qw = new LambdaQueryWrapper<FileConfigEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
@@ -42,7 +42,7 @@ public class FileConfigService {
         Page<FileConfigEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
         Page<FileConfigEntity> result = mapper.selectPage(page, qw);
         List<FileConfigDetailVO> vos = result.getRecords().stream().map(this::toDetailVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotal(), vos);
+        return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
     }
 
     public FileConfigEntity getById(Long id) {

@@ -1,55 +1,48 @@
 package sm.system.response;
 
-import lombok.Data;
+import lombok.Getter;
 import sm.system.util.TraceIdUtil;
 
 /**
+ * 统一接口响应体。
+ *
  * @author Chekfu
  */
-@Data
+@Getter
 public class Result<T> {
-	private Integer code;
-	private String msg;
-	private T data;
-	private String traceId;
+    private final Integer code;
+    private final String msg;
+    private final T data;
+    private final String traceId;
 
-	private Result() {
-	}
+    private Result(Integer code, String msg, T data) {
+        this.code = code;
+        this.msg = msg;
+        this.data = data;
+        this.traceId = TraceIdUtil.getTraceId();
+    }
 
-	public static <T> Result<T> success(T data) {
-		Result<T> result = new Result<>();
-		result.setCode(ResultEnum.SUCCESS.getCode());
-		result.setMsg("");
-		result.setData(data);
-		result.setTraceId(TraceIdUtil.getTraceId());
-		return result;
-	}
+    public static <T> Result<T> success(T data) {
+        return new Result<>(ResultEnum.SUCCESS.getCode(), "", data);
+    }
 
-	public static <T> Result<T> success() {
-		return success(null);
-	}
+    public static <T> Result<T> success() {
+        return success(null);
+    }
 
-	public static <T> Result<T> error(Integer code, String message) {
-		Result<T> result = new Result<>();
-		result.setCode(code);
-		result.setMsg(message);
-		result.setTraceId(TraceIdUtil.getTraceId());
-		return result;
-	}
+    public static <T> Result<T> error(Integer code, String message) {
+        return new Result<>(code, message, null);
+    }
 
-	public static <T> Result<T> error(String message) {
-		return error(ResultEnum.SERVER_ERROR.getCode(), message);
-	}
+    public static <T> Result<T> error(String message) {
+        return error(ResultEnum.SERVER_ERROR.getCode(), message);
+    }
 
-	public static <T> Result<T> error(Throwable e) {
-		return error(ResultEnum.SERVER_ERROR.getCode(), e.getMessage());
-	}
+    public static <T> Result<T> error(ResultEnum resultEnum) {
+        return error(resultEnum.getCode(), resultEnum.getMsg());
+    }
 
-	public static <T> Result<T> error(ResultEnum resultEnum) {
-		return error(resultEnum.getCode(), resultEnum.getMsg());
-	}
-
-	public static <T> Result<T> error(ResultEnum resultEnum, String errorMessage) {
-		return error(resultEnum.getCode(), resultEnum.getMsg() + "：" + errorMessage);
-	}
-} 
+    public static <T> Result<T> error(ResultEnum resultEnum, String errorMessage) {
+        return error(resultEnum.getCode(), resultEnum.getMsg() + "：" + errorMessage);
+    }
+}

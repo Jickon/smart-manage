@@ -14,7 +14,7 @@ import sm.domain.sys.base.uiconfig.model.vo.UiConfigDetailVO;
 import sm.domain.sys.base.uiconfig.model.vo.UiConfigListVO;
 import sm.domain.sys.base.uiconfig.mapper.UiConfigMapper;
 import sm.system.exception.BizException;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
@@ -33,7 +33,7 @@ public class UiConfigService {
     private final UiConfigMapper mapper;
     private final UiConfigTxService txService;
 
-    public PageResult<UiConfigListVO> listPage(UiConfigListForm form) {
+    public PageData<UiConfigListVO> listPage(UiConfigListForm form) {
         LambdaQueryWrapper<UiConfigEntity> qw = new LambdaQueryWrapper<UiConfigEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
             String kw = "%" + form.getKeyword().trim() + "%";
@@ -43,7 +43,7 @@ public class UiConfigService {
         Page<UiConfigEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
         Page<UiConfigEntity> result = mapper.selectPage(page, qw);
         List<UiConfigListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageResult.of(result.getTotal(), vos);
+        return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
     }
 
     private UiConfigListVO toListVo(UiConfigEntity entity) {

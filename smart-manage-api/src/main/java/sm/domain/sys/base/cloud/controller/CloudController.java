@@ -18,7 +18,7 @@ import sm.domain.sys.base.cloud.model.vo.CloudListVO;
 import sm.domain.sys.base.cloud.model.vo.CloudSelectVO;
 import sm.domain.sys.base.cloud.service.CloudService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 @RestController
@@ -30,14 +30,14 @@ public class CloudController {
 	@Operation(summary = "云列表", description = "获取云分页列表数据")
 	@PostMapping("/sys/base/cloud/listPage")
 	@SaCheckPermission("sys:base:cloud:listPage")
-	public Result<PageResult<CloudListVO>> listPage(@RequestBody CloudListForm form) {
+	public Result<PageData<CloudListVO>> listPage(@RequestBody CloudListForm form) {
 		return Result.success(service.listPage(form));
 	}
 
 	@Operation(summary = "云选择", description = "基础资料选择：获取云分页列表数据")
 	@PostMapping("/sys/base/cloud/select")
 	@SaCheckPermission("sys:base:cloud:select")
-	public Result<PageResult<CloudSelectVO>> select(@RequestBody CloudSelectForm form) {
+	public Result<PageData<CloudSelectVO>> select(@RequestBody CloudSelectForm form) {
 		return Result.success(service.select(form));
 	}
 

@@ -15,7 +15,7 @@ import sm.domain.sys.monitor.sql.model.vo.SqlLogListVO;
 import sm.domain.sys.monitor.sql.model.vo.SqlResultVO;
 import sm.domain.sys.monitor.sql.service.SqlService;
 import sm.system.form.IdForm;
-import sm.system.response.PageResult;
+import sm.system.response.PageData;
 import sm.system.response.Result;
 
 /**
@@ -38,7 +38,7 @@ public class SqlController {
     @PostMapping("/sys/monitor/sql/log/listPage")
     @Operation(summary = "执行日志分页查询")
     @SaCheckPermission("sys:monitor:sql:log:listPage")
-    public Result<PageResult<SqlLogListVO>> listPage(@Valid @RequestBody SqlLogListForm form) {
+    public Result<PageData<SqlLogListVO>> listPage(@Valid @RequestBody SqlLogListForm form) {
         return Result.success(sqlService.listPage(form));
     }
 
