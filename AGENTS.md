@@ -15,14 +15,14 @@
 
 | 层级                        | 技术                                                                   |
 |---------------------------|----------------------------------------------------------------------|
-| **后端** (smart-manage-api) | Spring Boot 3, Java 21, MyBatis-Flex, Druid, Sa-Token, PostgreSQL    |
-| **前端** (smart-manage-web) | Vite, React 19, TypeScript, Ant Design, TanStack Query, Zustand, Zod |
+| **后端** (smart-manage-api) | Spring Boot 4, Java 21, MyBatis-Plus, Druid, Sa-Token, PostgreSQL    |
+| **前端** (smart-manage-web) | Vite, React 19, TypeScript, Ant Design, TanStack Query, Zustand |
 
 ## 后端约定 (smart-manage-api)
 
 ### 分层架构
 - 根包：`sm`
-- `sm.framework` — 第三方 jar 配置（CORS, Sa-Token, JSON, Redis, MyBatis-Flex, 请求加解密, TraceId）
+- `sm.framework` — 第三方 jar 配置（CORS, Sa-Token, JSON, Redis, MyBatis-Plus, 请求加解密, TraceId）
 - `sm.system` — 本系统公共类（自定义注解、全局异常处理、实体基类、拦截器、监听器、工具类）
 - `sm.domain.{领域}` — 领域模块（如 `sm.domain.sys` 系统服务云）
 - `sm.domain.{领域}.{应用}` — 应用模块（如 `sm.domain.sys.monitor` 系统监控）
@@ -30,38 +30,40 @@
 - 公共能力放在 `sm.domain.{领域}.common`或`sm.domain.{领域}.{应用}.common`
 
 ### 核心设计模式
-**请求流程：** CorsFilter → EncryptApiFilter（SM4 解密） → SaServletFilter（登录校验 + 权限校验） → TraceIdInterceptor → BizLogAspect → Controller → Service → Mapper
+**请求流程：** CorsFilter → EncryptApiFilter（SM4 解密） → SaServletFilter（登录校验 + 权限校验） → TraceIdInterceptor → Controller → Service（BizLogAspect） → TxService → Mapper
 **统一响应格式：** 所有接口返回 `Result<T>`，包含 `code` / `msg` / `data` / `traceId`。成功用 `Result.success(data)`；异常由 `GlobalExceptionHandler` 统一处理。
-**分页：** 入参继承 `PageForm`（pageNum, pageSize），返回 `PageResult<T>`（total, records）。Service 中使用 MyBatis-Flex 的 `Page.of()` + `mapper.paginate()`。
+**分页：** 入参继承 `PageForm`（pageNum, pageSize），返回 `PageData<T>`（total, pageNum, pageSize, records）。Service 中使用 MyBatis-Plus 的 `Page` + `mapper.selectPage()` 或自定义 Mapper 分页查询。
 **权限鉴权：** Controller 方法上用 `@SaCheckPermission("sys:base:user:listPage")` 声明权限码；`StpInterfaceImpl` 实现权限/角色加载接口，统一从数据库加载并按 token 缓存到 Redis。
 **登录验证码：** 登录接口需要验证码。`/captcha` 生成图文验证码存 Redis（key 为 `captcha:{uuid}`），登录时 SM2 解密前端密码和验证码后校验。
 **请求加密（可选）：** `@EncryptApi` / `@DecryptApi` 标注 Controller 或方法后，`EncryptApiFilter` 通过 SM4/CBC 加解密请求/响应体。
-**操作日志：** `@BizLog("创建用户")` 标注 Service 方法，AOP 自动记录操作人、IP、请求参数、响应体、耗时，通过 `LogWriteService` 异步落库。
-**实体自动填充：** `MyBatisFlexInsertListener` / `MyBatisFlexUpdateListener` 自动设置 `createTime` / `createUser` / `updateTime` / `updateUser`。
+**操作日志：** `@BizLog("创建用户")` 只标注在公开 Service 的业务命令方法上，Controller 和包内 TxService 禁止标注，同一业务调用链只能记录一次。保存、提交、审核、删除、启停和高风险执行等命令需要记录；普通列表、详情、选择和默认值查询不记录。登录、退出使用独立认证日志。AOP 自动记录操作人、IP、请求参数、响应体、耗时，通过 `LogWriteService` 异步落库。
+**实体自动填充：** `MyBatisPlusMetaObjectHandler` 自动设置 `createTime` / `createUser` / `updateTime` / `updateUser`。
 **文件存储：** `FileStorageService` 接口抽象，工厂 `FileStorageServiceFactory` 根据 `FileConfigEntity` 的配置选择 Local / FTP 实现。
 
 
 ### 关键约定
 
 - 项目处于架构搭建阶段，不写测试，不考虑向后兼容
-- admin 用户（`superadmin`）拥有 `*` 通配权限，跳过权限校验
+- 超级管理员用户（`administrator`）拥有 `*` 通配权限，跳过普通权限校验。脚本控制台、SQL 控制台和 Arthas 等高风险能力还必须在公开 Service 入口校验当前账号确实为 `administrator`，不能只依赖可配置的业务权限码。
 - 主键使用雪花 ID（MyBatis-Plus 的 `IdType.ASSIGN_ID`），乐观锁字段 `mutex`（通过 `@Version` 注解 + `OptimisticLockerInnerInterceptor` 实现）
 - **禁止**在查询中使用裸表名/字段名字符串（如 `"t_sys_user"`、`"username"`），必须使用 MyBatis-Plus 的 `LambdaQueryWrapper` + 方法引用（如 `UserEntity::getUsername`）
 - **XML Mapper 表别名**：所有 SQL 中 FROM 主表别名为 `a`，JOIN 表按出现顺序依次为 `b, c, d...`。不使用语义化别名（如 `app`、`user`），保持 SQL 紧凑统一。
-- Service 禁止用 `return null` 表达业务失败。资源不存在、状态非法、无权限、参数不合法等场景必须抛出明确异常，让 `GlobalExceptionHandler` 统一返回。
+- Service 的公开业务方法禁止用 `return null` 表达业务失败。资源不存在、状态非法、无权限、参数不合法等场景必须抛出明确异常，让 `GlobalExceptionHandler` 统一返回。内部辅助方法确实允许缺省值时，方法命名和注释必须明确可空语义。
 - JSON 反序列化、ID 转换等基础设施禁止静默吞错。比如 Long 解析失败不能返回 `null`，应暴露为参数异常。
 - 标准业务接口语义：`listPage` 返回分页；`detail` 找不到应抛异常；`createNewData` 只返回新增默认值且不返回 id；`save` 负责新增和暂存修改；`submit` 负责提交并推进单据状态；`delete` 负责删除或作废，具体语义由单据类型明确。
 - 修改后端代码后至少执行 `mvn compile`。如果涉及实体、Mapper 或配置变更，也需要确认 MyBatis-Plus 相关代码可正常编译。
 - **事务分离**：Service 禁止直接写 `@Transactional`。每个含写操作的 Service 必须搭配一个 `*TxService`，将 `@Transactional(rollbackFor = Exception.class)` 放在 TxService 类级别。Service 注入 TxService，写方法（`save`/`deleteById` 等）以委托方式调用 TxService。读写共用的私有辅助方法留在 Service；仅事务内使用的私有方法移入 TxService。TxService 内需要的前置读取（如唯一性校验、存在性检查）直接使用 Mapper，不走 Service 缓存方法。
   - 例：`RoleService`（只读 + 委托） → `RoleTxService`（类级别 @Transactional，包含 save/deleteById 全部逻辑）
+- **单据聚合边界**：每个单据只有一个对外公开的 `*Service`。对应 `*TxService` 是单据包内的事务实现类，使用包级可见性，只允许同一单据的 Service 委托调用；Controller 和其他单据禁止直接依赖 TxService。业务代码优先按单据归属组织，不额外拆分 Application/Domain/Infrastructure 层。
 
 ### 命名规范
 
 - 禁止单字母变量名
-- 所有实体**统一使用 `number` 作为业务编码字段**（非 `code`）
+- 具有独立业务身份的主数据和业务单据统一使用 `number` 作为业务编码字段（非 `code`）；Entry、关系实体、日志和运行记录不强制使用 `number`。
 - **主从单据**：`detail` 和 `save` 均一次请求完成，明细统一用数组字段传递。主明细默认名为 `entrys`
   ，如有多个明细表可自定义名称（前后端一致即可），后端 `@Transactional` 更新数据。**即使无明细数据，`entrys`
   也必须返回空数组 `[]`**
+- 主从单据的明细属于主单聚合，统一使用 `*Entry` 命名并放在主单目录内，只保留 Entity、Mapper、Form、VO，不提供独立 Controller、Service、TxService 或写接口。明细表统一使用 `parent_id` 关联主表；删除主单时在 TxService 中先显式删除明细，再删除主表，不使用数据库级联删除。
 - `*Util` — 纯静态工具类，不依赖 Spring 容器（如 `ServletUtil`、`StringUtil`）
 - `*Helper` — `@Component` 组件，依赖 Spring 注入或配置（如 `CacheHelper`、`Argon2Helper`）
 - `*TxService` — 事务服务，`@Service` + 类级别 `@Transactional(rollbackFor = Exception.class)`，包含所有写操作逻辑。对应读 Service 注入并委托写方法给它
@@ -127,10 +129,14 @@ src/
 **请求拦截：** axios 实例（`src/api/request.ts`）统一处理：
 
 - 请求拦截器：注入 `smtoken` header 从 localStorage
-- 响应拦截器：`code !== 200` 视为业务错误；`code === 401` 跳转 `/login.html?redirect=...`
+- 响应拦截器：`code !== 0` 视为业务错误；`code === 100401` 跳转 `/login.html?redirect=...`
 - 后端统一响应体对应 `types/api.ts` 中的 `Result<T>` / `PageResult<T>`
 
 **状态管理：** `Zustand` 管理客户端状态（用户信息、token、侧边栏折叠、当前模块）；`TanStack Query` 管理服务端状态（请求缓存、loading/error 自动化）。
+
+- 服务端查询统一使用 `useQuery`；保存、提交、删除和高风险执行等命令统一使用 `useMutation`，不得在页面内重复维护提交 loading 和通用错误提示。
+- 通用编辑页通过 `useCommandMutation` 管理命令提交状态；具体单据负责成功后的详情回显、列表缓存失效和页签 key 替换。
+- 表单字段校验由 Ant Design Form 负责。当前项目不引入 Zod，避免维护重复校验模型；以后只有出现明确的外部不可信数据运行时校验需求时再评估引入。
 
 **主题定制：**
 - `ConfigProvider`（Ant Design）— 运行时通过 `theme.token` 定制主题色、圆角等全局样式，不使用暗黑模式

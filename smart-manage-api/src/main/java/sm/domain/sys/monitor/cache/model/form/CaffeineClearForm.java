@@ -11,6 +11,6 @@ import lombok.Data;
 @Data
 @Schema(description = "Caffeine 缓存清除")
 public class CaffeineClearForm {
-    @Schema(description = "缓存名（basic-data-items/sys-params/common），不传则清空全部")
+    @Schema(description = "缓存名（basic-data-options/sys-params/common），不传则清空全部")
     private String cacheName;
 }

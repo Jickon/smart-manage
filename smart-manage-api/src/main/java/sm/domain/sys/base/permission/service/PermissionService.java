@@ -15,6 +15,7 @@ import sm.domain.sys.base.permission.model.vo.PermissionListVO;
 import sm.domain.sys.base.permission.model.vo.PermissionSelectVO;
 import sm.domain.sys.base.permission.mapper.PermissionMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
@@ -133,10 +134,12 @@ public class PermissionService {
 		return new PermissionCreateNewDataVO();
 	}
 
+	@BizLog("保存权限")
 	public Long save(PermissionSaveForm form) {
 		return txService.save(form);
 	}
 
+	@BizLog("删除权限")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
 	}

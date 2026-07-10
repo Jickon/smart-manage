@@ -48,7 +48,7 @@ const fields: EditField[] = [
   { label: '图标', dataIndex: 'icon', type: 'text' },
   { label: '图标颜色', dataIndex: 'iconColor', type: 'text', placeholder: '如 #1677ff' },
   { label: '排序', dataIndex: 'seq', type: 'number' },
-  { label: '描述', dataIndex: 'description', type: 'textarea', width: '100%' },
+  { label: '描述', dataIndex: 'description', type: 'textarea', fullWidth: true },
   { label: '启用', dataIndex: 'enableFlag', type: 'switch' },
   { label: '创建时间', dataIndex: 'createTime', type: 'readonly' },
   { label: '更新时间', dataIndex: 'updateTime', type: 'readonly' },

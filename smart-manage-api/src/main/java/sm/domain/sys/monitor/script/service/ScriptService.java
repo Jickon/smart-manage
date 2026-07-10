@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.mozilla.javascript.*;
 import org.springframework.stereotype.Service;
+import sm.domain.sys.base.common.helper.UserHelper;
 import sm.domain.sys.base.sysparam.service.SysParamService;
 import sm.domain.sys.monitor.script.model.entity.ScriptEntity;
 import sm.domain.sys.monitor.script.model.form.ScriptExecuteForm;
@@ -15,6 +16,7 @@ import sm.domain.sys.monitor.script.model.vo.ScriptListVO;
 import sm.domain.sys.monitor.script.model.vo.ScriptResultVO;
 import sm.domain.sys.monitor.script.mapper.ScriptMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.helper.SpringContextHelper;
 import sm.system.response.PageData;
 import sm.system.util.StringUtil;
@@ -36,15 +38,19 @@ public class ScriptService {
 
     private final ScriptMapper mapper;
     private final SysParamService sysParamService;
+    private final ScriptTxService txService;
 
-    public ScriptService(ScriptMapper mapper, SysParamService sysParamService) {
+    public ScriptService(ScriptMapper mapper, SysParamService sysParamService, ScriptTxService txService) {
         this.mapper = mapper;
         this.sysParamService = sysParamService;
+        this.txService = txService;
     }
 
     // ---- 脚本执行 ----
 
+    @BizLog("执行脚本")
     public ScriptResultVO execute(ScriptExecuteForm form) {
+        UserHelper.checkAdmin();
         String content = form.getContent().trim();
         if (content.isEmpty()) {
             throw new BizException("脚本内容不能为空");
@@ -158,6 +164,7 @@ public class ScriptService {
     // ---- 脚本 CRUD ----
 
     public PageData<ScriptListVO> listPage(ScriptListForm form) {
+        UserHelper.checkAdmin();
         LambdaQueryWrapper<ScriptEntity> qw = new LambdaQueryWrapper<ScriptEntity>();
         if (StringUtil.isNotBlank(form.getKeyword())) {
             qw.like(ScriptEntity::getNumber, form.getKeyword());
@@ -170,6 +177,7 @@ public class ScriptService {
     }
 
     public ScriptDetailVO detail(Long id) {
+        UserHelper.checkAdmin();
         ScriptEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("脚本不存在");
@@ -177,37 +185,16 @@ public class ScriptService {
         return toDetailVo(entity);
     }
 
+    @BizLog("保存脚本")
     public Long save(ScriptSaveForm form) {
-        ScriptEntity entity;
-        if (form.getId() != null) {
-            entity = mapper.selectById(form.getId());
-            if (entity == null) {
-                throw new BizException("脚本不存在");
-            }
-        } else {
-            entity = new ScriptEntity();
-        }
-
-        entity.setNumber(form.getNumber());
-        entity.setName(form.getName());
-        entity.setContent(form.getContent());
-        entity.setRemark(form.getRemark());
-
-        if (form.getId() != null) {
-            mapper.updateById(entity);
-            return form.getId();
-        } else {
-            mapper.insert(entity);
-            return entity.getId();
-        }
+        UserHelper.checkAdmin();
+        return txService.save(form);
     }
 
+    @BizLog("删除脚本")
     public void delete(Long id) {
-        ScriptEntity entity = mapper.selectById(id);
-        if (entity == null) {
-            throw new BizException("脚本不存在");
-        }
-        mapper.deleteById(id);
+        UserHelper.checkAdmin();
+        txService.delete(id);
     }
 
     // ---- 转换方法 ----

@@ -5,7 +5,7 @@ import EditPage from '@/domain/common/page/EditPage';
 import { OperationType } from '@/domain/common/page/types';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { useWorkbenchStore } from '@/stores/workbench';
-import { roleApi, rolePermsApi } from './api';
+import { roleApi } from './api';
 import { permissionApi } from '@/domain/sys/permission/api';
 import type { PermissionListAllVO } from '@/domain/sys/permission/types';
 import type { PageComponentProps } from '@/domain/common/page/types';
@@ -37,9 +37,8 @@ interface GroupedPermissions {
  * 从 query data 派生初始勾选集合（不通过 useEffect setState）。
  * 若 data 尚未就绪返回空 Set，组件在渲染时直接派生最终值。
  */
-function deriveCheckedPermIds(data: { permissionId: string }[] | undefined): Set<string> {
-  if (!data) return new Set<string>();
-  return new Set(data.map((p) => p.permissionId));
+function deriveCheckedPermIds(permissionIds: string[] | undefined): Set<string> {
+  return new Set(permissionIds ?? []);
 }
 
 /** 角色编辑页 — 全页 Tab，包含权限分配面板 */
@@ -64,16 +63,10 @@ const RoleEditPage = (props: PageComponentProps) => {
   });
 
   // 角色已有权限（仅编辑模式）
-  const rolePermsQuery = useQuery({
-    queryKey: ['role-perms', billId],
-    queryFn: () => rolePermsApi.listByRole(billId!),
-    enabled: !!billId,
-  });
-
   const detail = detailQuery.data;
 
   // 已勾选权限 ID 从 query data 派生（符合 React 规则，不用 useEffect setState）
-  const checkedPermIds = deriveCheckedPermIds(rolePermsQuery.data);
+  const checkedPermIds = deriveCheckedPermIds(detail?.permissionIds);
   // 本地修改用 state 管理，与 query 派生值做合并
   const [localCheckedPermIds, setLocalCheckedPermIds] = useState<Set<string> | null>(null);
 
@@ -113,8 +106,9 @@ const RoleEditPage = (props: PageComponentProps) => {
   const handleSave = async (values: Record<string, unknown>) => {
     const name = (values.name as string).trim();
     const number = (values.number as string).trim();
-    const savedId = await roleApi.saveWithPerms({
+    const savedId = await roleApi.save({
       id: billId ?? undefined,
+      mutex: detail?.mutex,
       name,
       number,
       permissionIds: [...displayCheckedIds],
@@ -134,8 +128,8 @@ const RoleEditPage = (props: PageComponentProps) => {
     message.success(isAddNew ? '新增成功' : '保存成功');
   };
 
-  const loading = detailQuery.isLoading || allPermsQuery.isLoading || rolePermsQuery.isLoading;
-  const error = (detailQuery.error || allPermsQuery.error || rolePermsQuery.error) as Error | null;
+  const loading = detailQuery.isLoading || allPermsQuery.isLoading;
+  const error = (detailQuery.error || allPermsQuery.error) as Error | null;
 
   return (
     <EditPage
@@ -148,7 +142,6 @@ const RoleEditPage = (props: PageComponentProps) => {
       onRetry={() => {
         detailQuery.refetch();
         allPermsQuery.refetch();
-        rolePermsQuery.refetch();
       }}
       onSave={handleSave}
       onExit={() => {

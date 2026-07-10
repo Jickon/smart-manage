@@ -10,14 +10,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import sm.domain.sys.base.basicdata.model.form.BasicDataListForm;
+import sm.domain.sys.base.basicdata.model.form.BasicDataNumberForm;
 import sm.domain.sys.base.basicdata.model.form.BasicDataSaveForm;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataCreateNewDataVO;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataDetailVO;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataListVO;
+import sm.domain.sys.base.basicdata.model.vo.BasicDataOptionVO;
 import sm.domain.sys.base.basicdata.service.BasicDataService;
 import sm.system.form.IdForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
+
+import java.util.List;
 
 /**
  * 基础数据管理
@@ -41,7 +45,7 @@ public class BasicDataController {
     @Operation(summary = "基础数据详情", description = "按ID查询基础数据")
     @SaCheckPermission("sys:base:basic-data:detail")
     public Result<BasicDataDetailVO> detail(@RequestBody @Valid IdForm form) {
-        return Result.success(service.getById(form.getId()));
+        return Result.success(service.detail(form.getId()));
     }
 
     @PostMapping("/sys/base/basic-data/save")
@@ -64,5 +68,11 @@ public class BasicDataController {
     public Result<String> delete(@RequestBody @Valid IdForm form) {
         service.deleteById(form.getId());
         return Result.success();
+    }
+
+    @PostMapping("/sys/base/basic-data/options")
+    @Operation(summary = "基础数据选项", description = "按基础数据编码获取启用的明细选项")
+    public Result<List<BasicDataOptionVO>> options(@RequestBody @Valid BasicDataNumberForm form) {
+        return Result.success(service.getOptionsByNumber(form.getNumber()));
     }
 }

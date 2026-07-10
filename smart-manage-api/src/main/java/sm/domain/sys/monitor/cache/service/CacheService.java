@@ -15,6 +15,7 @@ import sm.domain.sys.monitor.cache.model.vo.CacheStatsVO;
 import sm.domain.sys.monitor.cache.model.vo.CaffeineCacheVO;
 import sm.domain.sys.monitor.cache.model.vo.RedisInfoVO;
 import sm.domain.sys.monitor.cache.model.vo.RedisKeyVO;
+import sm.system.aop.log.BizLog;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -38,7 +39,8 @@ public class CacheService {
     private static final int MAX_SCAN_KEYS = 500;
 
     /** 已知的 JetCache LOCAL 缓存名列表 */
-    private static final List<String> LOCAL_CACHE_NAMES = List.of("sys-params", "common", RedisKeyConstant.CACHE_BASIC_DATA_ITEMS);
+    private static final List<String> LOCAL_CACHE_NAMES = List.of(
+            "sys-params", "common", RedisKeyConstant.CACHE_BASIC_DATA_OPTIONS);
 
     public CacheService(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
@@ -112,6 +114,7 @@ public class CacheService {
     // ==================== Caffeine 操作 ====================
 
     /** 清除 JetCache Caffeine 本地缓存 */
+    @BizLog("清理本地缓存")
     public void clearCaffeine(String cacheName) {
         if (cacheName == null || cacheName.isBlank()) {
             // 清空所有已知本地缓存
@@ -181,6 +184,7 @@ public class CacheService {
     }
 
     /** 批量删除 Redis key */
+    @BizLog("删除Redis缓存")
     public long deleteRedisKeys(List<String> keys) {
         if (keys == null || keys.isEmpty()) {
             return 0;
@@ -191,6 +195,7 @@ public class CacheService {
     }
 
     /** 按前缀批量清除 Redis key */
+    @BizLog("按前缀清理Redis缓存")
     public long clearRedisByPrefix(String prefix) {
         String matchPattern = (prefix != null && !prefix.isBlank())
                 ? prefix + "*"

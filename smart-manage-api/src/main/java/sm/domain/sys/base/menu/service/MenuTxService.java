@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class MenuTxService {
+class MenuTxService {
     private final MenuMapper mapper;
 
     public Long save(MenuSaveForm form) {

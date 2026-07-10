@@ -13,6 +13,7 @@ import sm.domain.sys.monitor.sql.model.vo.SqlLogListVO;
 import sm.domain.sys.monitor.sql.model.vo.SqlResultVO;
 import sm.domain.sys.monitor.sql.mapper.SqlLogMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.util.ServletUtil;
 import sm.system.util.StringUtil;
@@ -33,13 +34,17 @@ public class SqlService {
 
     private final DataSource dataSource;
     private final SqlLogMapper mapper;
+    private final SqlLogTxService txService;
 
-    public SqlService(DataSource dataSource, SqlLogMapper mapper) {
+    public SqlService(DataSource dataSource, SqlLogMapper mapper, SqlLogTxService txService) {
         this.dataSource = dataSource;
         this.mapper = mapper;
+        this.txService = txService;
     }
 
+    @BizLog("执行SQL")
     public SqlResultVO execute(SqlExecuteForm form) {
+        UserHelper.checkAdmin();
         String sql = form.getSql().trim();
         if (sql.isEmpty()) {
             throw new BizException("SQL 语句不能为空");
@@ -120,6 +125,7 @@ public class SqlService {
      * 分页查询执行历史
      */
     public PageData<SqlLogListVO> listPage(SqlLogListForm form) {
+        UserHelper.checkAdmin();
         LambdaQueryWrapper<SqlLogEntity> qw = new LambdaQueryWrapper<SqlLogEntity>();
         if (StringUtil.isNotBlank(form.getKeyword())) {
             qw.like(SqlLogEntity::getSqlText, form.getKeyword());
@@ -151,6 +157,7 @@ public class SqlService {
      * 查询单条执行历史
      */
     public SqlLogEntity detail(Long id) {
+        UserHelper.checkAdmin();
         SqlLogEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("执行日志不存在");
@@ -159,6 +166,7 @@ public class SqlService {
     }
 
     public SqlLogDetailVO getDetail(Long id) {
+        UserHelper.checkAdmin();
         SqlLogEntity entity = mapper.selectById(id);
         if (entity == null) {
             throw new BizException("执行日志不存在");
@@ -247,7 +255,7 @@ public class SqlService {
                 // 非 Web 上下文时忽略
             }
 
-            mapper.insert(logEntity);
+            txService.save(logEntity);
         } catch (Exception e) {
             log.warn("保存 SQL 执行日志失败: {}", e.getMessage());
         }

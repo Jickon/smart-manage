@@ -220,8 +220,11 @@ CREATE TABLE public.t_sys_app (
     update_time timestamp without time zone DEFAULT now(),
     icon_color character varying(32),
     create_user bigint,
-    update_user bigint
+    update_user bigint,
+    mutex integer DEFAULT 0 NOT NULL
 );
+
+COMMENT ON COLUMN public.t_sys_app.mutex IS '乐观锁版本号';
 
 
 --
@@ -454,8 +457,11 @@ CREATE TABLE public.t_sys_basic_data (
     create_time timestamp without time zone,
     update_time timestamp without time zone,
     create_user bigint,
-    update_user bigint
+    update_user bigint,
+    mutex integer DEFAULT 0 NOT NULL
 );
+
+COMMENT ON COLUMN public.t_sys_basic_data.mutex IS '乐观锁版本号';
 
 
 --
@@ -529,14 +535,14 @@ COMMENT ON COLUMN public.t_sys_basic_data.update_user IS '修改人';
 
 
 --
--- Name: t_sys_basic_data_item; Type: TABLE; Schema: public; Owner: -
+-- Name: t_sys_basic_data_entry; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.t_sys_basic_data_item (
+CREATE TABLE public.t_sys_basic_data_entry (
     id bigint NOT NULL,
-    type_number character varying(64) NOT NULL,
-    item_code character varying(64) NOT NULL,
-    item_label character varying(128) NOT NULL,
+    parent_id bigint NOT NULL,
+    number character varying(64) NOT NULL,
+    name character varying(128) NOT NULL,
     sort integer DEFAULT 0,
     enable_flag boolean DEFAULT true,
     create_time timestamp without time zone,
@@ -547,80 +553,80 @@ CREATE TABLE public.t_sys_basic_data_item (
 
 
 --
--- Name: TABLE t_sys_basic_data_item; Type: COMMENT; Schema: public; Owner: -
+-- Name: TABLE t_sys_basic_data_entry; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON TABLE public.t_sys_basic_data_item IS '基础数据项';
-
-
---
--- Name: COLUMN t_sys_basic_data_item.id; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.t_sys_basic_data_item.id IS 'ID';
+COMMENT ON TABLE public.t_sys_basic_data_entry IS '基础数据明细';
 
 
 --
--- Name: COLUMN t_sys_basic_data_item.type_number; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN t_sys_basic_data_entry.id; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.t_sys_basic_data_item.type_number IS '字典编码';
-
-
---
--- Name: COLUMN t_sys_basic_data_item.item_code; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.t_sys_basic_data_item.item_code IS '字典项编码';
+COMMENT ON COLUMN public.t_sys_basic_data_entry.id IS 'ID';
 
 
 --
--- Name: COLUMN t_sys_basic_data_item.item_label; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN t_sys_basic_data_entry.parent_id; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.t_sys_basic_data_item.item_label IS '字典项名称';
-
-
---
--- Name: COLUMN t_sys_basic_data_item.sort; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.t_sys_basic_data_item.sort IS '排序';
+COMMENT ON COLUMN public.t_sys_basic_data_entry.parent_id IS '父级ID';
 
 
 --
--- Name: COLUMN t_sys_basic_data_item.enable_flag; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN t_sys_basic_data_entry.number; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.t_sys_basic_data_item.enable_flag IS '启用标识';
-
-
---
--- Name: COLUMN t_sys_basic_data_item.create_time; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.t_sys_basic_data_item.create_time IS '创建时间';
+COMMENT ON COLUMN public.t_sys_basic_data_entry.number IS '编码';
 
 
 --
--- Name: COLUMN t_sys_basic_data_item.update_time; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN t_sys_basic_data_entry.name; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.t_sys_basic_data_item.update_time IS '更新时间';
-
-
---
--- Name: COLUMN t_sys_basic_data_item.create_user; Type: COMMENT; Schema: public; Owner: -
---
-
-COMMENT ON COLUMN public.t_sys_basic_data_item.create_user IS '创建人';
+COMMENT ON COLUMN public.t_sys_basic_data_entry.name IS '名称';
 
 
 --
--- Name: COLUMN t_sys_basic_data_item.update_user; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN t_sys_basic_data_entry.sort; Type: COMMENT; Schema: public; Owner: -
 --
 
-COMMENT ON COLUMN public.t_sys_basic_data_item.update_user IS '修改人';
+COMMENT ON COLUMN public.t_sys_basic_data_entry.sort IS '排序';
+
+
+--
+-- Name: COLUMN t_sys_basic_data_entry.enable_flag; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.t_sys_basic_data_entry.enable_flag IS '启用标识';
+
+
+--
+-- Name: COLUMN t_sys_basic_data_entry.create_time; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.t_sys_basic_data_entry.create_time IS '创建时间';
+
+
+--
+-- Name: COLUMN t_sys_basic_data_entry.update_time; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.t_sys_basic_data_entry.update_time IS '更新时间';
+
+
+--
+-- Name: COLUMN t_sys_basic_data_entry.create_user; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.t_sys_basic_data_entry.create_user IS '创建人';
+
+
+--
+-- Name: COLUMN t_sys_basic_data_entry.update_user; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON COLUMN public.t_sys_basic_data_entry.update_user IS '修改人';
 
 
 --
@@ -723,8 +729,11 @@ CREATE TABLE public.t_sys_cloud (
     create_time timestamp without time zone DEFAULT now(),
     update_time timestamp without time zone DEFAULT now(),
     create_user bigint,
-    update_user bigint
+    update_user bigint,
+    mutex integer DEFAULT 0 NOT NULL
 );
+
+COMMENT ON COLUMN public.t_sys_cloud.mutex IS '乐观锁版本号';
 
 
 --
@@ -1692,8 +1701,11 @@ CREATE TABLE public.t_sys_param (
     update_time timestamp without time zone,
     create_user bigint,
     update_user bigint,
-    is_system boolean DEFAULT false NOT NULL
+    is_system boolean DEFAULT false NOT NULL,
+    mutex integer DEFAULT 0 NOT NULL
 );
+
+COMMENT ON COLUMN public.t_sys_param.mutex IS '乐观锁版本号';
 
 
 --
@@ -1785,8 +1797,11 @@ CREATE TABLE public.t_sys_permission (
     create_time timestamp without time zone,
     update_time timestamp without time zone,
     create_user bigint,
-    update_user bigint
+    update_user bigint,
+    mutex integer DEFAULT 0 NOT NULL
 );
+
+COMMENT ON COLUMN public.t_sys_permission.mutex IS '乐观锁版本号';
 
 
 --
@@ -1863,8 +1878,11 @@ CREATE TABLE public.t_sys_role (
     create_time timestamp without time zone,
     update_time timestamp without time zone,
     create_user bigint,
-    update_user bigint
+    update_user bigint,
+    mutex integer DEFAULT 0 NOT NULL
 );
+
+COMMENT ON COLUMN public.t_sys_role.mutex IS '乐观锁版本号';
 
 
 --
@@ -2312,8 +2330,11 @@ CREATE TABLE public.t_sys_user (
     create_time timestamp without time zone DEFAULT now(),
     create_user bigint,
     update_time timestamp without time zone DEFAULT now(),
-    update_user bigint
+    update_user bigint,
+    mutex integer DEFAULT 0 NOT NULL
 );
+
+COMMENT ON COLUMN public.t_sys_user.mutex IS '乐观锁版本号';
 
 
 --
@@ -2614,19 +2635,19 @@ ALTER TABLE ONLY public.t_sys_cloud
 
 
 --
--- Name: t_sys_basic_data_item t_sys_dict_item_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: t_sys_basic_data_entry t_sys_basic_data_entry_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.t_sys_basic_data_item
-    ADD CONSTRAINT t_sys_dict_item_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.t_sys_basic_data_entry
+    ADD CONSTRAINT t_sys_basic_data_entry_pkey PRIMARY KEY (id);
 
 
 --
--- Name: t_sys_basic_data t_sys_dict_type_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: t_sys_basic_data t_sys_basic_data_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.t_sys_basic_data
-    ADD CONSTRAINT t_sys_dict_type_pkey PRIMARY KEY (id);
+    ADD CONSTRAINT t_sys_basic_data_pkey PRIMARY KEY (id);
 
 
 --
@@ -2757,12 +2778,28 @@ ALTER TABLE ONLY public.t_sys_user_role
     ADD CONSTRAINT t_sys_user_role_pkey PRIMARY KEY (id);
 
 
+-- 核心业务标识必须由数据库保证唯一，Java 预检查仅用于改善提示。
+ALTER TABLE ONLY public.t_sys_app
+    ADD CONSTRAINT uk_sys_app_number UNIQUE (number);
+
+ALTER TABLE ONLY public.t_sys_cloud
+    ADD CONSTRAINT uk_sys_cloud_number UNIQUE (number);
+
+ALTER TABLE ONLY public.t_sys_user
+    ADD CONSTRAINT uk_sys_user_username UNIQUE (username);
+
+
 --
 -- Name: t_sys_basic_data uk_basic_data_number; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.t_sys_basic_data
     ADD CONSTRAINT uk_basic_data_number UNIQUE (number);
+
+
+-- 同一主单下明细编码唯一。
+ALTER TABLE ONLY public.t_sys_basic_data_entry
+    ADD CONSTRAINT uk_basic_data_entry_parent_number UNIQUE (parent_id, number);
 
 
 --
@@ -2782,10 +2819,10 @@ ALTER TABLE ONLY public.t_sys_user_role
 
 
 --
--- Name: idx_basic_data_item_type_number; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_basic_data_entry_parent_id; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX idx_basic_data_item_type_number ON public.t_sys_basic_data_item USING btree (type_number);
+CREATE INDEX idx_basic_data_entry_parent_id ON public.t_sys_basic_data_entry USING btree (parent_id);
 
 
 --
@@ -2964,20 +3001,6 @@ CREATE INDEX idx_sys_cloud_num ON public.t_sys_cloud USING btree (number);
 
 
 --
--- Name: idx_sys_dict_item_number; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX idx_sys_dict_item_number ON public.t_sys_basic_data_item USING btree (type_number);
-
-
---
--- Name: idx_sys_dict_type_number; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE UNIQUE INDEX idx_sys_dict_type_number ON public.t_sys_basic_data USING btree (number);
-
-
---
 -- Name: idx_sys_job_log_job_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3139,6 +3162,14 @@ CREATE INDEX idx_sys_user_username ON public.t_sys_user USING btree (username);
 
 
 --
+-- Name: t_sys_basic_data_entry fk_basic_data_entry_parent; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.t_sys_basic_data_entry
+    ADD CONSTRAINT fk_basic_data_entry_parent FOREIGN KEY (parent_id) REFERENCES public.t_sys_basic_data(id);
+
+
+--
 -- Name: t_sys_app fk_sys_app_cloud; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -3255,4 +3286,3 @@ ALTER TABLE ONLY public.qrtz_triggers
 --
 
 \unrestrict j6ABwsHpf6emr5XDxVbbVNCcZD3mkaP8FXAVf9VVlV8H1DOWvaLpzDmq0zhLHGE
-

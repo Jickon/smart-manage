@@ -3,6 +3,7 @@ package sm.domain.sys.base.basicdata.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import sm.system.entity.BaseEntity;
@@ -31,4 +32,7 @@ public class BasicDataEntity extends BaseEntity {
 
     /** 是否启用 */
     private Boolean enableFlag;
+
+    @Version
+    private Integer mutex;
 }

@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { Button, Modal, message } from 'antd';
+import { Button, Modal } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
+import { useBatchDeleteMutation } from '@/domain/common/page/useBatchDeleteMutation';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { OperationType } from '@/domain/common/page/types';
 import { roleApi } from './api';
@@ -23,6 +24,13 @@ const RoleListPage = (props: PageComponentProps) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const openBillTab = useWorkbenchStore((s) => s.openBillTab);
   const openAddNewTab = useWorkbenchStore((s) => s.openAddNewTab);
+  const deleteMutation = useBatchDeleteMutation({
+    deleteFn: roleApi.delete,
+    onSuccess: async () => {
+      setSelectedRowKeys([]);
+      await query.refetch();
+    },
+  });
 
   const handleOpenEdit = useCallback(
     (id: string) => {
@@ -43,14 +51,9 @@ const RoleListPage = (props: PageComponentProps) => {
       okText: '删除',
       okType: 'danger',
       cancelText: '取消',
-      onOk: async () => {
-        await Promise.all(selectedRowKeys.map((id) => roleApi.delete(String(id))));
-        message.success('删除成功');
-        setSelectedRowKeys([]);
-        query.refetch();
-      },
+      onOk: () => deleteMutation.mutateAsync(selectedRowKeys.map(String)),
     });
-  }, [selectedRowKeys, query]);
+  }, [selectedRowKeys, deleteMutation]);
 
   const columns: ColumnsType<RoleListVO> = [
     {

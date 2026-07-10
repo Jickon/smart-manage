@@ -85,6 +85,10 @@
   flex-shrink: 0;
 }
 
+.sm-edit-field--full {
+  width: 100%;
+}
+
 /* === Form.Item 样式覆盖 === */
 
 .sm-edit-form .ant-form-item-label {

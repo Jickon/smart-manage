@@ -148,7 +148,7 @@ const MenuEditPage = (props: PageComponentProps) => {
     { label: '路径', dataIndex: 'path', type: 'text' },
     { label: '组件', dataIndex: 'component', type: 'text' },
     { label: '图标', dataIndex: 'icon', type: 'text', placeholder: 'Ant Design 图标名' },
-    { label: '描述', dataIndex: 'description', type: 'textarea', width: '100%' },
+    { label: '描述', dataIndex: 'description', type: 'textarea', fullWidth: true },
     { label: '排序', dataIndex: 'sort', type: 'number' },
     { label: '启用', dataIndex: 'enableFlag', type: 'switch' },
     { label: '创建时间', dataIndex: 'createTime', type: 'readonly' },

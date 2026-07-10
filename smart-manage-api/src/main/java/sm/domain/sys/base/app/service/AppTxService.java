@@ -19,7 +19,7 @@ import sm.system.response.ResultEnum;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class AppTxService {
+class AppTxService {
     private static final String DEFAULT_ICON = "app";
     private static final String DEFAULT_ICON_COLOR = "#165dff";
 
@@ -46,7 +46,9 @@ public class AppTxService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.updateById(entity);
+            if (mapper.updateById(entity) == 0) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "应用已被其他用户修改，请刷新后重试");
+            }
         }
         return entity.getId();
     }
@@ -59,6 +61,8 @@ public class AppTxService {
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "应用不存在");
         }
-        mapper.deleteById(id);
+        if (mapper.deleteById(id) == 0) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "应用已被其他用户删除");
+        }
     }
 }

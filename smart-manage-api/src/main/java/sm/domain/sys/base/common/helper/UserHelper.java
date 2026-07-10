@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import sm.domain.sys.base.common.constant.UserConstant;
 import sm.domain.sys.base.user.model.entity.UserEntity;
 import sm.domain.sys.base.user.service.UserService;
+import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 
 /**
  * @author Chekfu
@@ -81,5 +83,15 @@ public class UserHelper {
 			return false;
 		}
 		return UserConstant.SUPER_ADMIN.equals(user.getUsername());
+	}
+
+	/**
+	 * 校验当前用户是否为超级管理员。
+	 * 脚本、SQL 控制台和 Arthas 等高风险能力必须校验账号身份，不能只依赖可配置的业务权限码。
+	 */
+	public static void checkAdmin() {
+		if (!isAdmin()) {
+			throw new BizException(ResultEnum.PERMISSION_ERROR, "仅超级管理员可使用此功能");
+		}
 	}
 }

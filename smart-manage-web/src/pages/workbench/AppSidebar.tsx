@@ -64,7 +64,7 @@ const AppSidebar = ({ menuTree, loading, onItemClick }: Props) => {
             <Empty description="暂无菜单" />
           ) : (
             <Menu
-              mode="vertical"
+              mode="inline"
               inlineCollapsed={collapsed}
               onClick={handleClick}
               items={renderMenuTree(menuTree.routes)}

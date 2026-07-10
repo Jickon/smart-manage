@@ -5,15 +5,14 @@ import EditPage from '@/domain/common/page/EditPage';
 import { OperationType } from '@/domain/common/page/types';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { useWorkbenchStore } from '@/stores/workbench';
-import { userApi, userRoleApi } from './api';
+import { userApi } from './api';
 import { roleApi } from '@/domain/sys/role/api';
 import type { RoleListAllVO } from '@/domain/sys/role/types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
 /** 从 query data 派生初始勾选集合（无 useEffect） */
-function deriveCheckedRoleIds(data: { roleId: string }[] | undefined): Set<string> {
-  if (!data) return new Set<string>();
-  return new Set(data.map((r) => r.roleId));
+function deriveCheckedRoleIds(roleIds: string[] | undefined): Set<string> {
+  return new Set(roleIds ?? []);
 }
 
 /** 用户编辑页 — 全页 Tab，包含角色分配面板 */
@@ -38,16 +37,10 @@ const UserEditPage = (props: PageComponentProps) => {
   });
 
   // 用户已有角色（按当前组织，仅编辑模式）
-  const userRolesQuery = useQuery({
-    queryKey: ['user-roles', billId],
-    queryFn: () => userRoleApi.listByCurrentOrgUser(billId!),
-    enabled: !!billId,
-  });
-
   const detail = detailQuery.data;
 
   // 角色勾选状态：query 派生 + 本地修改
-  const checkedRoleIds = deriveCheckedRoleIds(userRolesQuery.data);
+  const checkedRoleIds = deriveCheckedRoleIds(detail?.roleIds);
   const [localCheckedRoleIds, setLocalCheckedRoleIds] = useState<Set<string> | null>(null);
   const displayCheckedIds = useMemo(() => {
     if (localCheckedRoleIds !== null) return localCheckedRoleIds;
@@ -104,8 +97,9 @@ const UserEditPage = (props: PageComponentProps) => {
 
   const handleSave = async (values: Record<string, unknown>) => {
     const username = (values.username as string).trim();
-    const savedId = await userApi.saveWithRoles({
+    const savedId = await userApi.save({
       id: billId ?? undefined,
+      mutex: detail?.mutex,
       username,
       password: (values.password as string) || undefined,
       nickname: (values.nickname as string) ?? undefined,
@@ -132,8 +126,8 @@ const UserEditPage = (props: PageComponentProps) => {
     message.success(isAddNew ? '新增成功' : '保存成功');
   };
 
-  const loading = detailQuery.isLoading || allRolesQuery.isLoading || userRolesQuery.isLoading;
-  const error = (detailQuery.error || allRolesQuery.error || userRolesQuery.error) as Error | null;
+  const loading = detailQuery.isLoading || allRolesQuery.isLoading;
+  const error = (detailQuery.error || allRolesQuery.error) as Error | null;
 
   const roleList: RoleListAllVO[] = allRolesQuery.data ?? [];
 
@@ -148,7 +142,6 @@ const UserEditPage = (props: PageComponentProps) => {
       onRetry={() => {
         detailQuery.refetch();
         allRolesQuery.refetch();
-        userRolesQuery.refetch();
       }}
       onSave={handleSave}
       onExit={() => {

@@ -16,12 +16,9 @@ import sm.domain.sys.base.user.model.vo.UserCreateNewDataVO;
 import sm.domain.sys.base.user.model.vo.UserInfoVO;
 import sm.domain.sys.base.user.model.vo.UserListVO;
 import sm.domain.sys.base.user.service.UserService;
-import sm.system.exception.BizException;
 import sm.system.form.IdForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
-import sm.system.response.ResultEnum;
-import sm.system.util.BeanUtil;
 
 import java.util.List;
 
@@ -59,11 +56,7 @@ public class UserController {
 	@SaCheckPermission("sys:base:user:detail")
 	@PostMapping("/sys/base/user/detail")
 	public Result<UserInfoVO> detail(@RequestBody @Valid IdForm form) {
-		var user = service.getById(form.getId());
-		if (user == null) {
-			throw new BizException(ResultEnum.NOT_FOUND, "用户不存在");
-		}
-		return Result.success(BeanUtil.copyProperties(user, UserInfoVO.class));
+		return Result.success(service.detail(form.getId()));
 	}
 
 	@PostMapping("/sys/base/user/save")

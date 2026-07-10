@@ -3,6 +3,7 @@ package sm.domain.sys.base.sysparam.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import sm.system.entity.BaseEntity;
@@ -34,4 +35,7 @@ public class SysParamEntity extends BaseEntity {
 
     /** 是否系统内置 */
     private Boolean isSystem;
+
+    @Version
+    private Integer mutex;
 }

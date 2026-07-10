@@ -20,19 +20,14 @@ export interface RoleDetailVO {
   number: string;
   createTime?: string;
   updateTime?: string;
+  mutex: number;
+  permissionIds: string[];
 }
 
 /** 角色保存 */
 export interface RoleSaveForm {
   id?: string;
-  name: string;
-  number: string;
-  remark?: string;
-}
-
-/** 角色+权限聚合保存 — ID 均以字符串传递 */
-export interface RoleSaveWithPermsForm {
-  id?: string;
+  mutex?: number;
   name: string;
   number: string;
   remark?: string;
@@ -51,13 +46,4 @@ export interface RoleSelectVO {
   id: string;
   number: string;
   name: string;
-}
-
-/** 角色权限视图 */
-export interface RolePermsVO {
-  id: string;
-  roleId: string;
-  permissionId: string;
-  permName: string;
-  permNumber: string;
 }

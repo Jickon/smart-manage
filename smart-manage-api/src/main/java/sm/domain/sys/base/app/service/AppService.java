@@ -10,6 +10,7 @@ import sm.domain.sys.base.app.model.form.AppSaveForm;
 import sm.domain.sys.base.app.model.vo.*;
 import sm.domain.sys.base.app.mapper.AppMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
@@ -61,10 +62,12 @@ public class AppService {
 		return vo;
 	}
 
+	@BizLog("保存应用")
 	public Long save(AppSaveForm form) {
 		return txService.save(form);
 	}
 
+	@BizLog("删除应用")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
 	}

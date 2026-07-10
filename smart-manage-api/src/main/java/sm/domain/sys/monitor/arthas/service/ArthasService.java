@@ -3,8 +3,10 @@ package sm.domain.sys.monitor.arthas.service;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.net.telnet.TelnetClient;
 import org.springframework.stereotype.Service;
+import sm.domain.sys.base.common.helper.UserHelper;
 import sm.domain.sys.monitor.arthas.model.vo.ArthasResultVO;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 
 import java.io.*;
 import java.util.*;
@@ -49,7 +51,9 @@ public class ArthasService {
     /**
      * 执行一次性命令
      */
+    @BizLog("执行Arthas命令")
     public ArthasResultVO execute(String command, String args) {
+        UserHelper.checkAdmin();
         if (!ONE_SHOT_COMMANDS.contains(command)) {
             if (CONTINUOUS_COMMANDS.contains(command)) {
                 throw new BizException("命令 '" + command + "' 是持续命令，请使用 /start 端点");
@@ -64,7 +68,9 @@ public class ArthasService {
     /**
      * 启动持续命令（trace/watch/stack/tt/monitor）
      */
+    @BizLog("启动Arthas会话")
     public ArthasResultVO start(String command, String args) {
+        UserHelper.checkAdmin();
         if (!CONTINUOUS_COMMANDS.contains(command)) {
             throw new BizException("命令 '" + command + "' 不是持续命令，请使用 /execute 端点");
         }
@@ -81,7 +87,9 @@ public class ArthasService {
     /**
      * 停止持续命令
      */
+    @BizLog("停止Arthas会话")
     public ArthasResultVO stop(String sessionId) {
+        UserHelper.checkAdmin();
         ArthasSession session = sessions.remove(sessionId);
         if (session == null) {
             throw new BizException("会话不存在或已结束: " + sessionId);
@@ -94,6 +102,7 @@ public class ArthasService {
      * 读取持续命令输出
      */
     public ArthasResultVO read(String sessionId) {
+        UserHelper.checkAdmin();
         ArthasSession session = sessions.get(sessionId);
         if (session == null) {
             throw new BizException("会话不存在或已结束: " + sessionId);

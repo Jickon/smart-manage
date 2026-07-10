@@ -3,6 +3,7 @@ package sm.domain.sys.base.cloud.model.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import sm.system.entity.BaseEntity;
@@ -26,4 +27,7 @@ public class CloudEntity extends BaseEntity {
 	private Integer seq;
 
 	private Boolean enableFlag;
+
+	@Version
+	private Integer mutex;
 }

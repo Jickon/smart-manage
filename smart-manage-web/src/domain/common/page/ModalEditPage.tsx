@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Spin, Button, Modal, Input, InputNumber, Select, Switch, Result, Form } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import type { EditField } from './EditPage';
 import RefSelector from '@/domain/common/component/RefSelector';
+import { useCommandMutation } from './useCommandMutation';
 import './EditPage.css';
 import './ModalEditPage.css';
 
@@ -103,7 +104,7 @@ const ModalEditPage = ({
   width = 700,
 }: ModalEditPageProps) => {
   const [form] = Form.useForm();
-  const [saving, setSaving] = useState(false);
+  const commandMutation = useCommandMutation();
 
   // Modal 打开且数据加载完成后同步到 Form
   useEffect(() => {
@@ -120,21 +121,17 @@ const ModalEditPage = ({
   }, [form, open]);
 
   const handleClose = () => {
-    if (saving) return;
+    if (commandMutation.isPending) return;
     onClose();
   };
 
   const handleSave = async () => {
-    setSaving(true);
     try {
       const values = await form.validateFields();
-      await onSave(values);
+      await commandMutation.mutateAsync({ command: onSave, values });
     } catch (err) {
-      // 校验失败不向上传播
+      // 表单校验和命令异常均已由 Form/useMutation 处理。
       if ((err as { errorFields?: unknown[] }).errorFields) return;
-      throw err;
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -142,7 +139,7 @@ const ModalEditPage = ({
     <Modal
       title={
         <div className="sm-modal-title-bar">
-          <span style={{ flex: 1 }}>{title}</span>
+          <span className="sm-modal-title-text">{title}</span>
           <Button type="link" icon={<CloseOutlined />} onClick={handleClose} />
         </div>
       }
@@ -150,16 +147,16 @@ const ModalEditPage = ({
       open={open}
       onCancel={handleClose}
       centered
-      maskClosable={false}
+      mask={{ closable: false }}
       className="sm-modal sm-modal-edit"
-      destroyOnClose
+      destroyOnHidden
       width={width}
       footer={
         <div className="sm-modal-footer-inner">
-          <Button onClick={onClose} disabled={saving}>
+          <Button onClick={onClose} disabled={commandMutation.isPending}>
             取消
           </Button>
-          <Button type="primary" loading={saving} onClick={handleSave}>
+          <Button type="primary" loading={commandMutation.isPending} onClick={handleSave}>
             保存
           </Button>
         </div>
@@ -192,8 +189,7 @@ const ModalEditPage = ({
                       key={field.dataIndex}
                       name={field.dataIndex}
                       label={field.label}
-                      className="sm-edit-field"
-                      style={field.width ? { width: field.width } : undefined}
+                      className={`sm-edit-field${field.fullWidth ? ' sm-edit-field--full' : ''}`}
                     >
                       <ReadonlyText />
                     </Form.Item>
@@ -209,8 +205,7 @@ const ModalEditPage = ({
                     label={field.label}
                     rules={field.rules}
                     valuePropName={valuePropName}
-                    className="sm-edit-field"
-                    style={field.width ? { width: field.width } : undefined}
+                    className={`sm-edit-field${field.fullWidth ? ' sm-edit-field--full' : ''}`}
                   >
                     {renderFormControl(field, disabled)}
                   </Form.Item>

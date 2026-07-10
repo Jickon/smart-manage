@@ -4,6 +4,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import sm.domain.sys.base.menu.model.vo.MenuVO;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 /**
  * 用户信息面板
  *
@@ -27,6 +30,21 @@ public class UserInfoVO {
 
 	@Schema(description = "主题颜色")
 	private String themeColor;
+
+	private String email;
+
+	private String phone;
+
+	private Boolean enableFlag;
+
+	private LocalDateTime createTime;
+
+	private LocalDateTime updateTime;
+
+	private Integer mutex;
+
+	@Schema(description = "当前组织下的角色ID列表")
+	private List<Long> roleIds;
 
 	@Schema(description = "菜单")
 	private MenuVO menus;

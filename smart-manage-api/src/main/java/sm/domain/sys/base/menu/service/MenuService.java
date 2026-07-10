@@ -16,6 +16,7 @@ import sm.domain.sys.base.menu.model.form.MenuSelectForm;
 import sm.domain.sys.base.menu.model.vo.*;
 import sm.domain.sys.base.menu.mapper.MenuMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
@@ -246,10 +247,12 @@ public class MenuService {
 		return vo;
 	}
 
+	@BizLog("保存菜单")
 	public Long save(MenuSaveForm form) {
 		return txService.save(form);
 	}
 
+	@BizLog("删除菜单")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
 	}

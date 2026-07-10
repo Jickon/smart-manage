@@ -512,9 +512,9 @@ function RefSelector<T extends Record<string, unknown>>({
         open={modalOpen}
         onCancel={handleCancel}
         centered
-        maskClosable={false}
+        mask={{ closable: false }}
         className="sm-modal sm-ref-selector-modal"
-        destroyOnClose
+        destroyOnHidden
         width={mode === 'tree-table' ? 960 : 800}
         footer={modalFooter}
       >

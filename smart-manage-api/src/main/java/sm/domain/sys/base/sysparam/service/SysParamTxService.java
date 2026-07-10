@@ -20,7 +20,7 @@ import sm.system.response.ResultEnum;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class SysParamTxService {
+class SysParamTxService {
     private final SysParamMapper mapper;
 
     /** 新增/编辑，清除缓存 */
@@ -35,7 +35,9 @@ public class SysParamTxService {
             // 系统内置参数只允许修改 value
             if (Boolean.TRUE.equals(entity.getIsSystem())) {
                 entity.setValue(form.getValue());
-                mapper.updateById(entity);
+                if (mapper.updateById(entity) == 0) {
+                    throw new BizException(ResultEnum.DATA_CONFLICT, "系统参数已被其他用户修改，请刷新后重试");
+                }
                 return entity.getId();
             }
         } else {
@@ -51,7 +53,9 @@ public class SysParamTxService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.updateById(entity);
+            if (mapper.updateById(entity) == 0) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "系统参数已被其他用户修改，请刷新后重试");
+            }
         }
         return entity.getId();
     }
@@ -69,6 +73,8 @@ public class SysParamTxService {
         if (Boolean.TRUE.equals(entity.getIsSystem())) {
             throw new BizException("系统内置参数不可删除");
         }
-        mapper.deleteById(id);
+        if (mapper.deleteById(id) == 0) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "系统参数已被其他用户删除");
+        }
     }
 }

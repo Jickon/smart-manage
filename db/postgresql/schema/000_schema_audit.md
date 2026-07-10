@@ -12,8 +12,8 @@
 | --- | --- | ---: | ---: |
 | t_sys_app | 应用 | 13 | 13 |
 | t_sys_attachment | 附件 | 13 | 13 |
-| t_sys_basic_data | 基础数据 | 9 | 9 |
-| t_sys_basic_data_item | 基础数据项 | 10 | 10 |
+| t_sys_basic_data | 基础数据 | 10 | 10 |
+| t_sys_basic_data_entry | 基础数据明细 | 10 | 10 |
 | t_sys_biz_attachment | 业务附件关联 | 9 | 9 |
 | t_sys_cloud | 云（应用分组） | 9 | 9 |
 | t_sys_file_config | 文件存储配置 | 13 | 13 |

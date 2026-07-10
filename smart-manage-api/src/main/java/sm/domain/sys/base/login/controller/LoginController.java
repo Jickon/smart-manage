@@ -14,7 +14,6 @@ import sm.domain.sys.base.login.model.form.LoginForm;
 import sm.domain.sys.base.login.model.vo.CaptchaVO;
 import sm.domain.sys.base.login.model.vo.LoginVO;
 import sm.domain.sys.base.login.service.LoginService;
-import sm.system.aop.log.BizLog;
 import sm.system.response.Result;
 
 /**
@@ -29,7 +28,6 @@ public class LoginController {
 	@Operation(summary = "用户登录", description = "通过用户名密码登录获取token")
 	@PostMapping("/sys/base/login")
 	@SaIgnore
-	@BizLog("用户登录")
 	public Result<LoginVO> login(@Parameter(description = "登录表单", required = true) @Validated @RequestBody LoginForm form) {
 		return Result.success(service.login(form));
 	}

@@ -6,8 +6,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,7 +26,6 @@ import sm.system.response.Result;
 @RestController
 @Tag(name = "系统建模-文件配置", description = "文件配置管理接口")
 @RequiredArgsConstructor
-@Slf4j
 public class FileConfigController {
     private final FileConfigService service;
 
@@ -72,31 +69,6 @@ public class FileConfigController {
     @Operation(summary = "测试FTP连接", description = "使用表单中的FTP参数测试连接是否正常")
     @SaCheckPermission("sys:base:file-config:save")
     public Result<String> testFtp(@Valid @RequestBody FtpTestForm form) {
-        FTPClient ftp = new FTPClient();
-        try {
-            ftp.connect(form.getFtpHost(), form.getFtpPort() != null ? form.getFtpPort() : 21);
-            if (!ftp.login(form.getFtpUsername(), form.getFtpPassword())) {
-                return Result.error("FTP 登录失败: " + ftp.getReplyString());
-            }
-            if (form.getFtpPassiveMode() != null && form.getFtpPassiveMode()) {
-                ftp.enterLocalPassiveMode();
-            }
-            if (form.getFtpDir() != null && !form.getFtpDir().isBlank()) {
-                if (!ftp.changeWorkingDirectory(form.getFtpDir())) {
-                    return Result.error("FTP 目录切换失败: " + ftp.getReplyString());
-                }
-            }
-            ftp.logout();
-            return Result.success("FTP 连接成功");
-        } catch (Exception e) {
-            log.warn("FTP 连接测试失败", e);
-            return Result.error("FTP 连接失败: " + e.getMessage());
-        } finally {
-            if (ftp.isConnected()) {
-                try {
-                    ftp.disconnect();
-                } catch (Exception ignored) { /* ignore */ }
-            }
-        }
+        return Result.success(service.testFtp(form));
     }
 }

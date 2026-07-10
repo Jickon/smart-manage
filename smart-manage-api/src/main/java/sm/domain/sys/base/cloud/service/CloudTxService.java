@@ -19,7 +19,7 @@ import sm.system.response.ResultEnum;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class CloudTxService {
+class CloudTxService {
     private final CloudMapper mapper;
 
     public Long save(CloudSaveForm form) {
@@ -39,7 +39,9 @@ public class CloudTxService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.updateById(entity);
+            if (mapper.updateById(entity) == 0) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "云已被其他用户修改，请刷新后重试");
+            }
         }
         return entity.getId();
     }
@@ -52,6 +54,8 @@ public class CloudTxService {
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "云不存在");
         }
-        mapper.deleteById(id);
+        if (mapper.deleteById(id) == 0) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "云已被其他用户删除");
+        }
     }
 }

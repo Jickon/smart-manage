@@ -68,9 +68,7 @@ INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, upda
 INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (10040, '角色管理-保存', 'sys:base:role:save', 31, NULL, NULL, NULL, NULL);
 INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (10041, '权限管理-选择', 'sys:base:permission:select', 31, '2026-04-27 13:45:08.495725', NULL, 1, NULL);
 INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (10042, '权限管理-删除', 'sys:base:permission:delete', 31, '2026-04-27 13:45:51.39581', NULL, 1, NULL);
-INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (10043, '角色权限映射-查询', 'sys:base:roleperms:list', 31, '2026-04-27 13:50:15.037814', NULL, 1, NULL);
 INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (406250201727746048, '菜单管理-详情', 'sys:base:menu:detail', 31, '2026-04-27 13:54:15.855314', NULL, 1, NULL);
-INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (10044, '角色权限映射-保存', 'sys:base:roleperms:save', 31, '2026-04-27 13:55:08.1592', NULL, 1, NULL);
 INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (10030, '系统建模-应用入口', 'sys:base:access', 31, NULL, '2026-04-27 14:00:32.890395', NULL, 1);
 INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (406254838245605376, '菜单管理-保存', 'sys:base:menu:save', 31, '2026-04-27 14:12:41.287791', NULL, 1, NULL);
 INSERT INTO public.t_sys_permission (id, name, number, app_id, create_time, update_time, create_user, update_user) VALUES (406259661691011072, '菜单管理-选择', 'sys:base:menu:select', 31, '2026-04-27 14:31:51.286645', NULL, 1, NULL);
@@ -206,9 +204,7 @@ INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, up
 INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671425, 1, 10040, '2026-04-27 15:39:34.19652', NULL, 1, NULL);
 INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671426, 1, 10041, '2026-04-27 15:39:34.197102', NULL, 1, NULL);
 INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671427, 1, 10042, '2026-04-27 15:39:34.197396', NULL, 1, NULL);
-INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671428, 1, 10043, '2026-04-27 15:39:34.197695', NULL, 1, NULL);
 INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671429, 1, 406250201727746048, '2026-04-27 15:39:34.197999', NULL, 1, NULL);
-INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671430, 1, 10044, '2026-04-27 15:39:34.1983', NULL, 1, NULL);
 INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671431, 1, 10030, '2026-04-27 15:39:34.1983', NULL, 1, NULL);
 INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671432, 1, 406254838245605376, '2026-04-27 15:39:34.198917', NULL, 1, NULL);
 INSERT INTO public.t_sys_role_perms (id, role_id, permission_id, create_time, update_time, create_user, update_user) VALUES (406276702749671433, 1, 406259661691011072, '2026-04-27 15:39:34.19923', NULL, 1, NULL);
@@ -229,4 +225,3 @@ ALTER TABLE public.t_sys_role_perms ENABLE TRIGGER ALL;
 --
 
 \unrestrict GVDA8qKgu50wgAwilB63wkqupLVc5wCf1onierZPqqXb56hjKNebaAMlU6ge0wC
-

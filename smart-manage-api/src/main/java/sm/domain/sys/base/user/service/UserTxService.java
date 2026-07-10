@@ -7,13 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.domain.sys.base.common.helper.UserHelper;
 import sm.domain.sys.base.user.mapper.UserMapper;
+import sm.domain.sys.base.user.mapper.UserRoleMapper;
 import sm.domain.sys.base.user.model.entity.UserEntity;
+import sm.domain.sys.base.user.model.entity.UserRoleEntity;
 import sm.domain.sys.base.user.model.form.UserSaveForm;
-import sm.domain.sys.base.user.model.form.UserSaveWithRolesForm;
-import sm.domain.sys.base.userrole.model.form.UserRoleSaveForm;
-import sm.domain.sys.base.userrole.service.UserRoleTxService;
 import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 import sm.system.helper.Argon2Helper;
+
+import java.util.Objects;
 
 /**
  * 用户事务服务 —— 所有写操作在类级别事务中执行
@@ -24,25 +26,9 @@ import sm.system.helper.Argon2Helper;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class UserTxService {
+class UserTxService {
     private final UserMapper mapper;
-    private final UserRoleTxService userRoleTxService;
-
-    /**
-     * 聚合保存：用户 + 角色分配，在同一事务内完成。
-     * orgId 取自当前登录用户的 org 上下文。
-     */
-    public Long saveWithRoles(UserSaveWithRolesForm form) {
-        // 1. 保存用户
-        Long userId = save(form);
-        // 2. 保存用户角色
-        UserRoleSaveForm roleForm = new UserRoleSaveForm();
-        roleForm.setUserId(userId);
-        roleForm.setOrgId(UserHelper.getCurrentOrgId());
-        roleForm.setRoleIds(form.getRoleIds());
-        userRoleTxService.save(roleForm);
-        return userId;
-    }
+    private final UserRoleMapper userRoleMapper;
 
     /** 新增/编辑用户 */
     public Long save(UserSaveForm form) {
@@ -61,6 +47,12 @@ public class UserTxService {
             entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException("用户不存在");
+            }
+            if (form.getMutex() == null) {
+                throw new BizException(ResultEnum.PARAM_ERROR, "修改用户时乐观锁版本号不能为空");
+            }
+            if (!Objects.equals(entity.getMutex(), form.getMutex())) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "用户已被其他用户修改，请刷新后重试");
             }
         } else {
             entity = new UserEntity();
@@ -101,17 +93,42 @@ public class UserTxService {
             }
             mapper.insert(entity);
         } else {
-            mapper.updateById(entity);
+            if (mapper.updateById(entity) == 0) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "用户已被其他用户修改，请刷新后重试");
+            }
         }
+        replaceRoles(entity.getId(), form);
         return entity.getId();
     }
 
     /** 删除用户 */
     public void deleteById(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "用户ID不能为空");
+        }
         // 不能删除自己
         if (id.equals(UserHelper.getCurrentUserId())) {
             throw new BizException("不能删除当前登录用户");
         }
-        mapper.deleteById(id);
+        userRoleMapper.delete(new LambdaQueryWrapper<UserRoleEntity>()
+                .eq(UserRoleEntity::getUserId, id));
+        if (mapper.deleteById(id) == 0) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "用户不存在或已被删除");
+        }
+    }
+
+    /** 当前组织下的角色关联属于用户聚合，保存时整体替换。 */
+    private void replaceRoles(Long userId, UserSaveForm form) {
+        Long orgId = UserHelper.getCurrentOrgId();
+        userRoleMapper.delete(new LambdaQueryWrapper<UserRoleEntity>()
+                .eq(UserRoleEntity::getUserId, userId)
+                .eq(UserRoleEntity::getOrgId, orgId));
+        for (Long roleId : form.getRoleIds()) {
+            UserRoleEntity userRoleEntity = new UserRoleEntity();
+            userRoleEntity.setUserId(userId);
+            userRoleEntity.setOrgId(orgId);
+            userRoleEntity.setRoleId(roleId);
+            userRoleMapper.insert(userRoleEntity);
+        }
     }
 }

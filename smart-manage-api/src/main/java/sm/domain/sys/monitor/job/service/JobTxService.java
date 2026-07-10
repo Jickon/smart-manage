@@ -27,7 +27,7 @@ import java.util.Map;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class JobTxService {
+class JobTxService {
 
     private final JobMapper mapper;
     private final JobLogMapper jobLogMapper;
@@ -130,6 +130,14 @@ public class JobTxService {
                 .eq(JobLogEntity::getJobId, id));
     }
 
+    public void pause(Long id) {
+        updateStatus(id, "PAUSED", true);
+    }
+
+    public void resume(Long id) {
+        updateStatus(id, "ENABLED", false);
+    }
+
     // ==================== 内部方法 ====================
 
     /**
@@ -174,6 +182,27 @@ public class JobTxService {
             scheduler.deleteJob(jobKey);
         } catch (SchedulerException e) {
             log.warn("删除 Quartz Job 失败: {}/{}", jobGroup, jobName, e);
+        }
+    }
+
+    private void updateStatus(Long id, String status, boolean pause) {
+        JobEntity entity = mapper.selectById(id);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "任务不存在");
+        }
+        entity.setStatus(status);
+        if (mapper.updateById(entity) == 0) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "任务状态已被其他用户修改");
+        }
+        try {
+            JobKey jobKey = JobKey.jobKey(entity.getJobName(), entity.getJobGroup());
+            if (pause) {
+                scheduler.pauseJob(jobKey);
+            } else {
+                scheduler.resumeJob(jobKey);
+            }
+        } catch (SchedulerException e) {
+            throw new BizException("更新任务调度状态失败: " + e.getMessage());
         }
     }
 }

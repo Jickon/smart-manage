@@ -14,6 +14,7 @@ import sm.domain.sys.base.uiconfig.model.vo.UiConfigDetailVO;
 import sm.domain.sys.base.uiconfig.model.vo.UiConfigListVO;
 import sm.domain.sys.base.uiconfig.mapper.UiConfigMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
@@ -92,10 +93,12 @@ public class UiConfigService {
         return vo;
     }
 
+    @BizLog("保存界面配置")
     public Long save(UiConfigSaveForm form) {
         return txService.save(form);
     }
 
+    @BizLog("删除界面配置")
     public void deleteById(Long id) {
         txService.deleteById(id);
     }

@@ -1,9 +1,10 @@
 package sm.domain.sys.base.basicdata.model.form;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import sm.domain.sys.base.basicdataitem.model.form.BasicDataItemSaveForm;
 
 import java.util.List;
 
@@ -19,6 +20,9 @@ public class BasicDataSaveForm {
     @Schema(description = "ID（新增时不传）")
     private Long id;
 
+    @Schema(description = "乐观锁版本号，修改时必传")
+    private Integer mutex;
+
     @NotBlank(message = "编码不能为空")
     @Schema(description = "编码")
     private String number;
@@ -33,6 +37,8 @@ public class BasicDataSaveForm {
     @Schema(description = "是否启用")
     private Boolean enableFlag;
 
-    @Schema(description = "基础数据项明细")
-    private List<BasicDataItemSaveForm> entrys;
+    @Valid
+    @NotNull(message = "基础数据明细不能为空")
+    @Schema(description = "基础数据明细")
+    private List<BasicDataEntryForm> entrys;
 }

@@ -7,12 +7,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.domain.sys.base.role.model.entity.RoleEntity;
 import sm.domain.sys.base.role.model.form.RoleSaveForm;
-import sm.domain.sys.base.role.model.form.RoleSaveWithPermsForm;
 import sm.domain.sys.base.role.mapper.RoleMapper;
-import sm.domain.sys.base.roleperms.model.form.RolePermsSaveForm;
-import sm.domain.sys.base.roleperms.service.RolePermsTxService;
+import sm.domain.sys.base.role.mapper.RolePermissionMapper;
+import sm.domain.sys.base.role.model.entity.RolePermissionEntity;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
+
+import java.util.Objects;
 
 /**
  * 角色事务服务 —— 所有写操作在类级别事务中执行
@@ -23,23 +24,9 @@ import sm.system.response.ResultEnum;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class RoleTxService {
+class RoleTxService {
     private final RoleMapper mapper;
-    private final RolePermsTxService rolePermsTxService;
-
-    /**
-     * 聚合保存：角色 + 权限分配，在同一事务内完成。
-     */
-    public Long saveWithPerms(RoleSaveWithPermsForm form) {
-        // 1. 保存角色
-        Long roleId = save(form);
-        // 2. 保存角色权限（先删后增）
-        RolePermsSaveForm permsForm = new RolePermsSaveForm();
-        permsForm.setRoleId(roleId);
-        permsForm.setPermissionIds(form.getPermissionIds());
-        rolePermsTxService.save(permsForm);
-        return roleId;
-    }
+    private final RolePermissionMapper permissionMapper;
 
     public Long save(RoleSaveForm form) {
         // 检查角色编码唯一性
@@ -58,6 +45,12 @@ public class RoleTxService {
             if (entity == null) {
                 throw new BizException("角色不存在");
             }
+            if (form.getMutex() == null) {
+                throw new BizException(ResultEnum.PARAM_ERROR, "修改角色时乐观锁版本号不能为空");
+            }
+            if (!Objects.equals(entity.getMutex(), form.getMutex())) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "角色已被其他用户修改，请刷新后重试");
+            }
         } else {
             entity = new RoleEntity();
         }
@@ -67,8 +60,11 @@ public class RoleTxService {
         if (form.getId() == null) {
             mapper.insert(entity);
         } else {
-            mapper.updateById(entity);
+            if (mapper.updateById(entity) == 0) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "角色已被其他用户修改，请刷新后重试");
+            }
         }
+        replacePermissions(entity.getId(), form);
         return entity.getId();
     }
 
@@ -80,6 +76,22 @@ public class RoleTxService {
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "角色不存在");
         }
-        mapper.deleteById(id);
+        permissionMapper.delete(new LambdaQueryWrapper<RolePermissionEntity>()
+                .eq(RolePermissionEntity::getRoleId, id));
+        if (mapper.deleteById(id) == 0) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "角色已被其他用户删除");
+        }
+    }
+
+    /** 权限关联属于角色聚合，保存时整体替换。 */
+    private void replacePermissions(Long roleId, RoleSaveForm form) {
+        permissionMapper.delete(new LambdaQueryWrapper<RolePermissionEntity>()
+                .eq(RolePermissionEntity::getRoleId, roleId));
+        for (Long permissionId : form.getPermissionIds()) {
+            RolePermissionEntity permissionEntity = new RolePermissionEntity();
+            permissionEntity.setRoleId(roleId);
+            permissionEntity.setPermissionId(permissionId);
+            permissionMapper.insert(permissionEntity);
+        }
     }
 }

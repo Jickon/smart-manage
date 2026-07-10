@@ -14,7 +14,10 @@ import sm.domain.sys.base.role.model.vo.RoleDetailVO;
 import sm.domain.sys.base.role.model.vo.RoleListVO;
 import sm.domain.sys.base.role.model.vo.RoleSelectVO;
 import sm.domain.sys.base.role.mapper.RoleMapper;
+import sm.domain.sys.base.role.mapper.RolePermissionMapper;
+import sm.domain.sys.base.role.model.entity.RolePermissionEntity;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
@@ -31,13 +34,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoleService {
 	private final RoleMapper mapper;
+	private final RolePermissionMapper permissionMapper;
 	private final RoleTxService txService;
 
 	public PageData<RoleListVO> listPage(RoleListForm form) {
 		LambdaQueryWrapper<RoleEntity> qw = new LambdaQueryWrapper<RoleEntity>()
 				.orderByAsc(RoleEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-			String kw = "%" + form.getKeyword().trim() + "%";
+			String kw = form.getKeyword().trim();
 			qw.and(condition -> condition.like(RoleEntity::getName, kw).or().like(RoleEntity::getNumber, kw));
 		}
 		Page<RoleEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
@@ -53,7 +57,7 @@ public class RoleService {
 		LambdaQueryWrapper<RoleEntity> qw = new LambdaQueryWrapper<RoleEntity>()
 				.orderByAsc(RoleEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-			String kw = "%" + form.getKeyword().trim() + "%";
+			String kw = form.getKeyword().trim();
 			qw.and(condition -> condition.like(RoleEntity::getName, kw).or().like(RoleEntity::getNumber, kw));
 		}
 		Page<RoleEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
@@ -102,6 +106,13 @@ public class RoleService {
 		vo.setUpdateTime(entity.getUpdateTime());
 		vo.setCreateUser(entity.getCreateUser());
 		vo.setUpdateUser(entity.getUpdateUser());
+		vo.setMutex(entity.getMutex());
+		vo.setPermissionIds(permissionMapper.selectList(new LambdaQueryWrapper<RolePermissionEntity>()
+					.select(RolePermissionEntity::getPermissionId)
+					.eq(RolePermissionEntity::getRoleId, entity.getId()))
+				.stream()
+				.map(RolePermissionEntity::getPermissionId)
+				.toList());
 		return vo;
 	}
 
@@ -109,10 +120,12 @@ public class RoleService {
 		return new RoleCreateNewDataVO();
 	}
 
+	@BizLog("保存角色及权限")
 	public Long save(RoleSaveForm form) {
 		return txService.save(form);
 	}
 
+	@BizLog("删除角色")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
 	}

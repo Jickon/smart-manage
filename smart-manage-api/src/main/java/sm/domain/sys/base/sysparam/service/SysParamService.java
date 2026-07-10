@@ -14,6 +14,7 @@ import sm.domain.sys.base.sysparam.model.vo.SysParamCreateNewDataVO;
 import sm.domain.sys.base.sysparam.model.vo.SysParamVO;
 import sm.domain.sys.base.sysparam.mapper.SysParamMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
@@ -39,7 +40,7 @@ public class SysParamService {
     public PageData<SysParamVO> listPage(SysParamListForm form) {
         LambdaQueryWrapper<SysParamEntity> qw = new LambdaQueryWrapper<SysParamEntity>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-            String kw = "%" + form.getKeyword().trim() + "%";
+            String kw = form.getKeyword().trim();
             qw.and(condition -> condition.like(SysParamEntity::getNumber, kw).or().like(SysParamEntity::getName, kw));
         }
         qw.orderByAsc(SysParamEntity::getNumber);
@@ -67,11 +68,13 @@ public class SysParamService {
     }
 
     /** 新增/编辑，委托事务服务处理 */
+    @BizLog("保存系统参数")
     public Long save(SysParamSaveForm form) {
         return txService.save(form);
     }
 
     /** 删除，委托事务服务处理 */
+    @BizLog("删除系统参数")
     public void deleteById(Long id) {
         txService.deleteById(id);
     }
@@ -100,7 +103,7 @@ public class SysParamService {
         return "true".equalsIgnoreCase(value) || "1".equals(value);
     }
 
-    /** 获取整数值，不存在或解析失败返回 null */
+    /** 获取整数值；参数不存在返回 null，参数格式错误直接暴露配置异常。 */
     public Integer getInt(String number) {
         String value = getString(number);
         if (value == null || value.isBlank()) {
@@ -109,8 +112,8 @@ public class SysParamService {
         try {
             return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {
-            log.warn("系统参数 {} 无法转为整数: {}", number, value);
-            return null;
+            throw new BizException(ResultEnum.CONFIG_ERROR,
+                    "系统参数 " + number + " 的值无法转换为整数: " + value);
         }
     }
 

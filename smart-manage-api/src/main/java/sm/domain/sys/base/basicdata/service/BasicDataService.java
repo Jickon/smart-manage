@@ -1,66 +1,58 @@
 package sm.domain.sys.base.basicdata.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.alicp.jetcache.anno.CacheType;
+import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import sm.domain.sys.base.basicdataitem.model.entity.BasicDataItemEntity;
-import sm.domain.sys.base.basicdataitem.model.vo.BasicDataItemListVO;
-import sm.domain.sys.base.basicdataitem.mapper.BasicDataItemMapper;
+import sm.domain.sys.base.basicdata.mapper.BasicDataEntryMapper;
+import sm.domain.sys.base.basicdata.mapper.BasicDataMapper;
 import sm.domain.sys.base.basicdata.model.entity.BasicDataEntity;
+import sm.domain.sys.base.basicdata.model.entity.BasicDataEntryEntity;
 import sm.domain.sys.base.basicdata.model.form.BasicDataListForm;
 import sm.domain.sys.base.basicdata.model.form.BasicDataSaveForm;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataCreateNewDataVO;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataDetailVO;
+import sm.domain.sys.base.basicdata.model.vo.BasicDataEntryVO;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataListVO;
-import sm.domain.sys.base.basicdata.mapper.BasicDataMapper;
+import sm.domain.sys.base.basicdata.model.vo.BasicDataOptionVO;
+import sm.domain.sys.base.common.constant.RedisKeyConstant;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * 基础数据服务
+ * 基础数据聚合的唯一公开服务。
  *
  * @author Chekfu
  */
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class BasicDataService {
     private final BasicDataMapper mapper;
-    private final BasicDataItemMapper itemMapper;
+    private final BasicDataEntryMapper entryMapper;
     private final BasicDataTxService txService;
 
     public PageData<BasicDataListVO> listPage(BasicDataListForm form) {
-        LambdaQueryWrapper<BasicDataEntity> qw = new LambdaQueryWrapper<BasicDataEntity>();
+        LambdaQueryWrapper<BasicDataEntity> queryWrapper = new LambdaQueryWrapper<>();
         if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-            String kw = "%" + form.getKeyword().trim() + "%";
-            qw.and(condition -> condition.like(BasicDataEntity::getName, kw).or().like(BasicDataEntity::getNumber, kw));
+            String keyword = form.getKeyword().trim();
+            queryWrapper.and(condition -> condition.like(BasicDataEntity::getName, keyword)
+                    .or().like(BasicDataEntity::getNumber, keyword));
         }
-        qw.orderByAsc(BasicDataEntity::getNumber);
+        queryWrapper.orderByAsc(BasicDataEntity::getNumber);
         Page<BasicDataEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
-        Page<BasicDataEntity> result = mapper.selectPage(page, qw);
-        List<BasicDataListVO> vos = result.getRecords().stream().map(this::toListVo).collect(Collectors.toList());
-        return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), vos);
+        Page<BasicDataEntity> result = mapper.selectPage(page, queryWrapper);
+        List<BasicDataListVO> records = result.getRecords().stream().map(this::toListVO).toList();
+        return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
     }
 
-    private BasicDataListVO toListVo(BasicDataEntity entity) {
-        BasicDataListVO vo = new BasicDataListVO();
-        vo.setId(entity.getId());
-        vo.setNumber(entity.getNumber());
-        vo.setName(entity.getName());
-        vo.setRemark(entity.getRemark());
-        vo.setEnableFlag(entity.getEnableFlag());
-        vo.setCreateTime(entity.getCreateTime());
-        return vo;
-    }
-
-    /** 详情（含明细 entrys，一次请求） */
-    public BasicDataDetailVO getById(Long id) {
+    /** 查询主表及全部明细，一次返回完整聚合。 */
+    public BasicDataDetailVO detail(Long id) {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "基础数据ID不能为空");
         }
@@ -68,43 +60,82 @@ public class BasicDataService {
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
         }
-        BasicDataDetailVO vo = new BasicDataDetailVO();
-        vo.setId(entity.getId());
-        vo.setNumber(entity.getNumber());
-        vo.setName(entity.getName());
-        vo.setRemark(entity.getRemark());
-        vo.setEnableFlag(entity.getEnableFlag());
-        vo.setCreateTime(entity.getCreateTime());
-        vo.setUpdateTime(entity.getUpdateTime());
-        // 加载明细
-        List<BasicDataItemEntity> items = itemMapper.selectList(
-                new LambdaQueryWrapper<BasicDataItemEntity>()
-                        .eq(BasicDataItemEntity::getTypeNumber, entity.getNumber())
-                        .orderByAsc(BasicDataItemEntity::getSort));
-        vo.setEntrys(items.stream().map(item -> {
-            BasicDataItemListVO iv = new BasicDataItemListVO();
-            iv.setId(item.getId());
-            iv.setTypeNumber(item.getTypeNumber());
-            iv.setItemCode(item.getItemCode());
-            iv.setItemLabel(item.getItemLabel());
-            iv.setSort(item.getSort());
-            iv.setEnableFlag(item.getEnableFlag());
-            return iv;
-        }).collect(Collectors.toList()));
-        return vo;
+        BasicDataDetailVO detailVO = new BasicDataDetailVO();
+        detailVO.setId(entity.getId());
+        detailVO.setNumber(entity.getNumber());
+        detailVO.setName(entity.getName());
+        detailVO.setRemark(entity.getRemark());
+        detailVO.setEnableFlag(entity.getEnableFlag());
+        detailVO.setCreateTime(entity.getCreateTime());
+        detailVO.setUpdateTime(entity.getUpdateTime());
+        detailVO.setMutex(entity.getMutex());
+        detailVO.setEntrys(listEntries(entity.getId()));
+        return detailVO;
     }
 
     public BasicDataCreateNewDataVO createNewData() {
-        BasicDataCreateNewDataVO vo = new BasicDataCreateNewDataVO();
-        vo.setEnableFlag(true);
-        return vo;
+        BasicDataCreateNewDataVO createNewDataVO = new BasicDataCreateNewDataVO();
+        createNewDataVO.setEnableFlag(true);
+        return createNewDataVO;
     }
 
+    /** 按基础数据编码提供启用的下拉选项，不开放明细独立写入口。 */
+    @Cached(cacheType = CacheType.LOCAL, name = RedisKeyConstant.CACHE_BASIC_DATA_OPTIONS,
+            key = "#number", expire = 30, timeUnit = java.util.concurrent.TimeUnit.MINUTES)
+    public List<BasicDataOptionVO> getOptionsByNumber(String number) {
+        BasicDataEntity entity = mapper.selectOne(new LambdaQueryWrapper<BasicDataEntity>()
+                .eq(BasicDataEntity::getNumber, number));
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
+        }
+        return entryMapper.selectList(new LambdaQueryWrapper<BasicDataEntryEntity>()
+                        .eq(BasicDataEntryEntity::getParentId, entity.getId())
+                        .eq(BasicDataEntryEntity::getEnableFlag, true)
+                        .orderByAsc(BasicDataEntryEntity::getSort)
+                        .orderByAsc(BasicDataEntryEntity::getId))
+                .stream()
+                .map(entry -> new BasicDataOptionVO(entry.getNumber(), entry.getName()))
+                .toList();
+    }
+
+    @BizLog("保存基础数据")
     public Long save(BasicDataSaveForm form) {
         return txService.save(form);
     }
 
+    @BizLog("删除基础数据")
     public void deleteById(Long id) {
         txService.deleteById(id);
+    }
+
+    private List<BasicDataEntryVO> listEntries(Long parentId) {
+        return entryMapper.selectList(new LambdaQueryWrapper<BasicDataEntryEntity>()
+                        .eq(BasicDataEntryEntity::getParentId, parentId)
+                        .orderByAsc(BasicDataEntryEntity::getSort)
+                        .orderByAsc(BasicDataEntryEntity::getId))
+                .stream()
+                .map(this::toEntryVO)
+                .toList();
+    }
+
+    private BasicDataListVO toListVO(BasicDataEntity entity) {
+        BasicDataListVO listVO = new BasicDataListVO();
+        listVO.setId(entity.getId());
+        listVO.setNumber(entity.getNumber());
+        listVO.setName(entity.getName());
+        listVO.setRemark(entity.getRemark());
+        listVO.setEnableFlag(entity.getEnableFlag());
+        listVO.setCreateTime(entity.getCreateTime());
+        return listVO;
+    }
+
+    private BasicDataEntryVO toEntryVO(BasicDataEntryEntity entry) {
+        BasicDataEntryVO entryVO = new BasicDataEntryVO();
+        entryVO.setId(entry.getId());
+        entryVO.setNumber(entry.getNumber());
+        entryVO.setName(entry.getName());
+        entryVO.setSort(entry.getSort());
+        entryVO.setEnableFlag(entry.getEnableFlag());
+        return entryVO;
     }
 }

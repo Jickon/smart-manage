@@ -1,10 +1,11 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Button, Tag, Tree, Modal, message } from 'antd';
+import { Button, Tag, Tree, Modal } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { DataNode } from 'antd/es/tree';
 import { useQuery } from '@tanstack/react-query';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
+import { useBatchDeleteMutation } from '@/domain/common/page/useBatchDeleteMutation';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { OperationType } from '@/domain/common/page/types';
 import { fetchAppsAll } from '@/domain/sys/app/api';
@@ -90,6 +91,13 @@ const MenuListPage = (props: PageComponentProps) => {
         return menuApi.listPage({ ...params, ...filter });
       },
     });
+  const deleteMutation = useBatchDeleteMutation({
+    deleteFn: menuApi.delete,
+    onSuccess: async () => {
+      setSelectedRowKeys([]);
+      await Promise.all([query.refetch(), menuTreesQuery.refetch()]);
+    },
+  });
 
   // 构建左侧树
   const treeData: DataNode[] = useMemo(() => {
@@ -167,14 +175,9 @@ const MenuListPage = (props: PageComponentProps) => {
       okText: '删除',
       okType: 'danger',
       cancelText: '取消',
-      onOk: async () => {
-        await Promise.all(selectedRowKeys.map((id) => menuApi.delete(String(id))));
-        message.success('删除成功');
-        setSelectedRowKeys([]);
-        query.refetch();
-      },
+      onOk: () => deleteMutation.mutateAsync(selectedRowKeys.map(String)),
     });
-  }, [selectedRowKeys, query]);
+  }, [selectedRowKeys, deleteMutation]);
 
   const columns: ColumnsType<MenuListVO> = [
     {

@@ -25,6 +25,10 @@
   align-items: center;
 }
 
+.sm-modal-title-text {
+  flex: 1;
+}
+
 /* 主体 — 可滚动（仅 Modal 编辑页居中，RefSelector 等不生效） */
 .sm-modal-edit .ant-modal-body {
   display: flex;

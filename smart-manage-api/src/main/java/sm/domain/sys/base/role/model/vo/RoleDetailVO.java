@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 角色详情 VO
@@ -34,4 +35,9 @@ public class RoleDetailVO {
 
 	@Schema(description = "修改人")
 	private Long updateUser;
+
+	private Integer mutex;
+
+	@Schema(description = "权限ID列表")
+	private List<Long> permissionIds;
 }

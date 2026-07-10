@@ -20,7 +20,7 @@ import sm.system.response.ResultEnum;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class UiConfigTxService {
+class UiConfigTxService {
     private final UiConfigMapper mapper;
 
     /** 新增/编辑，清除缓存 */

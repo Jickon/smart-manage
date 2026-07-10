@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.serializer.SerializationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -27,8 +28,12 @@ public class ExceptionResult {
 		Result<String> result;
 		if (e instanceof BizException ex) {
 			// 业务异常
-			log.error("业务异常: {}", ex.getMessage(), ex);
+			log.warn("业务异常: {}", ex.getMessage());
 			result = Result.error(ex.getCode(), ex.getMessage());
+		} else if (e instanceof DataIntegrityViolationException ex) {
+			// 数据库唯一约束、外键约束等冲突统一转换为业务可识别的错误。
+			log.warn("数据完整性冲突: {}", ex.getMostSpecificCause().getMessage());
+			result = Result.error(ResultEnum.DATA_CONFLICT);
 		} else if (e instanceof SerializationException ex) {
 			// redis序列化异常
 			log.error("redis序列化异常: {}", ex.getCause(), ex);

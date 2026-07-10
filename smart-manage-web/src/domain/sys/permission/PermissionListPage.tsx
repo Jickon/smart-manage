@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
-import { Button, Modal, message } from 'antd';
+import { Button, Modal } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
+import { useBatchDeleteMutation } from '@/domain/common/page/useBatchDeleteMutation';
 import { permissionApi } from './api';
 import type { PermissionListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
@@ -19,6 +20,13 @@ const PermissionListPage = (props: PageComponentProps) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const deleteMutation = useBatchDeleteMutation({
+    deleteFn: permissionApi.delete,
+    onSuccess: async () => {
+      setSelectedRowKeys([]);
+      await query.refetch();
+    },
+  });
 
   const handleOpenEdit = useCallback((id: string) => {
     setEditId(id);
@@ -46,14 +54,9 @@ const PermissionListPage = (props: PageComponentProps) => {
       okText: '删除',
       okType: 'danger',
       cancelText: '取消',
-      onOk: async () => {
-        await Promise.all(selectedRowKeys.map((id) => permissionApi.delete(String(id))));
-        message.success('删除成功');
-        setSelectedRowKeys([]);
-        query.refetch();
-      },
+      onOk: () => deleteMutation.mutateAsync(selectedRowKeys.map(String)),
     });
-  }, [selectedRowKeys, query]);
+  }, [selectedRowKeys, deleteMutation]);
 
   const columns: ColumnsType<PermissionListVO> = [
     {

@@ -2,7 +2,6 @@ package sm.domain.sys.base.basicdata.model.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import sm.domain.sys.base.basicdataitem.model.vo.BasicDataItemListVO;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,6 +29,8 @@ public class BasicDataDetailVO {
 
     private LocalDateTime updateTime;
 
-    @Schema(description = "基础数据项明细")
-    private List<BasicDataItemListVO> entrys;
+    private Integer mutex;
+
+    @Schema(description = "基础数据明细")
+    private List<BasicDataEntryVO> entrys;
 }

@@ -16,6 +16,7 @@ import sm.domain.sys.monitor.job.model.vo.JobListVO;
 import sm.domain.sys.monitor.job.mapper.JobLogMapper;
 import sm.domain.sys.monitor.job.mapper.JobMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
@@ -72,46 +73,29 @@ public class JobService {
 
     // ==================== 增删改 ====================
 
+    @BizLog("保存定时任务")
     public Long save(JobSaveForm form) {
         return txService.save(form);
     }
 
+    @BizLog("删除定时任务")
     public void deleteById(Long id) {
         txService.deleteById(id);
     }
 
     // ==================== 任务操作 ====================
 
+    @BizLog("暂停定时任务")
     public void pause(Long id) {
-        JobEntity entity = mapper.selectById(id);
-        if (entity == null) {
-            throw new BizException("任务不存在");
-        }
-        try {
-            JobKey jobKey = JobKey.jobKey(entity.getJobName(), entity.getJobGroup());
-            scheduler.pauseJob(jobKey);
-            entity.setStatus("PAUSED");
-            mapper.updateById(entity);
-        } catch (SchedulerException e) {
-            throw new BizException("暂停任务失败: " + e.getMessage());
-        }
+        txService.pause(id);
     }
 
+    @BizLog("恢复定时任务")
     public void resume(Long id) {
-        JobEntity entity = mapper.selectById(id);
-        if (entity == null) {
-            throw new BizException("任务不存在");
-        }
-        try {
-            JobKey jobKey = JobKey.jobKey(entity.getJobName(), entity.getJobGroup());
-            scheduler.resumeJob(jobKey);
-            entity.setStatus("ENABLED");
-            mapper.updateById(entity);
-        } catch (SchedulerException e) {
-            throw new BizException("恢复任务失败: " + e.getMessage());
-        }
+        txService.resume(id);
     }
 
+    @BizLog("立即执行定时任务")
     public void trigger(Long id) {
         JobEntity entity = mapper.selectById(id);
         if (entity == null) {

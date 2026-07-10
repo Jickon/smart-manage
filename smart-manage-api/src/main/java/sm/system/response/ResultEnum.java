@@ -16,6 +16,7 @@ public enum ResultEnum {
     REQUEST_LIMIT(100429, "请求过于频繁，请稍后再试"),
     NOT_FOUND(100404, "资源不存在"),
     PARAM_ERROR(100422, "参数异常"),
+    DATA_CONFLICT(100409, "数据已存在或已被修改"),
     SERVER_ERROR(100500, "系统异常，请稍候再试"),
     SQL_ERROR(100501, "SQL异常，请联系管理员处理"),
     CONFIG_ERROR(100502, "系统配置异常，请联系管理员处理"),

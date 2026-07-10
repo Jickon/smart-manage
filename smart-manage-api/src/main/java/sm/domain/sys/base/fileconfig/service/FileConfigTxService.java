@@ -21,7 +21,7 @@ import sm.system.response.ResultEnum;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class FileConfigTxService {
+class FileConfigTxService {
     private final FileConfigMapper mapper;
 
     @CacheInvalidate(name = "common", key = "'file:config'")

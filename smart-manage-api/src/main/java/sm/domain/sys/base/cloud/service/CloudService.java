@@ -15,6 +15,7 @@ import sm.domain.sys.base.cloud.model.vo.CloudListVO;
 import sm.domain.sys.base.cloud.model.vo.CloudSelectVO;
 import sm.domain.sys.base.cloud.mapper.CloudMapper;
 import sm.system.exception.BizException;
+import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
 
@@ -117,10 +118,12 @@ public class CloudService {
 		return vo;
 	}
 
+	@BizLog("保存云")
 	public Long save(CloudSaveForm form) {
 		return txService.save(form);
 	}
 
+	@BizLog("删除云")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
 	}

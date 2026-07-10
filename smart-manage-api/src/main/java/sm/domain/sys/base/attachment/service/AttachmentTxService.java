@@ -30,7 +30,7 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 @RequiredArgsConstructor
 @Transactional(rollbackFor = Exception.class)
-public class AttachmentTxService {
+class AttachmentTxService {
     private final AttachmentMapper mapper;
     private final BizAttachmentMapper bizMapper;
     private final FileStorageServiceFactory storageFactory;

@@ -3,6 +3,7 @@ package sm.domain.sys.base.attachment.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import sm.system.aop.log.BizLog;
 import org.springframework.web.multipart.MultipartFile;
 import sm.domain.sys.base.attachment.model.entity.AttachmentEntity;
 import sm.domain.sys.base.attachment.model.form.AttachmentPromoteForm;
@@ -31,16 +32,19 @@ public class AttachmentService {
     private final AttachmentTxService txService;
 
     /** 上传附件：传 bizType 时存入临时目录（需 promote），否则直接存 sys 系统目录 */
+    @BizLog(value = "上传附件", saveRequest = false)
     public AttachmentVO upload(MultipartFile file, String bizType) throws IOException {
         return txService.upload(file, bizType);
     }
 
     /** 提升附件：关联业务单据 + 移出临时目录 */
+    @BizLog("确认附件")
     public void promote(AttachmentPromoteForm form) throws IOException {
         txService.promote(form);
     }
 
     /** 删除附件（物理文件 + 映射 + 元数据） */
+    @BizLog("删除附件")
     public void delete(Long id) throws IOException {
         txService.delete(id);
     }

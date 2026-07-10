@@ -21,8 +21,13 @@ import sm.domain.sys.base.user.model.vo.UserCreateNewDataVO;
 import sm.domain.sys.base.user.model.vo.UserInfoVO;
 import sm.domain.sys.base.user.model.vo.UserListVO;
 import sm.domain.sys.base.user.mapper.UserMapper;
+import sm.domain.sys.base.user.mapper.UserRoleMapper;
+import sm.domain.sys.base.user.model.entity.UserRoleEntity;
 import sm.system.helper.Argon2Helper;
+import sm.system.aop.log.BizLog;
+import sm.system.exception.BizException;
 import sm.system.response.PageData;
+import sm.system.response.ResultEnum;
 import sm.system.util.BeanUtil;
 
 import java.util.List;
@@ -39,6 +44,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
 	private final UserMapper mapper;
+	private final UserRoleMapper userRoleMapper;
 	private final UserTxService txService;
 	private final MenuService menuService;
 	private final PermissionService permissionService;
@@ -49,7 +55,7 @@ public class UserService {
 	public PageData<UserListVO> listPage(UserListForm form) {
 		LambdaQueryWrapper<UserEntity> qw = new LambdaQueryWrapper<UserEntity>().orderByAsc(UserEntity::getId);
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
-			String kw = "%" + form.getKeyword().trim() + "%";
+			String kw = form.getKeyword().trim();
 			qw.and(condition -> condition.like(UserEntity::getUsername, kw).or().like(UserEntity::getNickname, kw));
 		}
 		Page<UserEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
@@ -67,12 +73,31 @@ public class UserService {
 		return vo;
 	}
 
+	@BizLog("保存用户及角色")
 	public Long save(UserSaveForm form) {
 		return txService.save(form);
 	}
 
+	@BizLog("删除用户")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
+	}
+
+	/** 查询用户及当前组织下的角色明细。 */
+	public UserInfoVO detail(Long id) {
+		UserEntity userEntity = mapper.selectById(id);
+		if (userEntity == null) {
+			throw new BizException(ResultEnum.NOT_FOUND, "用户不存在");
+		}
+		UserInfoVO userInfoVO = BeanUtil.copyProperties(userEntity, UserInfoVO.class);
+		userInfoVO.setRoleIds(userRoleMapper.selectList(new LambdaQueryWrapper<UserRoleEntity>()
+					.select(UserRoleEntity::getRoleId)
+					.eq(UserRoleEntity::getUserId, id)
+					.eq(UserRoleEntity::getOrgId, UserHelper.getCurrentOrgId()))
+				.stream()
+				.map(UserRoleEntity::getRoleId)
+				.toList());
+		return userInfoVO;
 	}
 
 	public LoginVO login(String username, String password) {

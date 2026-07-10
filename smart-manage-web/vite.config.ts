@@ -1,5 +1,5 @@
-import {fileURLToPath, URL} from 'node:url';
-import {defineConfig} from 'vite';
+import { fileURLToPath, URL } from 'node:url';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 const apiProxyTarget = 'http://localhost:8080';
@@ -43,8 +43,7 @@ export default defineConfig({
           if (
             id.includes('node_modules/@tanstack/') ||
             id.includes('node_modules/axios') ||
-            id.includes('node_modules/zustand') ||
-            id.includes('node_modules/zod')
+            id.includes('node_modules/zustand')
           ) {
             return 'vendors';
           }

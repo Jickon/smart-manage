@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   Spin,
   Button,
@@ -15,6 +15,7 @@ import type { Rule } from 'antd/es/form';
 import type { ReactNode } from 'react';
 import { OperationType, BillStatus } from './types';
 import RefSelector from '@/domain/common/component/RefSelector';
+import { useCommandMutation } from './useCommandMutation';
 import './EditPage.css';
 
 const { TextArea } = Input;
@@ -28,8 +29,8 @@ export interface EditFieldBase {
   disabled?: boolean;
   /** 占位提示 */
   placeholder?: string;
-  /** 字段宽度，默认 260px；可设 "100%" 占整行、"50%" 占半行 等 */
-  width?: string;
+  /** 是否占满整行 */
+  fullWidth?: boolean;
 }
 
 /** RefSelector 字段配置 — type === 'ref-selector' 时必填 */
@@ -186,7 +187,7 @@ const EditPage = ({
 }: EditPageProps) => {
   const [form] = Form.useForm();
   const editable = isEditable(operationType, billStatus);
-  const [saving, setSaving] = useState(false);
+  const commandMutation = useCommandMutation();
 
   // 后端数据加载完成后同步到 Form
   useEffect(() => {
@@ -197,30 +198,22 @@ const EditPage = ({
 
   const handleSave = async () => {
     if (!onSave) return;
-    setSaving(true);
     try {
       const values = await form.validateFields();
-      await onSave(values);
+      await commandMutation.mutateAsync({ command: onSave, values });
     } catch (err) {
-      // 校验失败（errorFields 非空）不向上传播
+      // 表单校验和命令异常均已由 Form/useMutation 处理。
       if ((err as { errorFields?: unknown[] }).errorFields) return;
-      throw err;
-    } finally {
-      setSaving(false);
     }
   };
 
   const handleSubmit = async () => {
     if (!onSubmit) return;
-    setSaving(true);
     try {
       const values = await form.validateFields();
-      await onSubmit(values);
+      await commandMutation.mutateAsync({ command: onSubmit, values });
     } catch (err) {
       if ((err as { errorFields?: unknown[] }).errorFields) return;
-      throw err;
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -252,12 +245,12 @@ const EditPage = ({
           {editable && (
             <Space>
               {onSave && (
-                <Button type="primary" loading={saving} onClick={handleSave}>
+                <Button type="primary" loading={commandMutation.isPending} onClick={handleSave}>
                   保存
                 </Button>
               )}
               {onSubmit && (
-                <Button type="primary" loading={saving} onClick={handleSubmit}>
+                <Button type="primary" loading={commandMutation.isPending} onClick={handleSubmit}>
                   提交
                 </Button>
               )}
@@ -290,8 +283,7 @@ const EditPage = ({
                               key={field.dataIndex}
                               name={field.dataIndex}
                               label={field.label}
-                              className="sm-edit-field"
-                              style={field.width ? { width: field.width } : undefined}
+                              className={`sm-edit-field${field.fullWidth ? ' sm-edit-field--full' : ''}`}
                             >
                               <ReadonlyText />
                             </Form.Item>
@@ -308,8 +300,7 @@ const EditPage = ({
                             label={field.label}
                             rules={field.rules}
                             valuePropName={valuePropName}
-                            className="sm-edit-field"
-                            style={field.width ? { width: field.width } : undefined}
+                            className={`sm-edit-field${field.fullWidth ? ' sm-edit-field--full' : ''}`}
                           >
                             {renderFormControl(field, disabled)}
                           </Form.Item>

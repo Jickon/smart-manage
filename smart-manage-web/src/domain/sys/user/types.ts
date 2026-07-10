@@ -25,24 +25,14 @@ export interface UserDetailVO {
   enableFlag?: boolean;
   createTime?: string;
   updateTime?: string;
+  mutex: number;
+  roleIds: string[];
 }
 
 /** 用户保存 — ID 均以字符串传递 */
 export interface UserSaveForm {
   id?: string;
-  username: string;
-  password?: string;
-  nickname?: string;
-  email?: string;
-  phone?: string;
-  avatar?: string;
-  themeColor?: string;
-  enableFlag?: boolean;
-}
-
-/** 用户+角色聚合保存 */
-export interface UserSaveWithRolesForm {
-  id?: string;
+  mutex?: number;
   username: string;
   password?: string;
   nickname?: string;
@@ -52,14 +42,4 @@ export interface UserSaveWithRolesForm {
   themeColor?: string;
   enableFlag?: boolean;
   roleIds: string[];
-}
-
-/** 用户角色项 */
-export interface UserRoleVO {
-  id: string;
-  userId: string;
-  orgId: string;
-  roleId: string;
-  roleName: string;
-  roleNumber: string;
 }
