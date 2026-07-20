@@ -31,7 +31,6 @@ export interface RoleSaveForm {
   name: string;
   number: string;
   remark?: string;
-  permissionIds: string[];
 }
 
 /** 角色全量列表（不分页） */

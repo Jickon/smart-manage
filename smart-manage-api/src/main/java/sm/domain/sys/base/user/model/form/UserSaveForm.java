@@ -2,10 +2,8 @@ package sm.domain.sys.base.user.model.form;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.util.List;
 
 /**
  * @author Chekfu
@@ -42,7 +40,4 @@ public class UserSaveForm {
 	@Schema(description = "主题色")
 	private String themeColor;
 
-	@NotNull(message = "角色明细不能为空")
-	@Schema(description = "当前组织下的角色ID列表")
-	private List<Long> roleIds;
 }

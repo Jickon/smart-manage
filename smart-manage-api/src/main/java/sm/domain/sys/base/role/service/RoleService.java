@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import sm.domain.sys.base.role.model.entity.RoleEntity;
 import sm.domain.sys.base.role.model.form.RoleListForm;
 import sm.domain.sys.base.role.model.form.RoleSaveForm;
+import sm.domain.sys.base.role.model.form.RolePermissionAssignForm;
 import sm.domain.sys.base.role.model.form.RoleSelectForm;
 import sm.domain.sys.base.role.model.vo.RoleCreateNewDataVO;
 import sm.domain.sys.base.role.model.vo.RoleDetailVO;
@@ -132,7 +133,7 @@ public class RoleService {
 		return new RoleCreateNewDataVO();
 	}
 
-	@BizLog("保存角色及权限")
+	@BizLog("保存角色")
 	public Long save(RoleSaveForm form) {
 		return txService.save(form);
 	}
@@ -140,5 +141,10 @@ public class RoleService {
 	@BizLog("删除角色")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
+	}
+
+	@BizLog("分配角色权限")
+	public void assignPermissions(RolePermissionAssignForm form) {
+		txService.assignPermissions(form);
 	}
 }

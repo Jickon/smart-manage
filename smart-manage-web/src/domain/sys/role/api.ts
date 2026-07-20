@@ -39,4 +39,9 @@ export const roleApi = {
     request
       .post<Result<string>>('/sys/base/role/delete', { id })
       .then((response) => response.data.data),
+
+  assignPermissions: (roleId: string, permissionIds: string[]) =>
+    request
+      .post<Result<string>>('/sys/base/role/assignPermissions', { roleId, permissionIds })
+      .then((response) => response.data.data),
 };

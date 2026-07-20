@@ -11,6 +11,7 @@ import sm.domain.sys.base.user.mapper.UserRoleMapper;
 import sm.domain.sys.base.user.model.entity.UserEntity;
 import sm.domain.sys.base.user.model.entity.UserRoleEntity;
 import sm.domain.sys.base.user.model.form.UserSaveForm;
+import sm.domain.sys.base.user.model.form.UserRoleAssignForm;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
 import sm.system.helper.Argon2Helper;
@@ -95,7 +96,6 @@ class UserTxService {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "用户已被其他用户修改，请刷新后重试");
             }
         }
-        replaceRoles(entity.getId(), form);
         return entity.getId();
     }
 
@@ -122,15 +122,18 @@ class UserTxService {
         }
     }
 
-    /** 当前组织下的角色关联属于用户聚合，保存时整体替换。 */
-    private void replaceRoles(Long userId, UserSaveForm form) {
+    /** 当前组织下的角色关系通过独立命令整体替换。 */
+    public void assignRoles(UserRoleAssignForm form) {
+        if (mapper.selectById(form.getUserId()) == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "用户不存在");
+        }
         Long orgId = UserHelper.getCurrentOrgId();
         userRoleMapper.delete(new LambdaQueryWrapper<UserRoleEntity>()
-                .eq(UserRoleEntity::getUserId, userId)
+                .eq(UserRoleEntity::getUserId, form.getUserId())
                 .eq(UserRoleEntity::getOrgId, orgId));
         for (Long roleId : form.getRoleIds()) {
             UserRoleEntity userRoleEntity = new UserRoleEntity();
-            userRoleEntity.setUserId(userId);
+            userRoleEntity.setUserId(form.getUserId());
             userRoleEntity.setOrgId(orgId);
             userRoleEntity.setRoleId(roleId);
             if (userRoleMapper.insert(userRoleEntity) != 1) {

@@ -27,4 +27,9 @@ export const userApi = {
     request
       .post<Result<string>>(enabled ? '/sys/base/user/enable' : '/sys/base/user/disable', { ids })
       .then((response) => response.data.data),
+
+  assignRoles: (userId: string, roleIds: string[]) =>
+    request
+      .post<Result<string>>('/sys/base/user/assignRoles', { userId, roleIds })
+      .then((response) => response.data.data),
 };

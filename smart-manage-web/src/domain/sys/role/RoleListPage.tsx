@@ -13,6 +13,7 @@ import type { PageComponentProps } from '@/domain/common/page/types';
 
 /** 角色编辑页 componentKey */
 const ROLE_EDIT_KEY = 'sys/base/role/edit';
+const ROLE_PERMISSION_ASSIGNMENT_KEY = 'sys/base/role/permission-assignment';
 
 /** 角色管理列表页 */
 const RoleListPage = (props: PageComponentProps) => {
@@ -26,6 +27,7 @@ const RoleListPage = (props: PageComponentProps) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const openBillTab = useWorkbenchStore((s) => s.openBillTab);
   const openAddNewTab = useWorkbenchStore((s) => s.openAddNewTab);
+  const addContentTab = useWorkbenchStore((state) => state.addContentTab);
   const deleteMutation = useRoleDeleteMutation(async () => {
     setSelectedRowKeys([]);
     await query.refetch();
@@ -53,6 +55,19 @@ const RoleListPage = (props: PageComponentProps) => {
       onOk: () => deleteMutation.mutateAsync(selectedRowKeys.map(String)),
     });
   }, [selectedRowKeys, deleteMutation, modal]);
+
+  const handleAssignPermissions = useCallback(() => {
+    if (selectedRowKeys.length !== 1) return;
+    const roleId = String(selectedRowKeys[0]);
+    addContentTab(props.appNumber, {
+      key: `assignment:${ROLE_PERMISSION_ASSIGNMENT_KEY}:${roleId}`,
+      label: '分配权限',
+      closable: true,
+      componentKey: ROLE_PERMISSION_ASSIGNMENT_KEY,
+      pageType: 'CUSTOM',
+      billId: roleId,
+    });
+  }, [addContentTab, props.appNumber, selectedRowKeys]);
 
   const columns: ColumnsType<RoleListVO> = [
     {
@@ -84,6 +99,11 @@ const RoleListPage = (props: PageComponentProps) => {
       onAddNew={handleOpenAdd}
       onDelete={handleDelete}
       onRefresh={onRefresh}
+      toolbarActions={
+        <Button disabled={selectedRowKeys.length !== 1} onClick={handleAssignPermissions}>
+          分配权限
+        </Button>
+      }
       onQuickSearch={onSearch}
       onPageChange={onPageChange}
       rowKey="id"

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import sm.domain.sys.base.user.model.form.UserListForm;
 import sm.domain.sys.base.user.model.form.UserPermissionsForm;
 import sm.domain.sys.base.user.model.form.UserSaveForm;
+import sm.domain.sys.base.user.model.form.UserRoleAssignForm;
 import sm.domain.sys.base.user.model.vo.UserCreateNewDataVO;
 import sm.domain.sys.base.user.model.vo.UserInfoVO;
 import sm.domain.sys.base.user.model.vo.UserListVO;
@@ -94,5 +95,13 @@ public class UserController {
 	@SaCheckPermission("sys:base:user:save")
 	public Result<UserCreateNewDataVO> createNewData() {
 		return Result.success(service.createNewData());
+	}
+
+	@Operation(summary = "分配用户角色", description = "整体替换指定用户在当前组织下的角色关系")
+	@PostMapping("/sys/base/user/assignRoles")
+	@SaCheckPermission("sys:base:user:assignRoles")
+	public Result<String> assignRoles(@RequestBody @Valid UserRoleAssignForm form) {
+		service.assignRoles(form);
+		return Result.success();
 	}
 }

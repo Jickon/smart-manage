@@ -18,6 +18,7 @@ import sm.domain.sys.base.permission.service.PermissionService;
 import sm.domain.sys.base.user.model.entity.UserEntity;
 import sm.domain.sys.base.user.model.form.UserListForm;
 import sm.domain.sys.base.user.model.form.UserSaveForm;
+import sm.domain.sys.base.user.model.form.UserRoleAssignForm;
 import sm.domain.sys.base.user.model.vo.UserCreateNewDataVO;
 import sm.domain.sys.base.user.model.vo.UserInfoVO;
 import sm.domain.sys.base.user.model.vo.UserListVO;
@@ -75,7 +76,7 @@ public class UserService {
 		return vo;
 	}
 
-	@BizLog("保存用户及角色")
+	@BizLog("保存用户")
 	@CacheInvalidate(name = "userInfo", key = "#form.id", condition = "#form.id != null")
 	public Long save(UserSaveForm form) {
 		return txService.save(form);
@@ -95,6 +96,11 @@ public class UserService {
 	@BizLog("禁用用户")
 	public void disable(List<Long> ids) {
 		txService.updateEnabled(ids, false);
+	}
+
+	@BizLog("分配用户角色")
+	public void assignRoles(UserRoleAssignForm form) {
+		txService.assignRoles(form);
 	}
 
 	/** 查询用户及当前组织下的角色明细。 */

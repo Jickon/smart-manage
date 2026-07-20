@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import sm.domain.sys.base.role.model.form.RoleListForm;
 import sm.domain.sys.base.role.model.form.RoleSaveForm;
 import sm.domain.sys.base.role.model.form.RoleSelectForm;
+import sm.domain.sys.base.role.model.form.RolePermissionAssignForm;
 import sm.domain.sys.base.role.model.vo.RoleCreateNewDataVO;
 import sm.domain.sys.base.role.model.vo.RoleDetailVO;
 import sm.domain.sys.base.role.model.vo.RoleListVO;
@@ -81,6 +82,14 @@ public class RoleController {
 	@SaCheckPermission("sys:base:role:delete")
 	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
+		return Result.success();
+	}
+
+	@Operation(summary = "分配角色权限", description = "整体替换指定角色的权限关系")
+	@PostMapping("/sys/base/role/assignPermissions")
+	@SaCheckPermission("sys:base:role:assignPermissions")
+	public Result<String> assignPermissions(@RequestBody @Valid RolePermissionAssignForm form) {
+		service.assignPermissions(form);
 		return Result.success();
 	}
 }

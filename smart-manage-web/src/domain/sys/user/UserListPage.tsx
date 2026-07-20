@@ -14,6 +14,7 @@ import type { PageComponentProps } from '@/domain/common/page/types';
 
 /** 用户编辑页 componentKey */
 const USER_EDIT_KEY = 'sys/base/user/edit';
+const USER_ROLE_ASSIGNMENT_KEY = 'sys/base/user/role-assignment';
 
 /** 用户管理列表页 */
 const UserListPage = (props: PageComponentProps) => {
@@ -27,6 +28,7 @@ const UserListPage = (props: PageComponentProps) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const openBillTab = useWorkbenchStore((s) => s.openBillTab);
   const openAddNewTab = useWorkbenchStore((s) => s.openAddNewTab);
+  const addContentTab = useWorkbenchStore((state) => state.addContentTab);
   const deleteMutation = useUserDeleteMutation(async () => {
     setSelectedRowKeys([]);
     await query.refetch();
@@ -58,6 +60,19 @@ const UserListPage = (props: PageComponentProps) => {
       onOk: () => deleteMutation.mutateAsync(selectedRowKeys.map(String)),
     });
   }, [selectedRowKeys, deleteMutation, modal]);
+
+  const handleAssignRoles = useCallback(() => {
+    if (selectedRowKeys.length !== 1) return;
+    const userId = String(selectedRowKeys[0]);
+    addContentTab(props.appNumber, {
+      key: `assignment:${USER_ROLE_ASSIGNMENT_KEY}:${userId}`,
+      label: '分配角色',
+      closable: true,
+      componentKey: USER_ROLE_ASSIGNMENT_KEY,
+      pageType: 'CUSTOM',
+      billId: userId,
+    });
+  }, [addContentTab, props.appNumber, selectedRowKeys]);
 
   const columns: ColumnsType<UserListVO> = [
     {
@@ -104,6 +119,11 @@ const UserListPage = (props: PageComponentProps) => {
       onDisable={() => enabledMutation.mutate({ ids: selectedRowKeys.map(String), enabled: false })}
       enabledCommandLoading={enabledMutation.isPending}
       onRefresh={onRefresh}
+      toolbarActions={
+        <Button disabled={selectedRowKeys.length !== 1} onClick={handleAssignRoles}>
+          分配角色
+        </Button>
+      }
       onQuickSearch={onSearch}
       onPageChange={onPageChange}
       rowKey="id"

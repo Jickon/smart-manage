@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sm.domain.sys.base.role.model.entity.RoleEntity;
 import sm.domain.sys.base.role.model.form.RoleSaveForm;
+import sm.domain.sys.base.role.model.form.RolePermissionAssignForm;
 import sm.domain.sys.base.role.mapper.RoleMapper;
 import sm.domain.sys.base.role.mapper.RolePermissionMapper;
 import sm.domain.sys.base.role.model.entity.RolePermissionEntity;
@@ -66,7 +67,6 @@ class RoleTxService {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "角色已被其他用户修改，请刷新后重试");
             }
         }
-        replacePermissions(entity.getId(), form);
         return entity.getId();
     }
 
@@ -85,13 +85,16 @@ class RoleTxService {
         }
     }
 
-    /** 权限关联属于角色聚合，保存时整体替换。 */
-    private void replacePermissions(Long roleId, RoleSaveForm form) {
+    /** 权限关系通过独立命令整体替换，不与角色资料保存耦合。 */
+    public void assignPermissions(RolePermissionAssignForm form) {
+        if (mapper.selectById(form.getRoleId()) == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "角色不存在");
+        }
         permissionMapper.delete(new LambdaQueryWrapper<RolePermissionEntity>()
-                .eq(RolePermissionEntity::getRoleId, roleId));
+                .eq(RolePermissionEntity::getRoleId, form.getRoleId()));
         for (Long permissionId : form.getPermissionIds()) {
             RolePermissionEntity permissionEntity = new RolePermissionEntity();
-            permissionEntity.setRoleId(roleId);
+            permissionEntity.setRoleId(form.getRoleId());
             permissionEntity.setPermissionId(permissionId);
             if (permissionMapper.insert(permissionEntity) != 1) {
                 throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "聚合明细写入失败");

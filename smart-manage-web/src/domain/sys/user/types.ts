@@ -41,5 +41,4 @@ export interface UserSaveForm {
   phone?: string;
   avatar?: string;
   themeColor?: string;
-  roleIds: string[];
 }
