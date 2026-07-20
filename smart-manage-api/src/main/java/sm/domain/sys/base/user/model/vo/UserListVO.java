@@ -20,4 +20,7 @@ public class UserListVO {
 
 	@Schema(description = "头像地址")
 	private String avatar;
+
+	@Schema(description = "启用状态")
+	private Boolean enabled;
 }

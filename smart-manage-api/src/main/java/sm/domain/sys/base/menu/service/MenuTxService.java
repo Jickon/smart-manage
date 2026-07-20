@@ -13,6 +13,8 @@ import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import sm.system.util.EnabledCommandUtil;
 
 /**
  * 菜单事务服务 —— 所有写操作在类级别事务中执行
@@ -46,10 +48,10 @@ class MenuTxService {
         // 页面层级必须指定权限和路径；分组层级不需要路径和组件，但保留权限用于菜单可见性控制
         if (form.getLevel().equals(MenuLevelEnum.PAGE)) {
             if (form.getPermissionId() == null) {
-                throw new BizException("页面层级菜单必须选择权限");
+                throw new BizException(ResultEnum.PARAM_ERROR, "页面层级菜单必须选择权限");
             }
             if (form.getPath() == null || form.getPath().isBlank()) {
-                throw new BizException("页面层级菜单必须填写路径");
+                throw new BizException(ResultEnum.PARAM_ERROR, "页面层级菜单必须填写路径");
             }
             entity.setPath(form.getPath());
             entity.setComponent(form.getComponent());
@@ -64,9 +66,13 @@ class MenuTxService {
         entity.setIcon(form.getIcon());
         entity.setDescription(form.getDescription());
         entity.setSort(form.getSort() != null ? form.getSort() : 99);
-        entity.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
         if (form.getId() == null) {
-            mapper.insert(entity);
+            entity.setEnabled(true);
+        }
+        if (form.getId() == null) {
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
         } else {
             // 使用全字段 XML 更新，确保分组菜单可以把 permissionId/path/component 清空为 null。
             entity.setUpdateTime(LocalDateTime.now());
@@ -84,6 +90,12 @@ class MenuTxService {
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "菜单不存在");
         }
-        mapper.deleteById(id);
+        if (mapper.deleteById(id) != 1) {
+            throw new BizException(sm.system.response.ResultEnum.DATA_CONFLICT, "数据已被其他用户删除");
+        }
+    }
+
+    public void updateEnabled(List<Long> ids, boolean enabled) {
+        EnabledCommandUtil.update(mapper, MenuEntity::getId, MenuEntity::getEnabled, ids, enabled, "菜单");
     }
 }

@@ -36,7 +36,7 @@ public class RoleDetailVO {
 	@Schema(description = "修改人")
 	private Long updateUser;
 
-	private Integer mutex;
+	private Integer version;
 
 	@Schema(description = "权限ID列表")
 	private List<Long> permissionIds;

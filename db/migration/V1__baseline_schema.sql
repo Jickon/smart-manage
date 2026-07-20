@@ -2,7 +2,6 @@
 -- PostgreSQL database dump
 --
 
-\restrict j6ABwsHpf6emr5XDxVbbVNCcZD3mkaP8FXAVf9VVlV8H1DOWvaLpzDmq0zhLHGE
 
 -- Dumped from database version 16.13
 -- Dumped by pg_dump version 16.13
@@ -17,12 +16,6 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
-
---
--- Name: public; Type: SCHEMA; Schema: -; Owner: -
---
-
-CREATE SCHEMA public;
 
 
 --
@@ -3285,4 +3278,3 @@ ALTER TABLE ONLY public.qrtz_triggers
 -- PostgreSQL database dump complete
 --
 
-\unrestrict j6ABwsHpf6emr5XDxVbbVNCcZD3mkaP8FXAVf9VVlV8H1DOWvaLpzDmq0zhLHGE

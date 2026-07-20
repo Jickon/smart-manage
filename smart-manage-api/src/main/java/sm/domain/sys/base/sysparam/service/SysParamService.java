@@ -2,6 +2,7 @@ package sm.domain.sys.base.sysparam.service;
 
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
+import com.alicp.jetcache.anno.CacheInvalidate;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -69,12 +70,14 @@ public class SysParamService {
 
     /** 新增/编辑，委托事务服务处理 */
     @BizLog("保存系统参数")
+    @CacheInvalidate(name = "sys-params", key = "'all'")
     public Long save(SysParamSaveForm form) {
         return txService.save(form);
     }
 
     /** 删除，委托事务服务处理 */
     @BizLog("删除系统参数")
+    @CacheInvalidate(name = "sys-params", key = "'all'")
     public void deleteById(Long id) {
         txService.deleteById(id);
     }
@@ -122,6 +125,7 @@ public class SysParamService {
     private SysParamVO toVo(SysParamEntity entity) {
         SysParamVO vo = new SysParamVO();
         vo.setId(entity.getId());
+        vo.setVersion(entity.getVersion());
         vo.setNumber(entity.getNumber());
         vo.setName(entity.getName());
         vo.setValue(entity.getValue());

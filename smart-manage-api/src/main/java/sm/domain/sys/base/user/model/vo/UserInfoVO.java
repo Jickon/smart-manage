@@ -35,13 +35,13 @@ public class UserInfoVO {
 
 	private String phone;
 
-	private Boolean enableFlag;
+	private Boolean enabled;
 
 	private LocalDateTime createTime;
 
 	private LocalDateTime updateTime;
 
-	private Integer mutex;
+	private Integer version;
 
 	@Schema(description = "当前组织下的角色ID列表")
 	private List<Long> roleIds;

@@ -14,8 +14,11 @@ import sm.domain.sys.base.menu.model.form.*;
 import sm.domain.sys.base.menu.model.vo.*;
 import sm.domain.sys.base.menu.service.MenuService;
 import sm.system.form.IdForm;
+import sm.system.form.IdsForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
+
+import java.util.List;
 
 /**
  * 菜单管理
@@ -33,6 +36,13 @@ public class MenuController {
 	@SaCheckPermission("sys:base:menu:listPage")
 	public Result<PageData<MenuListVO>> listPage(@RequestBody MenuListForm form) {
 		return Result.success(service.listPage(form));
+	}
+
+	@Operation(summary = "按应用查询菜单", description = "获取指定应用下用于构建管理树的全部菜单")
+	@PostMapping("/sys/base/menu/listByApp")
+	@SaCheckPermission("sys:base:menu:listPage")
+	public Result<List<MenuTreeVO>> listByApp(@RequestBody @Valid UserMenusByAppIdForm form) {
+		return Result.success(service.listByApp(form.getAppId()));
 	}
 
 	@Operation(summary = "菜单选择", description = "基础资料选择：获取菜单分页列表数据")
@@ -80,6 +90,20 @@ public class MenuController {
 	@SaCheckPermission("sys:base:menu:delete")
 	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
+		return Result.success();
+	}
+
+	@PostMapping("/sys/base/menu/enable")
+	@SaCheckPermission("sys:base:menu:enable")
+	public Result<String> enable(@RequestBody @Valid IdsForm form) {
+		service.enable(form.getIds());
+		return Result.success();
+	}
+
+	@PostMapping("/sys/base/menu/disable")
+	@SaCheckPermission("sys:base:menu:disable")
+	public Result<String> disable(@RequestBody @Valid IdsForm form) {
+		service.disable(form.getIds());
 		return Result.success();
 	}
 }

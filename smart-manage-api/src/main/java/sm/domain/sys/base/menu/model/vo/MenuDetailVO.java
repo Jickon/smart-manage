@@ -49,7 +49,7 @@ public class MenuDetailVO {
 	private Integer sort;
 
 	@Schema(description = "是否启用")
-	private Boolean enableFlag;
+	private Boolean enabled;
 
 	@Schema(description = "创建时间")
 	private LocalDateTime createTime;

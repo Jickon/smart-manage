@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
-import { message, Collapse, Checkbox, Spin, Empty } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { App, Collapse, Checkbox, Spin, Empty } from 'antd';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import EditPage from '@/domain/common/page/EditPage';
 import { OperationType } from '@/domain/common/page/types';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { roleApi } from './api';
+import { roleQueryKeys } from './queryKeys';
 import { permissionApi } from '@/domain/sys/permission/api';
+import { permissionQueryKeys } from '@/domain/sys/permission/queryKeys';
 import type { PermissionListAllVO } from '@/domain/sys/permission/types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
@@ -43,6 +45,8 @@ function deriveCheckedPermIds(permissionIds: string[] | undefined): Set<string> 
 
 /** 角色编辑页 — 全页 Tab，包含权限分配面板 */
 const RoleEditPage = (props: PageComponentProps) => {
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const { appNumber, tabKey, operationType, billId } = props;
   const isAddNew = operationType === OperationType.ADDNEW;
   const replaceContentTab = useWorkbenchStore((s) => s.replaceContentTab);
@@ -50,14 +54,14 @@ const RoleEditPage = (props: PageComponentProps) => {
 
   // 详情查询（仅编辑模式）
   const detailQuery = useQuery({
-    queryKey: ['role-detail', billId],
+    queryKey: roleQueryKeys.detail(billId),
     queryFn: () => roleApi.detail(billId!),
     enabled: !!billId,
   });
 
   // 全量权限（用于分配面板）
   const allPermsQuery = useQuery({
-    queryKey: ['permission-list-all'],
+    queryKey: permissionQueryKeys.listAll(),
     queryFn: () => permissionApi.listAll(),
     staleTime: 5 * 60 * 1000,
   });
@@ -108,7 +112,7 @@ const RoleEditPage = (props: PageComponentProps) => {
     const number = (values.number as string).trim();
     const savedId = await roleApi.save({
       id: billId ?? undefined,
-      mutex: detail?.mutex,
+      version: detail?.version,
       name,
       number,
       permissionIds: [...displayCheckedIds],
@@ -125,8 +129,16 @@ const RoleEditPage = (props: PageComponentProps) => {
       });
       activateContentTab(appNumber, `bill:${props.componentKey}:${savedId}`);
     }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: roleQueryKeys.all }),
+      queryClient.invalidateQueries({ queryKey: permissionQueryKeys.all }),
+    ]);
     message.success(isAddNew ? '新增成功' : '保存成功');
   };
+  const saveMutation = useMutation({
+    mutationFn: handleSave,
+    onError: (error) => message.error(error instanceof Error ? error.message : '保存失败'),
+  });
 
   const loading = detailQuery.isLoading || allPermsQuery.isLoading;
   const error = (detailQuery.error || allPermsQuery.error) as Error | null;
@@ -140,10 +152,11 @@ const RoleEditPage = (props: PageComponentProps) => {
       loading={loading}
       error={error}
       onRetry={() => {
-        detailQuery.refetch();
-        allPermsQuery.refetch();
+        if (detailQuery.isError) detailQuery.refetch();
+        if (allPermsQuery.isError) allPermsQuery.refetch();
       }}
-      onSave={handleSave}
+      onSave={saveMutation.mutateAsync}
+      saving={saveMutation.isPending}
       onExit={() => {
         useWorkbenchStore.getState().removeContentTab(appNumber, tabKey);
       }}

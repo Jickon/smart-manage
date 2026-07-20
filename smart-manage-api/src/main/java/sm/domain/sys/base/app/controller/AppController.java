@@ -16,6 +16,7 @@ import sm.domain.sys.base.app.model.vo.*;
 import sm.domain.sys.base.app.service.AppService;
 import sm.domain.sys.base.common.helper.UserHelper;
 import sm.system.form.IdForm;
+import sm.system.form.IdsForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
 
@@ -63,6 +64,20 @@ public class AppController {
 	@SaCheckPermission("sys:base:app:delete")
 	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
+		return Result.success();
+	}
+
+	@PostMapping("/sys/base/app/enable")
+	@SaCheckPermission("sys:base:app:enable")
+	public Result<String> enable(@RequestBody @Valid IdsForm form) {
+		service.enable(form.getIds());
+		return Result.success();
+	}
+
+	@PostMapping("/sys/base/app/disable")
+	@SaCheckPermission("sys:base:app:disable")
+	public Result<String> disable(@RequestBody @Valid IdsForm form) {
+		service.disable(form.getIds());
 		return Result.success();
 	}
 

@@ -1,12 +1,13 @@
 import { useState, useCallback } from 'react';
-import { Button, Modal } from 'antd';
+import { App, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
-import { useBatchDeleteMutation } from '@/domain/common/page/useBatchDeleteMutation';
+import { useRoleDeleteMutation } from './useRoleDeleteMutation';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { OperationType } from '@/domain/common/page/types';
 import { roleApi } from './api';
+import { roleQueryKeys } from './queryKeys';
 import type { RoleListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
@@ -15,21 +16,19 @@ const ROLE_EDIT_KEY = 'sys/base/role/edit';
 
 /** 角色管理列表页 */
 const RoleListPage = (props: PageComponentProps) => {
+  const { modal } = App.useApp();
   const { records, total, pageNum, pageSize, keyword, query, onSearch, onPageChange, onRefresh } =
     useListPageQuery({
-      queryKey: ['role-list'],
+      queryKey: roleQueryKeys.lists(),
       queryFn: (params) => roleApi.listPage(params),
     });
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const openBillTab = useWorkbenchStore((s) => s.openBillTab);
   const openAddNewTab = useWorkbenchStore((s) => s.openAddNewTab);
-  const deleteMutation = useBatchDeleteMutation({
-    deleteFn: roleApi.delete,
-    onSuccess: async () => {
-      setSelectedRowKeys([]);
-      await query.refetch();
-    },
+  const deleteMutation = useRoleDeleteMutation(async () => {
+    setSelectedRowKeys([]);
+    await query.refetch();
   });
 
   const handleOpenEdit = useCallback(
@@ -45,7 +44,7 @@ const RoleListPage = (props: PageComponentProps) => {
 
   const handleDelete = useCallback(() => {
     if (selectedRowKeys.length === 0) return;
-    Modal.confirm({
+    modal.confirm({
       title: '确认删除',
       content: `确定要删除选中的 ${selectedRowKeys.length} 条记录吗？`,
       okText: '删除',
@@ -53,7 +52,7 @@ const RoleListPage = (props: PageComponentProps) => {
       cancelText: '取消',
       onOk: () => deleteMutation.mutateAsync(selectedRowKeys.map(String)),
     });
-  }, [selectedRowKeys, deleteMutation]);
+  }, [selectedRowKeys, deleteMutation, modal]);
 
   const columns: ColumnsType<RoleListVO> = [
     {

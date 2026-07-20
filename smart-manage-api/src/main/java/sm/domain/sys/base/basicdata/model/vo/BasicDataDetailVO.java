@@ -23,13 +23,13 @@ public class BasicDataDetailVO {
 
     private String remark;
 
-    private Boolean enableFlag;
+    private Boolean enabled;
 
     private LocalDateTime createTime;
 
     private LocalDateTime updateTime;
 
-    private Integer mutex;
+    private Integer version;
 
     @Schema(description = "基础数据明细")
     private List<BasicDataEntryVO> entrys;

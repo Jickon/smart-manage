@@ -1,9 +1,11 @@
 import { useMemo } from 'react';
-import { message } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { App } from 'antd';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ModalEditPage from '@/domain/common/page/ModalEditPage';
 import type { EditField } from '@/domain/common/page/EditPage';
+import { defineRefSelector } from '@/domain/common/page/defineRefSelector';
 import { permissionApi } from './api';
+import { permissionQueryKeys } from './queryKeys';
 import { appApi } from '@/domain/sys/app/api';
 import type { AppListVO } from '@/domain/sys/app/types';
 
@@ -33,29 +35,33 @@ const fields: EditField[] = [
     dataIndex: 'app',
     type: 'ref-selector',
     rules: [{ required: true, message: '所属应用不能为空' }],
-    refSelector: {
+    refSelector: defineRefSelector<AppListVO>({
       selectorKey: 'sys-app-permission',
       modalTitle: '选择应用',
       fetchFn: (params) =>
-        appApi
-          .listPage({ pageNum: params.pageNum, pageSize: params.pageSize, keyword: params.keyword })
-          .then((res) => res as unknown as { records: Record<string, unknown>[]; total: number }),
-      displayRender: (record) => (record as unknown as AppListVO).name,
+        appApi.listPage({
+          pageNum: params.pageNum,
+          pageSize: params.pageSize,
+          keyword: params.keyword,
+        }),
+      displayRender: (record) => record.name,
       fieldNames: { key: 'id', label: 'name' },
       columns: [
         { title: '编码', dataIndex: 'number', width: 160 },
         { title: '名称', dataIndex: 'name', width: 200 },
       ],
-    },
+    }),
   },
 ];
 
 /** 权限编辑弹框 */
 const PermissionEditPage = ({ open, permissionId, onClose, onSaved }: Props) => {
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const isAddNew = permissionId === null;
 
   const detailQuery = useQuery({
-    queryKey: ['permission-detail', permissionId],
+    queryKey: permissionQueryKeys.detail(permissionId),
     queryFn: () => permissionApi.detail(permissionId!),
     enabled: Boolean(open && permissionId),
     staleTime: 0,
@@ -79,13 +85,19 @@ const PermissionEditPage = ({ open, permissionId, onClose, onSaved }: Props) => 
     if (!app?.id) throw new Error('所属应用不能为空');
     await permissionApi.save({
       id: permissionId ?? undefined,
+      version: detail?.version,
       name: (values.name as string).trim(),
       number: (values.number as string).trim(),
       appId: app.id,
     });
+    await queryClient.invalidateQueries({ queryKey: permissionQueryKeys.all });
     message.success(isAddNew ? '新增成功' : '保存成功');
     onSaved();
   };
+  const saveMutation = useMutation({
+    mutationFn: handleSave,
+    onError: (error) => message.error(error instanceof Error ? error.message : '保存失败'),
+  });
 
   return (
     <ModalEditPage
@@ -94,7 +106,8 @@ const PermissionEditPage = ({ open, permissionId, onClose, onSaved }: Props) => 
       onClose={onClose}
       fields={fields}
       initialValues={initialValues}
-      onSave={handleSave}
+      onSave={saveMutation.mutateAsync}
+      saving={saveMutation.isPending}
       loading={detailQuery.isLoading}
       error={detailQuery.error as Error | null}
       onRetry={() => detailQuery.refetch()}

@@ -2,6 +2,7 @@ package sm.domain.sys.base.uiconfig.service;
 
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
+import com.alicp.jetcache.anno.CacheInvalidate;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -94,11 +95,13 @@ public class UiConfigService {
     }
 
     @BizLog("保存界面配置")
+    @CacheInvalidate(name = "common", key = "'ui:config'")
     public Long save(UiConfigSaveForm form) {
         return txService.save(form);
     }
 
     @BizLog("删除界面配置")
+    @CacheInvalidate(name = "common", key = "'ui:config'")
     public void deleteById(Long id) {
         txService.deleteById(id);
     }

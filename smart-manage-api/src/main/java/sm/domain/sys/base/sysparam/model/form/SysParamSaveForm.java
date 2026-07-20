@@ -16,6 +16,9 @@ public class SysParamSaveForm {
     @Schema(description = "主键ID（新建时不传）")
     private Long id;
 
+    @Schema(description = "乐观锁版本号，修改时必传")
+    private Integer version;
+
     @NotBlank(message = "参数编码不能为空")
     @Schema(description = "参数编码")
     private String number;

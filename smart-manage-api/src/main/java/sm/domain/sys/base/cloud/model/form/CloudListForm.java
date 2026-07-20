@@ -13,5 +13,5 @@ public class CloudListForm extends PageForm {
 	private String keyword;
 
 	@Schema(description = "启用状态")
-	private Boolean enableFlag;
+	private Boolean enabled;
 }

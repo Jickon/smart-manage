@@ -17,9 +17,12 @@ import sm.system.response.ResultEnum;
 import sm.system.storage.FileStorageService;
 import sm.system.storage.FileStorageServiceFactory;
 import sm.system.storage.FileStoreResult;
+import sm.system.util.TransactionUtil;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 附件事务服务 —— 所有写操作在类级别事务中执行
@@ -45,56 +48,78 @@ class AttachmentTxService {
         if (originalName != null && originalName.contains(".")) {
             ext = originalName.substring(originalName.lastIndexOf("."));
         }
-        AttachmentEntity entity = new AttachmentEntity();
-        entity.setOriginalName(originalName);
-        entity.setStoredName(result.getStoredName());
-        entity.setStoredPath(result.getStoredPath());
-        entity.setFileSize(result.getFileSize());
-        entity.setMimeType(file.getContentType());
-        entity.setFileExt(ext);
-        entity.setStorageType(storage.getType());
-        entity.setIsTemp(isTemp);
-        mapper.insert(entity);
-        if (isTemp) {
-            BizAttachmentEntity biz = new BizAttachmentEntity();
-            biz.setBizType(bizType);
-            biz.setBizId(null);
-            biz.setAttachmentId(entity.getId());
-            biz.setSort(0);
-            bizMapper.insert(biz);
+        try {
+            AttachmentEntity entity = new AttachmentEntity();
+            entity.setOriginalName(originalName);
+            entity.setStoredName(result.getStoredName());
+            entity.setStoredPath(result.getStoredPath());
+            entity.setFileSize(result.getFileSize());
+            entity.setMimeType(file.getContentType());
+            entity.setFileExt(ext);
+            entity.setStorageType(storage.getType());
+            entity.setIsTemp(isTemp);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
+            if (isTemp) {
+                BizAttachmentEntity biz = new BizAttachmentEntity();
+                biz.setBizType(bizType);
+                biz.setBizId(null);
+                biz.setAttachmentId(entity.getId());
+                biz.setSort(0);
+                if (bizMapper.insert(biz) != 1) {
+                    throw new BizException(ResultEnum.PERSISTENCE_ERROR, "聚合明细写入失败");
+                }
+            }
+            log.info("附件上传: id={}, name={}, temp={}", entity.getId(), originalName, isTemp);
+            return toVo(entity);
+        } catch (RuntimeException exception) {
+            deleteForCompensation(storage, result.getStoredPath(), "附件上传数据库写入失败");
+            throw exception;
         }
-        log.info("附件上传: id={}, name={}, temp={}", entity.getId(), originalName, isTemp);
-        return toVo(entity);
     }
 
     /** 提升附件：关联业务单据 + 移出临时目录 */
     public void promote(AttachmentPromoteForm form) throws IOException {
         FileStorageService storage = storageFactory.getService();
-        for (Long attachmentId : form.getAttachmentIds()) {
-            AttachmentEntity entity = mapper.selectById(attachmentId);
-            if (entity == null) {
-                throw new BizException("附件不存在: " + attachmentId);
+        List<String> promotedPaths = new ArrayList<>();
+        try {
+            for (Long attachmentId : form.getAttachmentIds()) {
+                AttachmentEntity entity = mapper.selectById(attachmentId);
+                if (entity == null) {
+                    throw new BizException(ResultEnum.NOT_FOUND, "附件不存在: " + attachmentId);
+                }
+                if (Boolean.TRUE.equals(entity.getIsTemp())) {
+                    String newPath = storage.promote(entity.getStoredPath(), "biz/" + form.getBizType());
+                    promotedPaths.add(newPath);
+                    entity.setStoredPath(newPath);
+                    entity.setIsTemp(false);
+                    if (mapper.updateById(entity) != 1) {
+                        throw new BizException(ResultEnum.DATA_CONFLICT, "数据已被其他用户修改");
+                    }
+                }
+                BizAttachmentEntity bizEntity = selectBizByAttachmentId(attachmentId);
+                if (bizEntity != null) {
+                    bizEntity.setBizId(form.getBizId());
+                    if (bizMapper.updateById(bizEntity) != 1) {
+                        throw new BizException(ResultEnum.PERSISTENCE_ERROR, "聚合明细写入失败");
+                    }
+                } else {
+                    BizAttachmentEntity newBiz = new BizAttachmentEntity();
+                    newBiz.setBizType(form.getBizType());
+                    newBiz.setBizId(form.getBizId());
+                    newBiz.setAttachmentId(attachmentId);
+                    newBiz.setSort(0);
+                    if (bizMapper.insert(newBiz) != 1) {
+                        throw new BizException(ResultEnum.PERSISTENCE_ERROR, "聚合明细写入失败");
+                    }
+                }
             }
-            if (entity.getIsTemp() != null && entity.getIsTemp()) {
-                // 移动文件：temp → biz/{bizType}
-                String newPath = storage.promote(entity.getStoredPath(), "biz/" + form.getBizType());
-                entity.setStoredPath(newPath);
-                entity.setIsTemp(false);
-                mapper.updateById(entity);
+        } catch (IOException | RuntimeException exception) {
+            for (int index = promotedPaths.size() - 1; index >= 0; index--) {
+                moveForCompensation(storage, promotedPaths.get(index));
             }
-            // 更新业务映射
-            BizAttachmentEntity bizEntity = selectBizByAttachmentId(attachmentId);
-            if (bizEntity != null) {
-                bizEntity.setBizId(form.getBizId());
-                bizMapper.updateById(bizEntity);
-            } else {
-                BizAttachmentEntity newBiz = new BizAttachmentEntity();
-                newBiz.setBizType(form.getBizType());
-                newBiz.setBizId(form.getBizId());
-                newBiz.setAttachmentId(attachmentId);
-                newBiz.setSort(0);
-                bizMapper.insert(newBiz);
-            }
+            throw exception;
         }
         log.info("附件提升: ids={}, bizType={}, bizId={}", form.getAttachmentIds(), form.getBizType(), form.getBizId());
     }
@@ -108,13 +133,22 @@ class AttachmentTxService {
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "附件不存在：" + id);
         }
-        FileStorageService storage = storageFactory.getService();
-        storage.delete(entity.getStoredPath());
-        // 删除业务映射
         bizMapper.delete(new LambdaQueryWrapper<BizAttachmentEntity>()
                 .eq(BizAttachmentEntity::getAttachmentId, id));
-        mapper.deleteById(id);
-        log.info("附件删除: id={}, path={}", id, entity.getStoredPath());
+        if (mapper.deleteById(id) != 1) {
+            throw new BizException(sm.system.response.ResultEnum.DATA_CONFLICT, "数据已被其他用户删除");
+        }
+        FileStorageService storage = storageFactory.getService();
+        String storedPath = entity.getStoredPath();
+        // 数据库提交后再删除外部文件；失败会保留包含附件 ID 与路径的可恢复告警。
+        TransactionUtil.afterCommit(() -> {
+            try {
+                storage.delete(storedPath);
+                log.info("附件删除: id={}, path={}", id, storedPath);
+            } catch (IOException exception) {
+                log.error("附件物理文件删除失败，需按附件ID和路径重试: id={}, path={}", id, storedPath, exception);
+            }
+        });
     }
 
     /** 按附件 ID 查询业务映射 */
@@ -136,5 +170,21 @@ class AttachmentTxService {
             vo.setCreateTime(entity.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         }
         return vo;
+    }
+
+    private void deleteForCompensation(FileStorageService storage, String storedPath, String reason) {
+        try {
+            storage.delete(storedPath);
+        } catch (IOException cleanupException) {
+            log.error("{}，且补偿删除失败: path={}", reason, storedPath, cleanupException);
+        }
+    }
+
+    private void moveForCompensation(FileStorageService storage, String promotedPath) {
+        try {
+            storage.move(promotedPath, "temp");
+        } catch (IOException cleanupException) {
+            log.error("附件提升失败且反向移动补偿失败: path={}", promotedPath, cleanupException);
+        }
     }
 }

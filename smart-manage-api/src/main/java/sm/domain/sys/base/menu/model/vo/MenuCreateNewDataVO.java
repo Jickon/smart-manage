@@ -16,6 +16,6 @@ public class MenuCreateNewDataVO {
 	private Integer sort;
 
 	@Schema(description = "是否启用")
-	private Boolean enableFlag;
+	private Boolean enabled;
 }
 

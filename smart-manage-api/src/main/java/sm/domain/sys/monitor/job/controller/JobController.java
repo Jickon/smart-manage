@@ -44,8 +44,7 @@ public class JobController {
     @Operation(summary = "任务详情", description = "按ID查询任务详情")
     @SaCheckPermission("sys:monitor:job:detail")
     public Result<JobDetailVO> detail(@RequestBody @Valid IdForm form) {
-        JobDetailVO vo = service.getById(form.getId());
-        return vo != null ? Result.success(vo) : Result.error("任务不存在");
+        return Result.success(service.getById(form.getId()));
     }
 
     @PostMapping("/sys/monitor/job/save")
@@ -84,6 +83,14 @@ public class JobController {
     @SaCheckPermission("sys:monitor:job:save")
     public Result<String> trigger(@RequestBody @Valid IdForm form) {
         service.trigger(form.getId());
+        return Result.success();
+    }
+
+    @PostMapping("/sys/monitor/job/syncAll")
+    @Operation(summary = "重新同步", description = "以数据库为准重新同步全部 Quartz 任务并清理孤儿任务")
+    @SaCheckPermission("sys:monitor:job:save")
+    public Result<String> syncAll() {
+        service.syncAll();
         return Result.success();
     }
 

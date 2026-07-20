@@ -29,6 +29,12 @@ class PermissionTxService {
             if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "权限不存在");
             }
+            if (form.getVersion() == null) {
+                throw new BizException(ResultEnum.PARAM_ERROR, "修改权限时乐观锁版本号不能为空");
+            }
+            if (!java.util.Objects.equals(entity.getVersion(), form.getVersion())) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "权限已被其他用户修改，请刷新后重试");
+            }
         } else {
             entity = new PermissionEntity();
         }
@@ -36,7 +42,9 @@ class PermissionTxService {
         entity.setNumber(form.getNumber());
         entity.setAppId(form.getAppId());
         if (form.getId() == null) {
-            mapper.insert(entity);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
         } else {
             if (mapper.updateById(entity) == 0) {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "权限已被其他用户修改，请刷新后重试");

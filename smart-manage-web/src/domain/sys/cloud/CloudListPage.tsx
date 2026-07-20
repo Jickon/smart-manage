@@ -3,7 +3,9 @@ import { Tag, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
+import { useEnabledMutation } from '@/domain/common/page/useEnabledMutation';
 import { cloudApi } from './api';
+import { cloudQueryKeys } from './queryKeys';
 import type { CloudListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 import CloudEditPage from './CloudEditPage';
@@ -12,13 +14,17 @@ import CloudEditPage from './CloudEditPage';
 const CloudListPage = (props: PageComponentProps) => {
   const { records, total, pageNum, pageSize, keyword, query, onSearch, onPageChange, onRefresh } =
     useListPageQuery({
-      queryKey: ['cloud-list'],
+      queryKey: cloudQueryKeys.lists(),
       queryFn: (params) => cloudApi.listPage(params),
     });
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [editId, setEditId] = useState<string | null>(null); // null = 新增
   const [modalOpen, setModalOpen] = useState(false);
+  const enabledMutation = useEnabledMutation(cloudApi.setEnabled, async () => {
+    setSelectedRowKeys([]);
+    await query.refetch();
+  });
 
   const handleOpenEdit = useCallback((id: string) => {
     setEditId(id);
@@ -53,7 +59,7 @@ const CloudListPage = (props: PageComponentProps) => {
     { title: '排序', dataIndex: 'seq', width: 80 },
     {
       title: '状态',
-      dataIndex: 'enableFlag',
+      dataIndex: 'enabled',
       width: 80,
       render: (value) => (value ? <Tag color="green">启用</Tag> : <Tag color="default">停用</Tag>),
     },
@@ -75,6 +81,11 @@ const CloudListPage = (props: PageComponentProps) => {
         quickSearchPlaceholder="搜索编码/名称"
         filterSummary={keyword ? `关键字：${keyword}` : undefined}
         onAddNew={handleOpenAdd}
+        onEnable={() => enabledMutation.mutate({ ids: selectedRowKeys.map(String), enabled: true })}
+        onDisable={() =>
+          enabledMutation.mutate({ ids: selectedRowKeys.map(String), enabled: false })
+        }
+        enabledCommandLoading={enabledMutation.isPending}
         onRefresh={onRefresh}
         onQuickSearch={onSearch}
         onPageChange={onPageChange}

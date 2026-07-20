@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
-import { message } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { App } from 'antd';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ModalEditPage from '@/domain/common/page/ModalEditPage';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { cloudApi } from './api';
+import { cloudQueryKeys } from './queryKeys';
 
 interface Props {
   open: boolean;
@@ -27,15 +28,16 @@ const fields: EditField[] = [
     rules: [{ required: true, message: '名称不能为空' }],
   },
   { label: '排序', dataIndex: 'seq', type: 'number' },
-  { label: '启用', dataIndex: 'enableFlag', type: 'switch' },
 ];
 
 /** 云编辑弹框 */
 const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const isAddNew = cloudId === null;
 
   const detailQuery = useQuery({
-    queryKey: ['cloud-detail', cloudId],
+    queryKey: cloudQueryKeys.detail(cloudId),
     queryFn: () => cloudApi.detail(cloudId!),
     enabled: Boolean(open && cloudId),
     staleTime: 0,
@@ -50,21 +52,25 @@ const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
       number: detail.number ?? '',
       name: detail.name ?? '',
       seq: detail.seq ?? undefined,
-      enableFlag: detail.enableFlag ?? true,
     };
   }, [detail]);
 
   const handleSave = async (values: Record<string, unknown>) => {
     await cloudApi.save({
-      id: cloudId ? Number(cloudId) : undefined,
+      id: cloudId ?? undefined,
+      version: detail?.version,
       name: (values.name as string).trim(),
       number: (values.number as string).trim(),
       seq: (values.seq as number) ?? 0,
-      enableFlag: Boolean(values.enableFlag),
     });
+    await queryClient.invalidateQueries({ queryKey: cloudQueryKeys.all });
     message.success(isAddNew ? '新增成功' : '保存成功');
     onSaved();
   };
+  const saveMutation = useMutation({
+    mutationFn: handleSave,
+    onError: (error) => message.error(error instanceof Error ? error.message : '保存失败'),
+  });
 
   return (
     <ModalEditPage
@@ -73,7 +79,8 @@ const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
       onClose={onClose}
       fields={fields}
       initialValues={initialValues}
-      onSave={handleSave}
+      onSave={saveMutation.mutateAsync}
+      saving={saveMutation.isPending}
       loading={detailQuery.isLoading}
       error={detailQuery.error as Error | null}
       onRetry={() => detailQuery.refetch()}

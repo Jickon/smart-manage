@@ -1,0 +1,78 @@
+server:
+  port: ${SMART_MANAGE_SERVER_PORT:8080}
+
+spring:
+  arthas:
+    enabled: false
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: ${SMART_MANAGE_DB_URL}
+    username: ${SMART_MANAGE_DB_USERNAME}
+    password: ${SMART_MANAGE_DB_PASSWORD}
+    druid:
+      initial-size: ${SMART_MANAGE_DB_POOL_INITIAL_SIZE:5}
+      min-idle: ${SMART_MANAGE_DB_POOL_MIN_IDLE:10}
+      max-active: ${SMART_MANAGE_DB_POOL_MAX_ACTIVE:100}
+      max-wait: 30000
+      test-while-idle: true
+      validation-query: SELECT 1
+      validation-query-timeout: 3000
+      stat-view-servlet:
+        enabled: false
+      web-stat-filter:
+        enabled: false
+  data:
+    redis:
+      host: ${SMART_MANAGE_REDIS_HOST}
+      port: ${SMART_MANAGE_REDIS_PORT:6379}
+      password: ${SMART_MANAGE_REDIS_PASSWORD}
+      database: ${SMART_MANAGE_REDIS_DATABASE:1}
+      timeout: 1000ms
+
+jetcache:
+  remote:
+    default:
+      type: redis
+      keyConvertor: jackson
+      host: ${SMART_MANAGE_REDIS_HOST}
+      port: ${SMART_MANAGE_REDIS_PORT:6379}
+      password: ${SMART_MANAGE_REDIS_PASSWORD}
+      database: ${SMART_MANAGE_REDIS_DATABASE:1}
+      timeout: 1000
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+scalar:
+  enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      show-components: never
+
+logging:
+  level:
+    root: INFO
+    sm: INFO
+
+smart-manage:
+  framework:
+    cors:
+      allowed-origins:
+        - ${SMART_MANAGE_CORS_ALLOWED_ORIGIN}
+  system:
+    upload:
+      dir: ${SMART_MANAGE_UPLOAD_DIR}
+  sm2:
+    js:
+      private-key: ${SMART_MANAGE_SM2_PRIVATE_KEY}
+      public-key: ${SMART_MANAGE_SM2_PUBLIC_KEY}

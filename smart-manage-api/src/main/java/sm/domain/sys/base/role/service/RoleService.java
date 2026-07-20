@@ -51,6 +51,18 @@ public class RoleService {
 	}
 
 	/**
+	 * 用户角色分配需要一次性展示全部角色，仅返回选择所需的轻量字段。
+	 */
+	public List<RoleSelectVO> listAll() {
+		return mapper.selectList(new LambdaQueryWrapper<RoleEntity>()
+				.orderByAsc(RoleEntity::getNumber)
+				.orderByAsc(RoleEntity::getId))
+				.stream()
+				.map(this::toRoleSelectVO)
+				.toList();
+	}
+
+	/**
 	 * 基础资料选择：分页查询角色。
 	 */
 	public PageData<RoleSelectVO> select(RoleSelectForm form) {
@@ -106,7 +118,7 @@ public class RoleService {
 		vo.setUpdateTime(entity.getUpdateTime());
 		vo.setCreateUser(entity.getCreateUser());
 		vo.setUpdateUser(entity.getUpdateUser());
-		vo.setMutex(entity.getMutex());
+		vo.setVersion(entity.getVersion());
 		vo.setPermissionIds(permissionMapper.selectList(new LambdaQueryWrapper<RolePermissionEntity>()
 					.select(RolePermissionEntity::getPermissionId)
 					.eq(RolePermissionEntity::getRoleId, entity.getId()))

@@ -197,6 +197,19 @@
   overflow: auto !important;
 }
 
+/* 选择列和序号列属于列表基础结构，宽度固定，不参与剩余空间分配。 */
+.sm-list-table .ant-table-selection-column {
+  width: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+}
+
+.sm-list-table .sm-list-sequence-column {
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+}
+
 .sm-list-table .ant-table-sticky-scroll {
   bottom: 0;
 }

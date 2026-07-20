@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import type { QueryKey } from '@tanstack/react-query';
 import type { PaginationProps } from 'antd';
 import type { PageData } from '@/types/api';
 
@@ -16,7 +17,7 @@ export type ListPageQueryResult<T> = PageData<T>;
 /** useListPageQuery 配置 */
 interface UseListPageQueryOptions<T> {
   /** TanStack Query 的 queryKey 前缀，如 ['cloud-list'] */
-  queryKey: string[];
+  queryKey: QueryKey;
   /** 查询函数，接收 ListPageQueryParams 返回 ListPageQueryResult */
   queryFn: (params: ListPageQueryParams) => Promise<ListPageQueryResult<T>>;
   /** 初始每页条数，默认 20 */

@@ -3,6 +3,7 @@ package sm.domain.sys.base.user.service;
 import cn.dev33.satoken.stp.StpUtil;
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
+import com.alicp.jetcache.anno.CacheInvalidate;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -70,17 +71,30 @@ public class UserService {
 		vo.setUsername(entity.getUsername());
 		vo.setNickname(entity.getNickname());
 		vo.setAvatar(entity.getAvatar());
+		vo.setEnabled(entity.getEnabled());
 		return vo;
 	}
 
 	@BizLog("保存用户及角色")
+	@CacheInvalidate(name = "userInfo", key = "#form.id", condition = "#form.id != null")
 	public Long save(UserSaveForm form) {
 		return txService.save(form);
 	}
 
 	@BizLog("删除用户")
+	@CacheInvalidate(name = "userInfo", key = "#id")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
+	}
+
+	@BizLog("启用用户")
+	public void enable(List<Long> ids) {
+		txService.updateEnabled(ids, true);
+	}
+
+	@BizLog("禁用用户")
+	public void disable(List<Long> ids) {
+		txService.updateEnabled(ids, false);
 	}
 
 	/** 查询用户及当前组织下的角色明细。 */
@@ -114,7 +128,7 @@ public class UserService {
 		}
 
 		// 检查用户状态
-		if (user.getEnableFlag() == null || !user.getEnableFlag()) {
+		if (user.getEnabled() == null || !user.getEnabled()) {
 			return new LoginVO("用户已被禁用");
 		}
 
@@ -161,7 +175,7 @@ public class UserService {
 		// 默认组织ID
 		vo.setDefaultOrgId(defaultOrgId);
 		// 默认启用
-		vo.setEnableFlag(true);
+		vo.setEnabled(true);
 		// 可根据业务需要设置默认角色等
 		return vo;
 	}

@@ -16,6 +16,7 @@ import sm.domain.sys.monitor.script.model.vo.ScriptListVO;
 import sm.domain.sys.monitor.script.model.vo.ScriptResultVO;
 import sm.domain.sys.monitor.script.mapper.ScriptMapper;
 import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 import sm.system.aop.log.BizLog;
 import sm.system.helper.SpringContextHelper;
 import sm.system.response.PageData;
@@ -48,12 +49,12 @@ public class ScriptService {
 
     // ---- 脚本执行 ----
 
-    @BizLog("执行脚本")
+    @BizLog(value = "执行脚本", saveRequest = false, saveResponse = false)
     public ScriptResultVO execute(ScriptExecuteForm form) {
         UserHelper.checkAdmin();
         String content = form.getContent().trim();
         if (content.isEmpty()) {
-            throw new BizException("脚本内容不能为空");
+            throw new BizException(ResultEnum.PARAM_ERROR, "脚本内容不能为空");
         }
 
         ScriptResultVO result = new ScriptResultVO();
@@ -180,12 +181,12 @@ public class ScriptService {
         UserHelper.checkAdmin();
         ScriptEntity entity = mapper.selectById(id);
         if (entity == null) {
-            throw new BizException("脚本不存在");
+            throw new BizException(ResultEnum.NOT_FOUND, "脚本不存在");
         }
         return toDetailVo(entity);
     }
 
-    @BizLog("保存脚本")
+    @BizLog(value = "保存脚本", saveRequest = false)
     public Long save(ScriptSaveForm form) {
         UserHelper.checkAdmin();
         return txService.save(form);

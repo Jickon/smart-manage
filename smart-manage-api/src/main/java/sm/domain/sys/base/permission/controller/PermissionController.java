@@ -21,6 +21,8 @@ import sm.system.form.IdForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
 
+import java.util.List;
+
 /**
  * 权限管理
  *
@@ -37,6 +39,13 @@ public class PermissionController {
 	@SaCheckPermission("sys:base:permission:listPage")
 	public Result<PageData<PermissionListVO>> listPage(@RequestBody PermissionListForm form) {
 		return Result.success(service.listPage(form));
+	}
+
+	@Operation(summary = "权限全量列表", description = "获取角色权限分配所需的全部权限轻量数据")
+	@PostMapping("/sys/base/permission/listAll")
+	@SaCheckPermission("sys:base:permission:listPage")
+	public Result<List<PermissionSelectVO>> listAll() {
+		return Result.success(service.listAll());
 	}
 
 	@Operation(summary = "权限选择", description = "基础资料选择：获取权限分页列表数据")

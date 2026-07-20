@@ -71,6 +71,33 @@ public class MenuService {
 		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
 	}
 
+	/**
+	 * 获取指定应用下的完整菜单集合，供菜单管理左侧树一次性构建层级。
+	 */
+	public List<MenuTreeVO> listByApp(Long appId) {
+		List<MenuEntity> entityList = mapper.selectList(new LambdaQueryWrapper<MenuEntity>()
+				.eq(MenuEntity::getAppId, appId)
+				.orderByAsc(MenuEntity::getLevel)
+				.orderByAsc(MenuEntity::getSort)
+				.orderByAsc(MenuEntity::getId));
+		return entityList.stream().map(this::toMenuTreeVo).toList();
+	}
+
+	private MenuTreeVO toMenuTreeVo(MenuEntity entity) {
+		MenuTreeVO vo = new MenuTreeVO();
+		vo.setId(entity.getId());
+		vo.setNumber(entity.getNumber());
+		vo.setName(entity.getName());
+		vo.setLevel(entity.getLevel().getCode());
+		vo.setParentId(entity.getParentId());
+		vo.setPath(entity.getPath());
+		vo.setComponent(entity.getComponent());
+		vo.setSort(entity.getSort());
+		vo.setIcon(entity.getIcon());
+		vo.setEnabled(entity.getEnabled());
+		return vo;
+	}
+
 	private MenuListVO toMenuListVo(MenuEntity e) {
 		MenuListVO vo = new MenuListVO();
 		vo.setId(e.getId());
@@ -82,6 +109,7 @@ public class MenuService {
 		vo.setComponent(e.getComponent());
 		vo.setSort(e.getSort());
 		vo.setIcon(e.getIcon());
+		vo.setEnabled(e.getEnabled());
 		return vo;
 	}
 
@@ -94,7 +122,7 @@ public class MenuService {
 		wrapper.eq(form.getAppId() != null, MenuEntity::getAppId, form.getAppId())
 				.eq(form.getLevel() != null, MenuEntity::getLevel, form.getLevel())
 				.ne(form.getExcludeId() != null, MenuEntity::getId, form.getExcludeId())
-				.eq(form.getEnableFlag() != null, MenuEntity::getEnableFlag, form.getEnableFlag());
+				.eq(form.getEnabled() != null, MenuEntity::getEnabled, form.getEnabled());
 		if (form.getKeyword() != null && !form.getKeyword().isBlank()) {
 			String keyword = form.getKeyword().trim();
 			wrapper.and(condition -> condition.like(MenuEntity::getNumber, keyword)
@@ -112,16 +140,10 @@ public class MenuService {
 		vo.setNumber(e.getNumber());
 		vo.setName(e.getName());
 		vo.setLevel(e.getLevel());
-		vo.setEnableFlag(e.getEnableFlag());
+		vo.setEnabled(e.getEnabled());
 		return vo;
 	}
 
-	/**
-	 * 获取用户的云应用
-	 */
-	public MenuVO getUserApps(Long userId) {
-		throw new UnsupportedOperationException("getUserApps 暂未实现");
-	}
 
 	/**
 	 * 获取应用下的菜单
@@ -231,7 +253,7 @@ public class MenuService {
 		vo.setIcon(entity.getIcon());
 		vo.setDescription(entity.getDescription());
 		vo.setSort(entity.getSort());
-		vo.setEnableFlag(entity.getEnableFlag());
+		vo.setEnabled(entity.getEnabled());
 		vo.setCreateTime(entity.getCreateTime());
 		vo.setUpdateTime(entity.getUpdateTime());
 		vo.setCreateUser(entity.getCreateUser());
@@ -243,7 +265,7 @@ public class MenuService {
 		MenuCreateNewDataVO vo = new MenuCreateNewDataVO();
 		vo.setParentId(0L);
 		vo.setSort(99);
-		vo.setEnableFlag(true);
+		vo.setEnabled(true);
 		return vo;
 	}
 
@@ -255,5 +277,15 @@ public class MenuService {
 	@BizLog("删除菜单")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
+	}
+
+	@BizLog("启用菜单")
+	public void enable(List<Long> ids) {
+		txService.updateEnabled(ids, true);
+	}
+
+	@BizLog("禁用菜单")
+	public void disable(List<Long> ids) {
+		txService.updateEnabled(ids, false);
 	}
 }

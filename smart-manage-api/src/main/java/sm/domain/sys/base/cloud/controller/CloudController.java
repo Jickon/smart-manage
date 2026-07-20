@@ -18,6 +18,7 @@ import sm.domain.sys.base.cloud.model.vo.CloudListVO;
 import sm.domain.sys.base.cloud.model.vo.CloudSelectVO;
 import sm.domain.sys.base.cloud.service.CloudService;
 import sm.system.form.IdForm;
+import sm.system.form.IdsForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
 
@@ -67,6 +68,20 @@ public class CloudController {
 	@SaCheckPermission("sys:base:cloud:delete")
 	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
+		return Result.success();
+	}
+
+	@PostMapping("/sys/base/cloud/enable")
+	@SaCheckPermission("sys:base:cloud:enable")
+	public Result<String> enable(@RequestBody @Valid IdsForm form) {
+		service.enable(form.getIds());
+		return Result.success();
+	}
+
+	@PostMapping("/sys/base/cloud/disable")
+	@SaCheckPermission("sys:base:cloud:disable")
+	public Result<String> disable(@RequestBody @Valid IdsForm form) {
+		service.disable(form.getIds());
 		return Result.success();
 	}
 }

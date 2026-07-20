@@ -1,13 +1,10 @@
 import { useEffect } from 'react';
-import { Spin, Button, Modal, Input, InputNumber, Select, Switch, Result, Form } from 'antd';
+import { Spin, Button, Modal, Result, Form } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import type { EditField } from './EditPage';
-import RefSelector from '@/domain/common/component/RefSelector';
-import { useCommandMutation } from './useCommandMutation';
+import { EditFormFields } from './EditFormFields';
 import './EditPage.css';
 import './ModalEditPage.css';
-
-const { TextArea } = Input;
 
 interface ModalEditPageProps {
   title: string;
@@ -19,75 +16,10 @@ interface ModalEditPageProps {
   /** 保存回调，接收 Form 校验通过后的字段值 */
   onSave: (values: Record<string, unknown>) => Promise<void>;
   loading?: boolean;
+  saving?: boolean;
   error?: Error | null;
   onRetry?: () => void;
   width?: number;
-}
-
-/** 只读字段展示组件 — Form.Item 自动注入 value 属性 */
-function ReadonlyText({ value }: { value?: unknown }) {
-  return <span className="sm-edit-readonly">{value != null ? String(value) : '-'}</span>;
-}
-
-/** 根据字段类型渲染表单控件 */
-function renderFormControl(field: EditField, disabled: boolean) {
-  switch (field.type) {
-    case 'text':
-      return <Input variant="underlined" placeholder={field.placeholder} disabled={disabled} />;
-    case 'password':
-      return (
-        <Input.Password variant="underlined" placeholder={field.placeholder} disabled={disabled} />
-      );
-    case 'number':
-      return (
-        <InputNumber
-          variant="underlined"
-          className="sm-edit-control-full"
-          placeholder={field.placeholder}
-          disabled={disabled}
-        />
-      );
-    case 'switch':
-      return <Switch disabled={disabled} />;
-    case 'textarea':
-      return (
-        <TextArea
-          variant="underlined"
-          placeholder={field.placeholder}
-          disabled={disabled}
-          rows={3}
-        />
-      );
-    case 'select':
-      return (
-        <Select
-          variant="underlined"
-          className="sm-edit-control-full"
-          placeholder={field.placeholder}
-          disabled={disabled}
-          options={field.options}
-        />
-      );
-    case 'ref-selector':
-      return (
-        <RefSelector<Record<string, unknown>>
-          placeholder={field.placeholder}
-          disabled={disabled}
-          selectorKey={field.refSelector.selectorKey}
-          modalTitle={field.refSelector.modalTitle}
-          fetchFn={field.refSelector.fetchFn}
-          displayRender={field.refSelector.displayRender}
-          fieldNames={field.refSelector.fieldNames}
-          columns={field.refSelector.columns}
-          mode={field.refSelector.mode}
-          pageSize={field.refSelector.pageSize}
-          treeData={field.refSelector.treeData}
-          treeFieldNames={field.refSelector.treeFieldNames}
-        />
-      );
-    default:
-      return null;
-  }
 }
 
 /** 通用 Modal 编辑模板 — 三段式布局：标题栏 + 可滚动字段区 + 底部按钮，使用 antd Form 驱动校验 */
@@ -99,12 +31,12 @@ const ModalEditPage = ({
   initialValues,
   onSave,
   loading = false,
+  saving = false,
   error = null,
   onRetry,
   width = 700,
 }: ModalEditPageProps) => {
   const [form] = Form.useForm();
-  const commandMutation = useCommandMutation();
 
   // Modal 打开且数据加载完成后同步到 Form
   useEffect(() => {
@@ -121,16 +53,16 @@ const ModalEditPage = ({
   }, [form, open]);
 
   const handleClose = () => {
-    if (commandMutation.isPending) return;
+    if (saving) return;
     onClose();
   };
 
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      await commandMutation.mutateAsync({ command: onSave, values });
+      await onSave(values);
     } catch (err) {
-      // 表单校验和命令异常均已由 Form/useMutation 处理。
+      // 表单校验错误由 Form 展示，命令错误由领域 Mutation 统一处理。
       if ((err as { errorFields?: unknown[] }).errorFields) return;
     }
   };
@@ -153,10 +85,10 @@ const ModalEditPage = ({
       width={width}
       footer={
         <div className="sm-modal-footer-inner">
-          <Button onClick={onClose} disabled={commandMutation.isPending}>
+          <Button onClick={onClose} disabled={saving}>
             取消
           </Button>
-          <Button type="primary" loading={commandMutation.isPending} onClick={handleSave}>
+          <Button type="primary" loading={saving} onClick={handleSave}>
             保存
           </Button>
         </div>
@@ -178,40 +110,7 @@ const ModalEditPage = ({
       ) : (
         <Spin spinning={loading}>
           <Form form={form} layout="vertical" className="sm-edit-form">
-            <div className="sm-edit-fields">
-              {fields.map((field) => {
-                const disabled = field.disabled || false;
-
-                // readonly 字段用 ReadonlyText 组件展示纯文本
-                if (field.type === 'readonly') {
-                  return (
-                    <Form.Item
-                      key={field.dataIndex}
-                      name={field.dataIndex}
-                      label={field.label}
-                      className={`sm-edit-field${field.fullWidth ? ' sm-edit-field--full' : ''}`}
-                    >
-                      <ReadonlyText />
-                    </Form.Item>
-                  );
-                }
-
-                const valuePropName = field.type === 'switch' ? 'checked' : undefined;
-
-                return (
-                  <Form.Item
-                    key={field.dataIndex}
-                    name={field.dataIndex}
-                    label={field.label}
-                    rules={field.rules}
-                    valuePropName={valuePropName}
-                    className={`sm-edit-field${field.fullWidth ? ' sm-edit-field--full' : ''}`}
-                  >
-                    {renderFormControl(field, disabled)}
-                  </Form.Item>
-                );
-              })}
-            </div>
+            <EditFormFields fields={fields} />
           </Form>
         </Spin>
       )}

@@ -2,6 +2,7 @@ package sm.domain.sys.base.fileconfig.service;
 
 import com.alicp.jetcache.anno.CacheType;
 import com.alicp.jetcache.anno.Cached;
+import com.alicp.jetcache.anno.CacheInvalidate;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
@@ -92,11 +93,13 @@ public class FileConfigService {
     }
 
     @BizLog("保存文件存储配置")
+    @CacheInvalidate(name = "common", key = "'file:config'")
     public Long save(FileConfigSaveForm form) {
         return txService.save(form);
     }
 
     @BizLog("删除文件存储配置")
+    @CacheInvalidate(name = "common", key = "'file:config'")
     public void deleteById(Long id) {
         txService.deleteById(id);
     }

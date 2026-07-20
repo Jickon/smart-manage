@@ -17,6 +17,7 @@ import sm.domain.sys.base.user.model.vo.UserInfoVO;
 import sm.domain.sys.base.user.model.vo.UserListVO;
 import sm.domain.sys.base.user.service.UserService;
 import sm.system.form.IdForm;
+import sm.system.form.IdsForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
 
@@ -71,6 +72,20 @@ public class UserController {
 	@SaCheckPermission("sys:base:user:delete")
 	public Result<String> deleteUser(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
+		return Result.success();
+	}
+
+	@PostMapping("/sys/base/user/enable")
+	@SaCheckPermission("sys:base:user:enable")
+	public Result<String> enable(@RequestBody @Valid IdsForm form) {
+		service.enable(form.getIds());
+		return Result.success();
+	}
+
+	@PostMapping("/sys/base/user/disable")
+	@SaCheckPermission("sys:base:user:disable")
+	public Result<String> disable(@RequestBody @Valid IdsForm form) {
+		service.disable(form.getIds());
 		return Result.success();
 	}
 

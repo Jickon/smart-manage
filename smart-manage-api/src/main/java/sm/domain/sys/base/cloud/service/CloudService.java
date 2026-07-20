@@ -35,8 +35,8 @@ public class CloudService {
 			String kw = "%" + form.getKeyword().trim() + "%";
 			qw.and(condition -> condition.like(CloudEntity::getName, kw).or().like(CloudEntity::getNumber, kw));
 		}
-		if (form.getEnableFlag() != null) {
-			qw.eq(CloudEntity::getEnableFlag, form.getEnableFlag());
+		if (form.getEnabled() != null) {
+			qw.eq(CloudEntity::getEnabled, form.getEnabled());
 		}
 		qw.orderByAsc(CloudEntity::getSeq).orderByAsc(CloudEntity::getId);
 		Page<CloudEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
@@ -51,8 +51,8 @@ public class CloudService {
 			String kw = "%" + form.getKeyword().trim() + "%";
 			qw.and(condition -> condition.like(CloudEntity::getName, kw).or().like(CloudEntity::getNumber, kw));
 		}
-		if (form.getEnableFlag() != null) {
-			qw.eq(CloudEntity::getEnableFlag, form.getEnableFlag());
+		if (form.getEnabled() != null) {
+			qw.eq(CloudEntity::getEnabled, form.getEnabled());
 		}
 		qw.orderByAsc(CloudEntity::getSeq).orderByAsc(CloudEntity::getId);
 		Page<CloudEntity> page = new Page<>(form.getPageNum(), form.getPageSize());
@@ -67,7 +67,7 @@ public class CloudService {
 		vo.setName(e.getName());
 		vo.setNumber(e.getNumber());
 		vo.setSeq(e.getSeq());
-		vo.setEnableFlag(e.getEnableFlag());
+		vo.setEnabled(e.getEnabled());
 		vo.setCreateTime(e.getCreateTime());
 		vo.setUpdateTime(e.getUpdateTime());
 		return vo;
@@ -78,7 +78,7 @@ public class CloudService {
 		vo.setId(e.getId());
 		vo.setName(e.getName());
 		vo.setNumber(e.getNumber());
-		vo.setEnableFlag(e.getEnableFlag());
+		vo.setEnabled(e.getEnabled());
 		return vo;
 	}
 
@@ -100,10 +100,11 @@ public class CloudService {
 	private CloudDetailVO toDetailVo(CloudEntity e) {
 		CloudDetailVO vo = new CloudDetailVO();
 		vo.setId(String.valueOf(e.getId()));
+		vo.setVersion(e.getVersion());
 		vo.setName(e.getName());
 		vo.setNumber(e.getNumber());
 		vo.setSeq(e.getSeq());
-		vo.setEnableFlag(e.getEnableFlag());
+		vo.setEnabled(e.getEnabled());
 		vo.setCreateTime(e.getCreateTime());
 		vo.setUpdateTime(e.getUpdateTime());
 		vo.setCreateUser(e.getCreateUser());
@@ -114,7 +115,7 @@ public class CloudService {
 	public CloudCreateNewDataVO createNewData() {
 		CloudCreateNewDataVO vo = new CloudCreateNewDataVO();
 		vo.setSeq(99);
-		vo.setEnableFlag(true);
+		vo.setEnabled(true);
 		return vo;
 	}
 
@@ -126,5 +127,15 @@ public class CloudService {
 	@BizLog("删除云")
 	public void deleteById(Long id) {
 		txService.deleteById(id);
+	}
+
+	@BizLog("启用云")
+	public void enable(List<Long> ids) {
+		txService.updateEnabled(ids, true);
+	}
+
+	@BizLog("禁用云")
+	public void disable(List<Long> ids) {
+		txService.updateEnabled(ids, false);
 	}
 }

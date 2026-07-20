@@ -17,8 +17,13 @@ public interface FileStorageService {
     /** 存储临时文件（写入 temp 子目录） */
     FileStoreResult storeTemp(MultipartFile file) throws IOException;
 
-    /** 将临时文件提升到目标子目录 */
-    String promote(String tempPath, String targetSubDir) throws IOException;
+    /** 将文件移动到目标子目录，调用方可使用同一能力执行失败补偿。 */
+    String move(String storedPath, String targetSubDir) throws IOException;
+
+    /** 将临时文件提升到目标子目录。 */
+    default String promote(String tempPath, String targetSubDir) throws IOException {
+        return move(tempPath, targetSubDir);
+    }
 
     /** 删除文件 */
     void delete(String storedPath) throws IOException;

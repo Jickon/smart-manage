@@ -27,5 +27,5 @@ public class RoleEntity extends BaseEntity {
 	private String number;
 
 	@Version
-	private Integer mutex;
+	private Integer version;
 }

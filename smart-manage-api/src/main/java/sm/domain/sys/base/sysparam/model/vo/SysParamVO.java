@@ -12,6 +12,8 @@ public class SysParamVO {
 
     private Long id;
 
+    private Integer version;
+
     private String number;
 
     private String name;

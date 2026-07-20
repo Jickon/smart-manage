@@ -18,7 +18,7 @@ public class UserCreateNewDataVO {
 	private Long defaultOrgId;
 
 	@Schema(description = "是否启用")
-	private Boolean enableFlag;
+	private Boolean enabled;
 
 	@Schema(description = "默认角色ID列表")
 	private List<Long> defaultRoleIds;

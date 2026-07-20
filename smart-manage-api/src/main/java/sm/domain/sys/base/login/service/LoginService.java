@@ -13,7 +13,6 @@ import sm.domain.sys.base.login.model.form.LoginForm;
 import sm.domain.sys.base.login.model.vo.CaptchaVO;
 import sm.domain.sys.base.login.model.vo.LoginVO;
 import sm.domain.sys.base.menu.service.MenuService;
-import sm.domain.sys.base.user.model.entity.UserEntity;
 import sm.domain.sys.base.user.service.UserService;
 import sm.domain.sys.monitor.common.service.LogWriteService;
 import sm.system.exception.BizException;
@@ -104,12 +103,6 @@ public class LoginService {
 		return vo;
 	}
 
-	/**
-	 * 用户注册暂未开放，后续实现。
-	 */
-	public void register(UserEntity user) {
-		throw new UnsupportedOperationException("注册功能暂未开放");
-	}
 
 	public void logout() {
 		StpUtil.logout();

@@ -307,7 +307,9 @@ function RefSelector<T extends Record<string, unknown>>({
         title: col.title,
         dataIndex: col.dataIndex,
         width: col.width,
-        render: col.render as unknown as ColumnsType<T>[number]['render'],
+        render: col.render
+          ? (text: unknown, record: T, index: number) => col.render!(text, record, index)
+          : undefined,
       })),
     ],
     [columns, query.pageNum, query.pageSize],

@@ -109,17 +109,16 @@ public class FtpFileStorageService implements FileStorageService {
     }
 
     @Override
-    public String promote(String tempPath, String targetSubDir) throws IOException {
-        String filename = tempPath.contains("/") ? tempPath.substring(tempPath.lastIndexOf("/") + 1) : tempPath;
+    public String move(String storedPath, String targetSubDir) throws IOException {
+        String filename = storedPath.contains("/") ? storedPath.substring(storedPath.lastIndexOf("/") + 1) : storedPath;
         FTPClient ftp = connect();
         try {
             createDirs(ftp, targetSubDir);
-            String tempFull = TEMP_DIR + "/" + filename;
             String targetFull = targetSubDir + "/" + filename;
-            if (!ftp.rename(tempFull, targetFull)) {
+            if (!ftp.rename(storedPath, targetFull)) {
                 throw new IOException("FTP 文件移动失败: " + ftp.getReplyString());
             }
-            log.info("FTP 文件提升: {} -> {}", tempFull, targetFull);
+            log.info("FTP 文件移动: {} -> {}", storedPath, targetFull);
             return targetFull;
         } finally {
             disconnect(ftp);

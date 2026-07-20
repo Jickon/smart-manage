@@ -46,6 +46,18 @@ public class PermissionService {
 		return PageData.of(result.getTotal(), form.getPageNum(), form.getPageSize(), records);
 	}
 
+	/**
+	 * 角色权限分配需要一次性展示全部权限，仅返回选择和分组所需的轻量字段。
+	 */
+	public List<PermissionSelectVO> listAll() {
+		return mapper.selectList(new LambdaQueryWrapper<PermissionEntity>()
+				.orderByAsc(PermissionEntity::getNumber)
+				.orderByAsc(PermissionEntity::getId))
+				.stream()
+				.map(this::toSelectVo)
+				.toList();
+	}
+
 	private PermissionListVO toListVo(PermissionEntity entity) {
 		PermissionListVO vo = new PermissionListVO();
 		vo.setId(entity.getId());
@@ -120,6 +132,7 @@ public class PermissionService {
 	private PermissionDetailVO toDetailVo(PermissionEntity entity) {
 		PermissionDetailVO vo = new PermissionDetailVO();
 		vo.setId(String.valueOf(entity.getId()));
+		vo.setVersion(entity.getVersion());
 		vo.setName(entity.getName());
 		vo.setNumber(entity.getNumber());
 		vo.setAppId(entity.getAppId());

@@ -45,7 +45,10 @@
 
 - 项目处于架构搭建阶段，不写测试，不考虑向后兼容
 - 超级管理员用户（`administrator`）拥有 `*` 通配权限，跳过普通权限校验。脚本控制台、SQL 控制台和 Arthas 等高风险能力还必须在公开 Service 入口校验当前账号确实为 `administrator`，不能只依赖可配置的业务权限码。
-- 主键使用雪花 ID（MyBatis-Plus 的 `IdType.ASSIGN_ID`），乐观锁字段 `mutex`（通过 `@Version` 注解 + `OptimisticLockerInnerInterceptor` 实现）
+- 主键使用雪花 ID（MyBatis-Plus 的 `IdType.ASSIGN_ID`），乐观锁字段 `version`（通过 `@Version` 注解 +
+  `OptimisticLockerInnerInterceptor` 实现）
+- 数据库结构和必要初始化数据以项目根目录 `db/migration` 下的 Flyway 版本脚本为唯一权威来源；Maven 构建时将其复制到后端类路径，已执行的迁移禁止修改，结构调整必须新增版本脚本
+- 接口访问级别统一按注解判定：`@SaIgnore` 为公开接口，`@SaCheckPermission` 为权限接口，其余接口由全局过滤器执行登录校验
 - **禁止**在查询中使用裸表名/字段名字符串（如 `"t_sys_user"`、`"username"`），必须使用 MyBatis-Plus 的 `LambdaQueryWrapper` + 方法引用（如 `UserEntity::getUsername`）
 - **XML Mapper 表别名**：所有 SQL 中 FROM 主表别名为 `a`，JOIN 表按出现顺序依次为 `b, c, d...`。不使用语义化别名（如 `app`、`user`），保持 SQL 紧凑统一。
 - Service 的公开业务方法禁止用 `return null` 表达业务失败。资源不存在、状态非法、无权限、参数不合法等场景必须抛出明确异常，让 `GlobalExceptionHandler` 统一返回。内部辅助方法确实允许缺省值时，方法命名和注释必须明确可空语义。
@@ -71,7 +74,7 @@
 ### SQL执行
 - 由于本项目处于框架搭建阶段，随时可能修改数据库表结构，所以要以数据库实际数据为准
 - 如果你需要执行SQL，可以使用psql命令直接执行，但是要附带密码，不然命令会卡在让你输入密码，psql命令在
-  `D:\Program Files\PostgreSQL\16\bin`
+  `D:\Programs\PostgreSQL\16\bin`
 - 根据以往经验，查询数据要指定字符集为GBK，插入或更新数据数据要指定字符集为UTF8，具体原因不知
 - **创建表时必须加上表备注和字段备注**，使用 PostgreSQL `COMMENT ON` 语法。字段注释规范：
   - `id` → `ID`
@@ -135,6 +138,8 @@ src/
 **状态管理：** `Zustand` 管理客户端状态（用户信息、token、侧边栏折叠、当前模块）；`TanStack Query` 管理服务端状态（请求缓存、loading/error 自动化）。
 
 - 服务端查询统一使用 `useQuery`；保存、提交、删除和高风险执行等命令统一使用 `useMutation`，不得在页面内重复维护提交 loading 和通用错误提示。
+- 每个业务单据维护独立 Query Key Factory，至少提供 `all`、`lists`、`list(params)`、`details`、`detail(id)`；保存和删除成功后由领域
+  Mutation 统一失效相关缓存
 - 通用编辑页通过 `useCommandMutation` 管理命令提交状态；具体单据负责成功后的详情回显、列表缓存失效和页签 key 替换。
 - 表单字段校验由 Ant Design Form 负责。当前项目不引入 Zod，避免维护重复校验模型；以后只有出现明确的外部不可信数据运行时校验需求时再评估引入。
 

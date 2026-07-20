@@ -11,6 +11,7 @@ export interface UserListVO {
   username: string;
   nickname: string;
   avatar: string;
+  enabled: boolean;
 }
 
 /** 用户详情 — 所有 ID 均为字符串 */
@@ -22,17 +23,17 @@ export interface UserDetailVO {
   themeColor: string;
   email?: string;
   phone?: string;
-  enableFlag?: boolean;
+  enabled?: boolean;
   createTime?: string;
   updateTime?: string;
-  mutex: number;
+  version: number;
   roleIds: string[];
 }
 
 /** 用户保存 — ID 均以字符串传递 */
 export interface UserSaveForm {
   id?: string;
-  mutex?: number;
+  version?: number;
   username: string;
   password?: string;
   nickname?: string;
@@ -40,6 +41,5 @@ export interface UserSaveForm {
   phone?: string;
   avatar?: string;
   themeColor?: string;
-  enableFlag?: boolean;
   roleIds: string[];
 }

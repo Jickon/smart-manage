@@ -17,6 +17,9 @@ public class PermissionDetailVO {
 	@Schema(description = "ID")
 	private String id;
 
+	@Schema(description = "乐观锁版本号")
+	private Integer version;
+
 	@Schema(description = "名称")
 	private String name;
 

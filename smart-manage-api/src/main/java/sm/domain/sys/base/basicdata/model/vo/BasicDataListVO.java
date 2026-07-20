@@ -22,7 +22,7 @@ public class BasicDataListVO {
 
     private String remark;
 
-    private Boolean enableFlag;
+    private Boolean enabled;
 
     private LocalDateTime createTime;
 }

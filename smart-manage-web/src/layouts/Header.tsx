@@ -1,4 +1,4 @@
-import { Avatar, Dropdown, Modal } from 'antd';
+import { App, Avatar, Dropdown } from 'antd';
 import type { MenuProps } from 'antd';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useHeaderTabsStore } from '@/stores/headerTabs';
@@ -8,6 +8,7 @@ import { openApp, closeAppAndRemove } from '@/services/navigationService';
 import './Header.css';
 
 const Header = () => {
+  const { modal } = App.useApp();
   const tabs = useHeaderTabsStore((s) => s.tabs);
   const activeKey = useHeaderTabsStore((s) => s.activeKey);
   const userInfo = useUserStore((s) => s.userInfo);
@@ -25,7 +26,7 @@ const Header = () => {
   const handleLogout = async () => {
     const allowed = await useWorkbenchStore.getState().checkAllDirty();
     if (!allowed) {
-      Modal.confirm({
+      modal.confirm({
         title: '有未保存的数据',
         content: '部分页面存在未保存的修改，退出登录将丢失这些数据。确定退出吗？',
         okText: '确定退出',

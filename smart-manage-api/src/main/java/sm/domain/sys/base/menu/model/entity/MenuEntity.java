@@ -64,5 +64,5 @@ public class MenuEntity extends BaseEntity {
 	/**
 	 * 是否启用
 	 */
-	private Boolean enableFlag;
+	private Boolean enabled;
 }

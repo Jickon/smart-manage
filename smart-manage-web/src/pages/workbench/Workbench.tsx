@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Spin, Modal } from 'antd';
 import { useQuery } from '@tanstack/react-query';
+import { menuQueryKeys } from '@/domain/sys/menu/queryKeys';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { getUserMenusByAppNumber } from '@/domain/sys/menu/api';
 import AppSidebar from './AppSidebar';
@@ -17,7 +18,7 @@ const Workbench = ({ appNumber }: Props) => {
   const openListTab = useWorkbenchStore((s) => s.openListTab);
 
   const menuQuery = useQuery({
-    queryKey: ['app-menus', appNumber],
+    queryKey: menuQueryKeys.userByApp(appNumber),
     queryFn: () => getUserMenusByAppNumber(appNumber),
     staleTime: 5 * 60 * 1000,
   });

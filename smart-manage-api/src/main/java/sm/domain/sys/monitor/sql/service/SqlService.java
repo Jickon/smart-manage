@@ -13,6 +13,7 @@ import sm.domain.sys.monitor.sql.model.vo.SqlLogListVO;
 import sm.domain.sys.monitor.sql.model.vo.SqlResultVO;
 import sm.domain.sys.monitor.sql.mapper.SqlLogMapper;
 import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.util.ServletUtil;
@@ -42,12 +43,12 @@ public class SqlService {
         this.txService = txService;
     }
 
-    @BizLog("执行SQL")
+    @BizLog(value = "执行SQL", saveRequest = false, saveResponse = false)
     public SqlResultVO execute(SqlExecuteForm form) {
         UserHelper.checkAdmin();
         String sql = form.getSql().trim();
         if (sql.isEmpty()) {
-            throw new BizException("SQL 语句不能为空");
+            throw new BizException(ResultEnum.PARAM_ERROR, "SQL 语句不能为空");
         }
 
         long start = System.currentTimeMillis();
@@ -160,7 +161,7 @@ public class SqlService {
         UserHelper.checkAdmin();
         SqlLogEntity entity = mapper.selectById(id);
         if (entity == null) {
-            throw new BizException("执行日志不存在");
+            throw new BizException(ResultEnum.NOT_FOUND, "执行日志不存在");
         }
         return entity;
     }
@@ -169,7 +170,7 @@ public class SqlService {
         UserHelper.checkAdmin();
         SqlLogEntity entity = mapper.selectById(id);
         if (entity == null) {
-            throw new BizException("执行日志不存在");
+            throw new BizException(ResultEnum.NOT_FOUND, "执行日志不存在");
         }
         return toDetailVo(entity);
     }

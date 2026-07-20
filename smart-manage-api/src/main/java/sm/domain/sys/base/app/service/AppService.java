@@ -9,6 +9,7 @@ import sm.domain.sys.base.app.model.form.AppListForm;
 import sm.domain.sys.base.app.model.form.AppSaveForm;
 import sm.domain.sys.base.app.model.vo.*;
 import sm.domain.sys.base.app.mapper.AppMapper;
+import sm.domain.sys.base.common.helper.UserHelper;
 import sm.system.exception.BizException;
 import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
@@ -58,7 +59,7 @@ public class AppService {
 		vo.setIcon(DEFAULT_ICON);
 		vo.setIconColor(DEFAULT_ICON_COLOR);
 		vo.setSeq(99);
-		vo.setEnableFlag(true);
+		vo.setEnabled(true);
 		return vo;
 	}
 
@@ -72,11 +73,25 @@ public class AppService {
 		txService.deleteById(id);
 	}
 
+	@BizLog("启用应用")
+	public void enable(List<Long> ids) {
+		txService.updateEnabled(ids, true);
+	}
+
+	@BizLog("禁用应用")
+	public void disable(List<Long> ids) {
+		txService.updateEnabled(ids, false);
+	}
+
 	// ==================== 云+应用入口查询 ====================
 
 	public List<CloudAppsVO> getUserCloudApps(Long userId) {
 		if (userId == null) {
 			return List.of();
+		}
+		// 超级管理员拥有全部应用，不依赖用户角色关系。
+		if (UserHelper.isAdmin()) {
+			return getAllCloudApps();
 		}
 		return toCloudApps(mapper.selectUserCloudApps(userId));
 	}
@@ -129,7 +144,10 @@ public class AppService {
 		if (appNumber == null || appNumber.isBlank()) {
 			throw new BizException(ResultEnum.PARAM_ERROR, "应用编码不能为空");
 		}
-		AppVO vo = mapper.selectUserAppByNumber(userId, appNumber);
+		// 超级管理员直接按应用编码查询，普通用户仍通过角色权限关系过滤。
+		AppVO vo = UserHelper.isAdmin()
+				? mapper.selectAppByNumber(appNumber)
+				: mapper.selectUserAppByNumber(userId, appNumber);
 		if (vo == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "应用不存在或无权访问");
 		}

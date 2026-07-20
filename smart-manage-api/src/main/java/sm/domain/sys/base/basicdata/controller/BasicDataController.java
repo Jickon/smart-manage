@@ -18,6 +18,7 @@ import sm.domain.sys.base.basicdata.model.vo.BasicDataListVO;
 import sm.domain.sys.base.basicdata.model.vo.BasicDataOptionVO;
 import sm.domain.sys.base.basicdata.service.BasicDataService;
 import sm.system.form.IdForm;
+import sm.system.form.IdsForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
 
@@ -67,6 +68,20 @@ public class BasicDataController {
     @SaCheckPermission("sys:base:basic-data:delete")
     public Result<String> delete(@RequestBody @Valid IdForm form) {
         service.deleteById(form.getId());
+        return Result.success();
+    }
+
+    @PostMapping("/sys/base/basic-data/enable")
+    @SaCheckPermission("sys:base:basic-data:enable")
+    public Result<String> enable(@RequestBody @Valid IdsForm form) {
+        service.enable(form.getIds());
+        return Result.success();
+    }
+
+    @PostMapping("/sys/base/basic-data/disable")
+    @SaCheckPermission("sys:base:basic-data:disable")
+    public Result<String> disable(@RequestBody @Valid IdsForm form) {
+        service.disable(form.getIds());
         return Result.success();
     }
 

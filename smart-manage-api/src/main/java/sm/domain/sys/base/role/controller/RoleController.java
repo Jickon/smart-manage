@@ -21,6 +21,8 @@ import sm.system.form.IdForm;
 import sm.system.response.PageData;
 import sm.system.response.Result;
 
+import java.util.List;
+
 /**
  * 角色管理
  *
@@ -37,6 +39,13 @@ public class RoleController {
 	@SaCheckPermission("sys:base:role:listPage")
 	public Result<PageData<RoleListVO>> listPage(@RequestBody RoleListForm form) {
 		return Result.success(service.listPage(form));
+	}
+
+	@Operation(summary = "角色全量列表", description = "获取用户角色分配所需的全部角色轻量数据")
+	@PostMapping("/sys/base/role/listAll")
+	@SaCheckPermission("sys:base:role:listPage")
+	public Result<List<RoleSelectVO>> listAll() {
+		return Result.success(service.listAll());
 	}
 
 	@Operation(summary = "角色选择", description = "基础资料选择：获取角色分页列表数据")

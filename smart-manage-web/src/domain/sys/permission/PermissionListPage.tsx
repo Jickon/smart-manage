@@ -1,31 +1,30 @@
 import { useState, useCallback } from 'react';
-import { Button, Modal } from 'antd';
+import { App, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
-import { useBatchDeleteMutation } from '@/domain/common/page/useBatchDeleteMutation';
+import { usePermissionDeleteMutation } from './usePermissionDeleteMutation';
 import { permissionApi } from './api';
+import { permissionQueryKeys } from './queryKeys';
 import type { PermissionListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 import PermissionEditPage from './PermissionEditPage';
 
 /** 权限管理列表页 */
 const PermissionListPage = (props: PageComponentProps) => {
+  const { modal } = App.useApp();
   const { records, total, pageNum, pageSize, keyword, query, onSearch, onPageChange, onRefresh } =
     useListPageQuery({
-      queryKey: ['permission-list'],
+      queryKey: permissionQueryKeys.lists(),
       queryFn: (params) => permissionApi.listPage(params),
     });
 
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const deleteMutation = useBatchDeleteMutation({
-    deleteFn: permissionApi.delete,
-    onSuccess: async () => {
-      setSelectedRowKeys([]);
-      await query.refetch();
-    },
+  const deleteMutation = usePermissionDeleteMutation(async () => {
+    setSelectedRowKeys([]);
+    await query.refetch();
   });
 
   const handleOpenEdit = useCallback((id: string) => {
@@ -48,7 +47,7 @@ const PermissionListPage = (props: PageComponentProps) => {
 
   const handleDelete = useCallback(() => {
     if (selectedRowKeys.length === 0) return;
-    Modal.confirm({
+    modal.confirm({
       title: '确认删除',
       content: `确定要删除选中的 ${selectedRowKeys.length} 条记录吗？`,
       okText: '删除',
@@ -56,7 +55,7 @@ const PermissionListPage = (props: PageComponentProps) => {
       cancelText: '取消',
       onOk: () => deleteMutation.mutateAsync(selectedRowKeys.map(String)),
     });
-  }, [selectedRowKeys, deleteMutation]);
+  }, [selectedRowKeys, deleteMutation, modal]);
 
   const columns: ColumnsType<PermissionListVO> = [
     {

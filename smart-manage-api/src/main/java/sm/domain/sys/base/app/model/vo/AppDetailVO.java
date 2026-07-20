@@ -22,6 +22,9 @@ public class AppDetailVO {
 	@Schema(description = "id")
 	private Long id;
 
+	@Schema(description = "乐观锁版本号")
+	private Integer version;
+
 	@Schema(description = "编号")
 	private String number;
 
@@ -43,7 +46,7 @@ public class AppDetailVO {
 	private CloudRef cloud;
 
 	@Schema(description = "启用")
-	private Boolean enableFlag;
+	private Boolean enabled;
 
 	private LocalDateTime createTime;
 	private LocalDateTime updateTime;

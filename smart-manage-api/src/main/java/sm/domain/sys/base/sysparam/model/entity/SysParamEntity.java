@@ -37,5 +37,5 @@ public class SysParamEntity extends BaseEntity {
     private Boolean isSystem;
 
     @Version
-    private Integer mutex;
+    private Integer version;
 }

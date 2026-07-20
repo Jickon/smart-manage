@@ -33,5 +33,5 @@ public class BasicDataEntryEntity extends BaseEntity {
     private Integer sort;
 
     /** 是否启用 */
-    private Boolean enableFlag;
+    private Boolean enabled;
 }

@@ -36,19 +36,19 @@ class RoleTxService {
             checkWrapper.ne(RoleEntity::getId, form.getId());
         }
         if (mapper.selectCount(checkWrapper) > 0) {
-            throw new BizException("角色编码已存在");
+            throw new BizException(ResultEnum.UNIQUE_CONFLICT, "角色编码已存在");
         }
 
         RoleEntity entity;
         if (form.getId() != null) {
             entity = mapper.selectById(form.getId());
             if (entity == null) {
-                throw new BizException("角色不存在");
+                throw new BizException(ResultEnum.NOT_FOUND, "角色不存在");
             }
-            if (form.getMutex() == null) {
+            if (form.getVersion() == null) {
                 throw new BizException(ResultEnum.PARAM_ERROR, "修改角色时乐观锁版本号不能为空");
             }
-            if (!Objects.equals(entity.getMutex(), form.getMutex())) {
+            if (!Objects.equals(entity.getVersion(), form.getVersion())) {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "角色已被其他用户修改，请刷新后重试");
             }
         } else {
@@ -58,7 +58,9 @@ class RoleTxService {
         entity.setNumber(form.getNumber());
 
         if (form.getId() == null) {
-            mapper.insert(entity);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
         } else {
             if (mapper.updateById(entity) == 0) {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "角色已被其他用户修改，请刷新后重试");
@@ -91,7 +93,9 @@ class RoleTxService {
             RolePermissionEntity permissionEntity = new RolePermissionEntity();
             permissionEntity.setRoleId(roleId);
             permissionEntity.setPermissionId(permissionId);
-            permissionMapper.insert(permissionEntity);
+            if (permissionMapper.insert(permissionEntity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "聚合明细写入失败");
+            }
         }
     }
 }

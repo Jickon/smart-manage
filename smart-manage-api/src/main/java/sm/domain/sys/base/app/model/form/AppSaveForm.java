@@ -11,6 +11,9 @@ public class AppSaveForm {
 	@Schema(description = "id，为空则新增")
 	private Long id;
 
+	@Schema(description = "乐观锁版本号，修改时必传")
+	private Integer version;
+
 	@NotBlank(message = "名称不能为空")
 	@Schema(description = "名称")
 	private String name;
@@ -35,7 +38,5 @@ public class AppSaveForm {
 	@Schema(description = "云 id")
 	private Long cloudId;
 
-	@Schema(description = "启用")
-	private Boolean enableFlag;
 }
 

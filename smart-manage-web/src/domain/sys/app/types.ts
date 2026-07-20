@@ -38,7 +38,7 @@ export interface AppListVO {
   description: string;
   cloudId: string;
   cloudName: string;
-  enableFlag: boolean;
+  enabled: boolean;
   createTime?: string;
   updateTime?: string;
 }
@@ -46,6 +46,7 @@ export interface AppListVO {
 /** 应用详情 */
 export interface AppDetailVO {
   id: string;
+  version: number;
   name: string;
   number: string;
   icon: string;
@@ -57,7 +58,7 @@ export interface AppDetailVO {
     number: string;
     name: string;
   };
-  enableFlag: boolean;
+  enabled: boolean;
   createTime?: string;
   updateTime?: string;
 }
@@ -65,6 +66,7 @@ export interface AppDetailVO {
 /** 应用保存 */
 export interface AppSaveForm {
   id?: string;
+  version?: number;
   name: string;
   number: string;
   icon?: string;
@@ -72,5 +74,4 @@ export interface AppSaveForm {
   seq?: number;
   description?: string;
   cloudId: string;
-  enableFlag: boolean;
 }

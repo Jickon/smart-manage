@@ -1,6 +1,5 @@
 package sm.domain.sys.base.uiconfig.service;
 
-import com.alicp.jetcache.anno.CacheInvalidate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +23,6 @@ class UiConfigTxService {
     private final UiConfigMapper mapper;
 
     /** 新增/编辑，清除缓存 */
-    @CacheInvalidate(name = "common", key = "'ui:config'")
     public Long save(UiConfigSaveForm form) {
         UiConfigEntity entity;
         if (form.getId() != null) {
@@ -41,15 +39,18 @@ class UiConfigTxService {
         entity.setLoginLogo(form.getLoginLogo());
         entity.setHeaderLogo(form.getHeaderLogo());
         if (form.getId() == null) {
-            mapper.insert(entity);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
         } else {
-            mapper.updateById(entity);
+            if (mapper.updateById(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.DATA_CONFLICT, "数据已被其他用户修改");
+            }
         }
         return entity.getId();
     }
 
     /** 删除，清除缓存 */
-    @CacheInvalidate(name = "common", key = "'ui:config'")
     public void deleteById(Long id) {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "界面配置ID不能为空");
@@ -58,6 +59,8 @@ class UiConfigTxService {
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "界面配置不存在");
         }
-        mapper.deleteById(id);
+        if (mapper.deleteById(id) != 1) {
+            throw new BizException(sm.system.response.ResultEnum.DATA_CONFLICT, "数据已被其他用户删除");
+        }
     }
 }

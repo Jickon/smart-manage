@@ -34,8 +34,8 @@ public class AppEntity extends BaseEntity {
 
 	private Long cloudId;
 
-	private Boolean enableFlag;
+	private Boolean enabled;
 
 	@Version
-	private Integer mutex;
+	private Integer version;
 }

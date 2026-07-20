@@ -17,6 +17,9 @@ public class CloudDetailVO {
 	@Schema(description = "ID")
 	private String id;
 
+	@Schema(description = "乐观锁版本号")
+	private Integer version;
+
 	@Schema(description = "名称")
 	private String name;
 
@@ -27,7 +30,7 @@ public class CloudDetailVO {
 	private Integer seq;
 
 	@Schema(description = "是否启用")
-	private Boolean enableFlag;
+	private Boolean enabled;
 
 	@Schema(description = "创建时间")
 	private LocalDateTime createTime;

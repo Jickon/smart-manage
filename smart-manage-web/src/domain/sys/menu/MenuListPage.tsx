@@ -1,125 +1,84 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Button, Tag, Tree, Modal } from 'antd';
+import { App, Button, Tag, Tree } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { DataNode } from 'antd/es/tree';
 import { useQuery } from '@tanstack/react-query';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
-import { useBatchDeleteMutation } from '@/domain/common/page/useBatchDeleteMutation';
+import { useEnabledMutation } from '@/domain/common/page/useEnabledMutation';
+import { useMenuDeleteMutation } from './useMenuDeleteMutation';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { OperationType } from '@/domain/common/page/types';
 import { fetchAppsAll } from '@/domain/sys/app/api';
 import { menuApi } from './api';
+import { menuQueryKeys } from './queryKeys';
+import { appQueryKeys } from '@/domain/sys/app/queryKeys';
 import type { MenuListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
 /** 菜单编辑页 componentKey */
 const MENU_EDIT_KEY = 'sys/base/menu/edit';
 
-/** 树节点 key 格式：app:{appId} | cat:{id} | page:{id} */
+/** 树节点 key 格式：cloud:{cloudId} | app:{appId} */
 function nodeKey(prefix: string, id: string | number) {
   return `${prefix}:${id}`;
 }
 
-/**
- * 将 MenuTreeVO 列表构建为 2 级树（CATEGORY → PAGE），前端按 parentId 组装。
- */
-interface TreeMenuNode {
-  id: string;
-  number: string;
-  name: string;
-  level: number;
-  parentId: string;
-  children: TreeMenuNode[];
-}
-
-function buildMenuTree(
-  menus: { id: string; number: string; name: string; level: number; parentId: string }[],
-): TreeMenuNode[] {
-  const categories = menus.filter((m) => m.level === 2);
-  const pages = menus.filter((m) => m.level === 3);
-  return categories.map((cat) => ({
-    ...cat,
-    children: pages
-      .filter((p) => p.parentId === cat.id)
-      .map((p) => ({ ...p, children: [] as TreeMenuNode[] })),
-  }));
-}
-
 /** 菜单列表页 — 左树右表 */
 const MenuListPage = (props: PageComponentProps) => {
+  const { modal } = App.useApp();
   const [selectedNodeKey, setSelectedNodeKey] = useState<string | undefined>(undefined);
-  // 当前选中节点信息：{ type: 'app'|'cat', id }
+  // 当前选中的应用节点；云节点仅用于展开，不作为列表过滤条件。
   const [selectedFilter, setSelectedFilter] = useState<{ type: string; id: string } | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const openBillTab = useWorkbenchStore((s) => s.openBillTab);
   const openAddNewTab = useWorkbenchStore((s) => s.openAddNewTab);
 
-  // 加载应用列表 + 每个应用的菜单树
+  // 左树只加载云和应用，菜单数据统一在右侧分页列表中展示。
   const appsQuery = useQuery({
-    queryKey: ['cloud-apps-all'],
+    queryKey: appQueryKeys.cloudAppsAll(),
     queryFn: fetchAppsAll,
     staleTime: 5 * 60 * 1000,
   });
 
-  // 按需加载菜单（需展开应用时触发：默认先加载第一个应用）
-  const menuTreesQuery = useQuery({
-    queryKey: ['menu-trees'],
-    queryFn: async () => {
-      if (!appsQuery.data) return new Map<string, TreeMenuNode[]>();
-      const map = new Map<string, TreeMenuNode[]>();
-      for (const cloud of appsQuery.data) {
-        for (const app of cloud.appList) {
-          const menus = await menuApi.listByApp(app.id);
-          map.set(app.id, buildMenuTree(menus));
-        }
-      }
-      return map;
-    },
-    enabled: !!appsQuery.data,
-    staleTime: 5 * 60 * 1000,
-  });
-
   // 右侧列表
-  const { records, total, pageNum, pageSize, keyword, query, onSearch, onPageChange, onRefresh } =
+  const { records, total, pageNum, pageSize, keyword, query, onSearch, onPageChange } =
     useListPageQuery({
-      queryKey: ['menu-list', selectedFilter?.type ?? '', selectedFilter?.id ?? ''],
+      queryKey: menuQueryKeys.list({
+        type: selectedFilter?.type ?? '',
+        id: selectedFilter?.id ?? '',
+      }),
       queryFn: (params) => {
         const filter: { appId?: string; parentId?: string } = {};
         if (selectedFilter?.type === 'app') filter.appId = selectedFilter.id;
-        if (selectedFilter?.type === 'cat') filter.parentId = selectedFilter.id;
         return menuApi.listPage({ ...params, ...filter });
       },
     });
-  const deleteMutation = useBatchDeleteMutation({
-    deleteFn: menuApi.delete,
-    onSuccess: async () => {
-      setSelectedRowKeys([]);
-      await Promise.all([query.refetch(), menuTreesQuery.refetch()]);
-    },
+  const deleteMutation = useMenuDeleteMutation(async () => {
+    setSelectedRowKeys([]);
+    await query.refetch();
   });
+  const enabledMutation = useEnabledMutation(menuApi.setEnabled, async () => {
+    setSelectedRowKeys([]);
+    await query.refetch();
+  });
+
+  const handleRefresh = useCallback(async () => {
+    // 菜单管理是左树右表聚合页面，手动刷新必须同步更新两侧数据。
+    await Promise.all([appsQuery.refetch(), query.refetch()]);
+  }, [appsQuery, query]);
 
   // 构建左侧树
   const treeData: DataNode[] = useMemo(() => {
-    if (!appsQuery.data || !menuTreesQuery.data) return [];
+    if (!appsQuery.data) return [];
     const nodes: DataNode[] = [];
     for (const cloud of appsQuery.data) {
       const cloudChildren: DataNode[] = [];
       for (const app of cloud.appList) {
-        const menuTree = menuTreesQuery.data.get(app.id) ?? [];
         const appNode: DataNode = {
           key: nodeKey('app', app.id),
           title: app.name,
-          children: menuTree.map((cat) => ({
-            key: nodeKey('cat', cat.id),
-            title: `${cat.name} (${cat.children.length})`,
-            isLeaf: false,
-            children: cat.children.map((page) => ({
-              key: nodeKey('page', page.id),
-              title: page.name,
-              isLeaf: true,
-            })),
-          })),
+          isLeaf: true,
         };
         cloudChildren.push(appNode);
       }
@@ -132,7 +91,7 @@ const MenuListPage = (props: PageComponentProps) => {
       }
     }
     return nodes;
-  }, [appsQuery.data, menuTreesQuery.data]);
+  }, [appsQuery.data]);
 
   const handleTreeSelect = useCallback((keys: React.Key[]) => {
     if (keys.length === 0) {
@@ -146,12 +105,8 @@ const MenuListPage = (props: PageComponentProps) => {
     const [type, id] = key.split(':') as [string, string];
     if (type === 'app') {
       setSelectedFilter({ type: 'app', id });
-    } else if (type === 'cat') {
-      setSelectedFilter({ type: 'cat', id });
-    } else if (type === 'page') {
-      setSelectedFilter({ type: 'page', id });
     } else {
-      // cloud level — show nothing specific
+      // 云节点用于展开应用，不附加菜单过滤条件。
       setSelectedFilter(null);
     }
   }, []);
@@ -169,7 +124,7 @@ const MenuListPage = (props: PageComponentProps) => {
 
   const handleDelete = useCallback(() => {
     if (selectedRowKeys.length === 0) return;
-    Modal.confirm({
+    modal.confirm({
       title: '确认删除',
       content: `确定要删除选中的 ${selectedRowKeys.length} 条记录吗？`,
       okText: '删除',
@@ -177,7 +132,7 @@ const MenuListPage = (props: PageComponentProps) => {
       cancelText: '取消',
       onOk: () => deleteMutation.mutateAsync(selectedRowKeys.map(String)),
     });
-  }, [selectedRowKeys, deleteMutation]);
+  }, [selectedRowKeys, deleteMutation, modal]);
 
   const columns: ColumnsType<MenuListVO> = [
     {
@@ -200,13 +155,16 @@ const MenuListPage = (props: PageComponentProps) => {
     { title: '路径', dataIndex: 'path', width: 180, ellipsis: true },
     { title: '组件', dataIndex: 'component', width: 200, ellipsis: true },
     { title: '排序', dataIndex: 'sort', width: 60 },
+    {
+      title: '状态',
+      dataIndex: 'enabled',
+      width: 80,
+      render: (value) => (value ? <Tag color="green">启用</Tag> : <Tag>停用</Tag>),
+    },
   ];
 
-  const loading =
-    query.isLoading ||
-    appsQuery.isLoading ||
-    (menuTreesQuery.isLoading && menuTreesQuery.fetchStatus !== 'idle');
-  const error = query.error || appsQuery.error || menuTreesQuery.error;
+  const loading = query.isLoading || appsQuery.isLoading;
+  const error = query.error || appsQuery.error;
 
   const treePanel = (
     <div className="sm-list-tree-panel-inner">
@@ -228,9 +186,8 @@ const MenuListPage = (props: PageComponentProps) => {
       loading={loading ? true : false}
       error={error as Error | null}
       onRetry={() => {
-        query.refetch();
-        appsQuery.refetch();
-        menuTreesQuery.refetch();
+        if (query.isError) query.refetch();
+        if (appsQuery.isError) appsQuery.refetch();
       }}
       total={total}
       pageNum={pageNum}
@@ -240,7 +197,10 @@ const MenuListPage = (props: PageComponentProps) => {
       treePanel={treePanel}
       onAddNew={handleOpenAdd}
       onDelete={handleDelete}
-      onRefresh={onRefresh}
+      onEnable={() => enabledMutation.mutate({ ids: selectedRowKeys.map(String), enabled: true })}
+      onDisable={() => enabledMutation.mutate({ ids: selectedRowKeys.map(String), enabled: false })}
+      enabledCommandLoading={enabledMutation.isPending}
+      onRefresh={handleRefresh}
       onQuickSearch={onSearch}
       onPageChange={onPageChange}
       rowKey="id"

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import sm.domain.sys.base.sysparam.service.SysParamService;
 import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
@@ -62,11 +63,11 @@ public class SM4Helper {
         try {
             rawBytes = Base64.getDecoder().decode(cipherBase64);
         } catch (IllegalArgumentException e) {
-            throw new BizException("密文 Base64 解码失败");
+            throw new BizException(ResultEnum.PARAM_ERROR, "密文 Base64 解码失败");
         }
 
         if (rawBytes.length < IV_LENGTH + 1) {
-            throw new BizException("密文长度不足，无法解密");
+            throw new BizException(ResultEnum.PARAM_ERROR, "密文长度不足，无法解密");
         }
 
         // 提取 IV 和密文
@@ -84,16 +85,16 @@ public class SM4Helper {
     private byte[] getKeyBytes() {
         String keyBase64 = sysParamService.getString(PARAM_SM4_KEY);
         if (keyBase64 == null || keyBase64.isBlank()) {
-            throw new BizException("系统参数 SM4_KEY 未配置");
+            throw new BizException(ResultEnum.CONFIG_ERROR, "系统参数 SM4_KEY 未配置");
         }
         try {
             byte[] keyBytes = Base64.getDecoder().decode(keyBase64.trim());
             if (keyBytes.length != 16) {
-                throw new BizException("SM4 密钥长度必须为 16 字节");
+                throw new BizException(ResultEnum.CONFIG_ERROR, "SM4 密钥长度必须为 16 字节");
             }
             return keyBytes;
         } catch (IllegalArgumentException e) {
-            throw new BizException("系统参数 SM4_KEY 不是有效的 Base64 编码");
+            throw new BizException(ResultEnum.CONFIG_ERROR, "系统参数 SM4_KEY 不是有效的 Base64 编码");
         }
     }
 

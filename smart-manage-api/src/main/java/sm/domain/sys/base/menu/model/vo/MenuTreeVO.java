@@ -41,5 +41,5 @@ public class MenuTreeVO {
     private String icon;
 
     @Schema(description = "是否启用")
-    private Boolean enableFlag;
+    private Boolean enabled;
 }

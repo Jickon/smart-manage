@@ -9,6 +9,6 @@ public class CloudSelectVO {
 	private Long id;
 	private String name;
 	private String number;
-	private Boolean enableFlag;
+	private Boolean enabled;
 }
 

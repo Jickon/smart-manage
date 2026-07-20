@@ -16,6 +16,8 @@ import sm.system.response.ResultEnum;
 import sm.system.helper.Argon2Helper;
 
 import java.util.Objects;
+import java.util.List;
+import sm.system.util.EnabledCommandUtil;
 
 /**
  * 用户事务服务 —— 所有写操作在类级别事务中执行
@@ -39,19 +41,19 @@ class UserTxService {
             checkWrapper.ne(UserEntity::getId, form.getId());
         }
         if (mapper.selectCount(checkWrapper) > 0) {
-            throw new BizException("用户名已存在");
+            throw new BizException(ResultEnum.UNIQUE_CONFLICT, "用户名已存在");
         }
 
         UserEntity entity;
         if (form.getId() != null) {
             entity = mapper.selectById(form.getId());
             if (entity == null) {
-                throw new BizException("用户不存在");
+                throw new BizException(ResultEnum.NOT_FOUND, "用户不存在");
             }
-            if (form.getMutex() == null) {
+            if (form.getVersion() == null) {
                 throw new BizException(ResultEnum.PARAM_ERROR, "修改用户时乐观锁版本号不能为空");
             }
-            if (!Objects.equals(entity.getMutex(), form.getMutex())) {
+            if (!Objects.equals(entity.getVersion(), form.getVersion())) {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "用户已被其他用户修改，请刷新后重试");
             }
         } else {
@@ -79,19 +81,15 @@ class UserTxService {
         if (form.getThemeColor() != null) {
             entity.setThemeColor(form.getThemeColor());
         }
-        if (form.getEnableFlag() != null) {
-            entity.setEnableFlag(form.getEnableFlag());
-        }
-
         if (form.getId() == null) {
             // 新增用户：密码必填
             if (entity.getPassword() == null || entity.getPassword().isBlank()) {
-                throw new BizException("新增用户密码不能为空");
+                throw new BizException(ResultEnum.PARAM_ERROR, "新增用户密码不能为空");
             }
-            if (form.getEnableFlag() == null) {
-                entity.setEnableFlag(true);
+            entity.setEnabled(true);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
             }
-            mapper.insert(entity);
         } else {
             if (mapper.updateById(entity) == 0) {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "用户已被其他用户修改，请刷新后重试");
@@ -101,6 +99,13 @@ class UserTxService {
         return entity.getId();
     }
 
+    public void updateEnabled(List<Long> ids, boolean enabled) {
+        if (!enabled && ids.contains(UserHelper.getCurrentUserId())) {
+            throw new BizException(ResultEnum.BILL_STATUS_ERROR, "不能禁用当前登录用户");
+        }
+        EnabledCommandUtil.update(mapper, UserEntity::getId, UserEntity::getEnabled, ids, enabled, "用户");
+    }
+
     /** 删除用户 */
     public void deleteById(Long id) {
         if (id == null) {
@@ -108,7 +113,7 @@ class UserTxService {
         }
         // 不能删除自己
         if (id.equals(UserHelper.getCurrentUserId())) {
-            throw new BizException("不能删除当前登录用户");
+            throw new BizException(ResultEnum.BILL_STATUS_ERROR, "不能删除当前登录用户");
         }
         userRoleMapper.delete(new LambdaQueryWrapper<UserRoleEntity>()
                 .eq(UserRoleEntity::getUserId, id));
@@ -128,7 +133,9 @@ class UserTxService {
             userRoleEntity.setUserId(userId);
             userRoleEntity.setOrgId(orgId);
             userRoleEntity.setRoleId(roleId);
-            userRoleMapper.insert(userRoleEntity);
+            if (userRoleMapper.insert(userRoleEntity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "聚合明细写入失败");
+            }
         }
     }
 }

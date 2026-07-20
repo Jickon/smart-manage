@@ -5,9 +5,11 @@ import type { DataNode } from 'antd/es/tree';
 import { useQuery } from '@tanstack/react-query';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
+import { useEnabledMutation } from '@/domain/common/page/useEnabledMutation';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { OperationType } from '@/domain/common/page/types';
 import { fetchAppsAll, appApi } from './api';
+import { appQueryKeys } from './queryKeys';
 import type { AppListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
@@ -23,7 +25,7 @@ const AppListPage = (props: PageComponentProps) => {
 
   // 左侧树数据
   const treeQuery = useQuery({
-    queryKey: ['cloud-apps-all'],
+    queryKey: appQueryKeys.cloudAppsAll(),
     queryFn: fetchAppsAll,
     staleTime: 5 * 60 * 1000,
   });
@@ -47,13 +49,17 @@ const AppListPage = (props: PageComponentProps) => {
   // 右侧列表
   const { records, total, pageNum, pageSize, keyword, query, onSearch, onPageChange, onRefresh } =
     useListPageQuery({
-      queryKey: ['app-list', String(selectedCloudId ?? '')],
+      queryKey: appQueryKeys.list({ cloudId: selectedCloudId }),
       queryFn: (params) =>
         appApi.listPage({
           ...params,
           cloudId: selectedCloudId,
         }),
     });
+  const enabledMutation = useEnabledMutation(appApi.setEnabled, async () => {
+    setSelectedRowKeys([]);
+    await Promise.all([query.refetch(), treeQuery.refetch()]);
+  });
 
   const handleTreeSelect = (keys: React.Key[]) => {
     if (keys.length === 0 || keys[0] === 'root') {
@@ -87,7 +93,7 @@ const AppListPage = (props: PageComponentProps) => {
     { title: '排序', dataIndex: 'seq', width: 80 },
     {
       title: '状态',
-      dataIndex: 'enableFlag',
+      dataIndex: 'enabled',
       width: 80,
       render: (value) => (value ? <Tag color="green">启用</Tag> : <Tag color="default">停用</Tag>),
     },
@@ -122,6 +128,9 @@ const AppListPage = (props: PageComponentProps) => {
       filterSummary={keyword ? `关键字：${keyword}` : undefined}
       treePanel={treePanel}
       onAddNew={handleOpenAdd}
+      onEnable={() => enabledMutation.mutate({ ids: selectedRowKeys.map(String), enabled: true })}
+      onDisable={() => enabledMutation.mutate({ ids: selectedRowKeys.map(String), enabled: false })}
+      enabledCommandLoading={enabledMutation.isPending}
       onRefresh={onRefresh}
       onQuickSearch={onSearch}
       onPageChange={onPageChange}

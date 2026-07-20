@@ -2,7 +2,7 @@ import type { PageForm } from '@/types/api';
 
 export interface CloudListForm extends PageForm {
   keyword?: string;
-  enableFlag?: boolean;
+  enabled?: boolean;
 }
 
 export interface CloudListVO {
@@ -10,7 +10,7 @@ export interface CloudListVO {
   name: string;
   number: string;
   seq: number;
-  enableFlag: boolean;
+  enabled: boolean;
   createTime?: string;
   updateTime?: string;
 }
@@ -18,10 +18,11 @@ export interface CloudListVO {
 /** 云详情 */
 export interface CloudDetailVO {
   id: string;
+  version: number;
   name: string;
   number: string;
   seq: number;
-  enableFlag: boolean;
+  enabled: boolean;
   createTime?: string;
   updateTime?: string;
   createUser?: string;
@@ -31,7 +32,7 @@ export interface CloudDetailVO {
 /** 云选择器查询参数 */
 export interface CloudSelectForm extends PageForm {
   keyword?: string;
-  enableFlag?: boolean;
+  enabled?: boolean;
 }
 
 /** 云选择器列表项 */
@@ -39,14 +40,14 @@ export interface CloudSelectVO {
   id: string;
   name: string;
   number: string;
-  enableFlag: boolean;
+  enabled: boolean;
 }
 
 /** 云保存 */
 export interface CloudSaveForm {
-  id?: number;
+  id?: string;
+  version?: number;
   name: string;
   number: string;
   seq: number;
-  enableFlag: boolean;
 }

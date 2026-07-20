@@ -48,9 +48,9 @@ public class UserEntity extends BaseEntity {
 	/*
 	 * 是否可用
 	 */
-	private Boolean enableFlag;
+	private Boolean enabled;
 
 	@Version
-	private Integer mutex;
+	private Integer version;
 
 }

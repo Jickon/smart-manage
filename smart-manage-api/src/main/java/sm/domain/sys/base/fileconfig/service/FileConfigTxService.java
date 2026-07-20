@@ -1,6 +1,5 @@
 package sm.domain.sys.base.fileconfig.service;
 
-import com.alicp.jetcache.anno.CacheInvalidate;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ import sm.system.response.ResultEnum;
 class FileConfigTxService {
     private final FileConfigMapper mapper;
 
-    @CacheInvalidate(name = "common", key = "'file:config'")
     public Long save(FileConfigSaveForm form) {
         FileConfigEntity entity;
         if (form.getId() != null) {
@@ -44,14 +42,17 @@ class FileConfigTxService {
         entity.setFtpDir(form.getFtpDir());
         entity.setFtpPassiveMode(form.getFtpPassiveMode());
         if (form.getId() == null) {
-            mapper.insert(entity);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
         } else {
-            mapper.updateById(entity);
+            if (mapper.updateById(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.DATA_CONFLICT, "数据已被其他用户修改");
+            }
         }
         return entity.getId();
     }
 
-    @CacheInvalidate(name = "common", key = "'file:config'")
     public void deleteById(Long id) {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "文件配置ID不能为空");
@@ -60,6 +61,8 @@ class FileConfigTxService {
         if (entity == null) {
             throw new BizException(ResultEnum.NOT_FOUND, "文件配置不存在");
         }
-        mapper.deleteById(id);
+        if (mapper.deleteById(id) != 1) {
+            throw new BizException(sm.system.response.ResultEnum.DATA_CONFLICT, "数据已被其他用户删除");
+        }
     }
 }

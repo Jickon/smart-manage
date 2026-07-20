@@ -31,5 +31,5 @@ public class PermissionEntity extends BaseEntity {
 	private Long appId;
 
 	@Version
-	private Integer mutex;
+	private Integer version;
 }

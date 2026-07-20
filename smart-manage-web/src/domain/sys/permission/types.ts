@@ -24,6 +24,7 @@ export interface PermissionListAllVO {
 /** 权限详情 */
 export interface PermissionDetailVO {
   id: string;
+  version: number;
   name: string;
   number: string;
   appId: string;
@@ -34,6 +35,7 @@ export interface PermissionDetailVO {
 /** 权限保存 — ID 均以字符串传递 */
 export interface PermissionSaveForm {
   id?: string;
+  version?: number;
   name: string;
   number: string;
   appId: string;

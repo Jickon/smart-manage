@@ -28,6 +28,9 @@ interface ListPageProps<T> {
   pageSize?: number;
   onAddNew?: () => void;
   onDelete?: () => void;
+  onEnable?: () => void;
+  onDisable?: () => void;
+  enabledCommandLoading?: boolean;
   onRefresh?: () => void;
   onQuickSearch?: (value: string) => void;
   onPageChange?: (pageNum: number, pageSize: number) => void;
@@ -70,6 +73,9 @@ function ListPage<T>({
   pageSize = 20,
   onAddNew,
   onDelete,
+  onEnable,
+  onDisable,
+  enabledCommandLoading = false,
   onRefresh,
   onQuickSearch,
   onPageChange,
@@ -126,6 +132,7 @@ function ListPage<T>({
       {
         title: '#',
         width: 44,
+        className: 'sm-list-sequence-column',
         align: 'center',
         fixed: 'left' as const,
         render: (_text, _record, index) => (pageNum - 1) * pageSize + index + 1,
@@ -186,6 +193,24 @@ function ListPage<T>({
             {onDelete && (
               <Button danger onClick={onDelete}>
                 删除
+              </Button>
+            )}
+            {onEnable && (
+              <Button
+                onClick={onEnable}
+                disabled={(selectedRowKeys?.length ?? 0) === 0}
+                loading={enabledCommandLoading}
+              >
+                启用
+              </Button>
+            )}
+            {onDisable && (
+              <Button
+                onClick={onDisable}
+                disabled={(selectedRowKeys?.length ?? 0) === 0}
+                loading={enabledCommandLoading}
+              >
+                禁用
               </Button>
             )}
             {onRefresh && (

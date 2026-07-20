@@ -13,6 +13,6 @@ public class CloudSelectForm extends PageForm {
 	private String keyword;
 
 	@Schema(description = "是否启用（默认 true）")
-	private Boolean enableFlag = true;
+	private Boolean enabled = true;
 }
 

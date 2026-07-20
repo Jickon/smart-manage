@@ -65,17 +65,17 @@ public class BasicDataService {
         detailVO.setNumber(entity.getNumber());
         detailVO.setName(entity.getName());
         detailVO.setRemark(entity.getRemark());
-        detailVO.setEnableFlag(entity.getEnableFlag());
+        detailVO.setEnabled(entity.getEnabled());
         detailVO.setCreateTime(entity.getCreateTime());
         detailVO.setUpdateTime(entity.getUpdateTime());
-        detailVO.setMutex(entity.getMutex());
+        detailVO.setVersion(entity.getVersion());
         detailVO.setEntrys(listEntries(entity.getId()));
         return detailVO;
     }
 
     public BasicDataCreateNewDataVO createNewData() {
         BasicDataCreateNewDataVO createNewDataVO = new BasicDataCreateNewDataVO();
-        createNewDataVO.setEnableFlag(true);
+        createNewDataVO.setEnabled(true);
         return createNewDataVO;
     }
 
@@ -90,7 +90,7 @@ public class BasicDataService {
         }
         return entryMapper.selectList(new LambdaQueryWrapper<BasicDataEntryEntity>()
                         .eq(BasicDataEntryEntity::getParentId, entity.getId())
-                        .eq(BasicDataEntryEntity::getEnableFlag, true)
+                        .eq(BasicDataEntryEntity::getEnabled, true)
                         .orderByAsc(BasicDataEntryEntity::getSort)
                         .orderByAsc(BasicDataEntryEntity::getId))
                 .stream()
@@ -106,6 +106,16 @@ public class BasicDataService {
     @BizLog("删除基础数据")
     public void deleteById(Long id) {
         txService.deleteById(id);
+    }
+
+    @BizLog("启用基础数据")
+    public void enable(List<Long> ids) {
+        txService.updateEnabled(ids, true);
+    }
+
+    @BizLog("禁用基础数据")
+    public void disable(List<Long> ids) {
+        txService.updateEnabled(ids, false);
     }
 
     private List<BasicDataEntryVO> listEntries(Long parentId) {
@@ -124,7 +134,7 @@ public class BasicDataService {
         listVO.setNumber(entity.getNumber());
         listVO.setName(entity.getName());
         listVO.setRemark(entity.getRemark());
-        listVO.setEnableFlag(entity.getEnableFlag());
+        listVO.setEnabled(entity.getEnabled());
         listVO.setCreateTime(entity.getCreateTime());
         return listVO;
     }
@@ -135,7 +145,7 @@ public class BasicDataService {
         entryVO.setNumber(entry.getNumber());
         entryVO.setName(entry.getName());
         entryVO.setSort(entry.getSort());
-        entryVO.setEnableFlag(entry.getEnableFlag());
+        entryVO.setEnabled(entry.getEnabled());
         return entryVO;
     }
 }

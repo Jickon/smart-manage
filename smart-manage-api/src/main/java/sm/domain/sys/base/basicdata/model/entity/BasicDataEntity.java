@@ -31,8 +31,8 @@ public class BasicDataEntity extends BaseEntity {
     private String remark;
 
     /** 是否启用 */
-    private Boolean enableFlag;
+    private Boolean enabled;
 
     @Version
-    private Integer mutex;
+    private Integer version;
 }

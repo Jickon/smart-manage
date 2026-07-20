@@ -28,5 +28,5 @@ public class MenuSelectForm extends PageForm {
 	private Long excludeId;
 
 	@Schema(description = "是否启用（默认 true）")
-	private Boolean enableFlag = true;
+	private Boolean enabled = true;
 }

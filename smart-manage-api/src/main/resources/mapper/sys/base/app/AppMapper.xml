@@ -3,13 +3,14 @@
 <mapper namespace="sm.domain.sys.base.app.mapper.AppMapper">
     <resultMap id="appDetailMap" type="sm.domain.sys.base.app.model.vo.AppDetailVO">
         <id property="id" column="app_id"/>
+        <result property="version" column="app_version"/>
         <result property="number" column="app_number"/>
         <result property="name" column="app_name"/>
         <result property="icon" column="app_icon"/>
         <result property="iconColor" column="app_icon_color"/>
         <result property="seq" column="app_seq"/>
         <result property="description" column="app_description"/>
-        <result property="enableFlag" column="app_enable_flag"/>
+        <result property="enabled" column="app_enabled"/>
         <result property="createTime" column="app_create_time"/>
         <result property="updateTime" column="app_update_time"/>
         <association property="cloud" javaType="sm.domain.sys.base.app.model.vo.AppDetailVO$CloudRef"
@@ -22,7 +23,7 @@
 
     <select id="selectListPage" resultType="sm.domain.sys.base.app.model.vo.AppListVO">
         SELECT a.id, a.name, a.number, a.icon, a.icon_color, a.seq, a.description,
-               a.cloud_id, b.name AS cloud_name, a.enable_flag, a.create_time, a.update_time
+               a.cloud_id, b.name AS cloud_name, a.enabled, a.create_time, a.update_time
         FROM t_sys_app a
         LEFT JOIN t_sys_cloud b ON b.id = a.cloud_id
         <where>
@@ -36,9 +37,9 @@
     </select>
 
     <select id="selectDetailById" resultMap="appDetailMap">
-        SELECT a.id AS app_id, a.number AS app_number, a.name AS app_name,
+        SELECT a.id AS app_id, a.version AS app_version, a.number AS app_number, a.name AS app_name,
                a.icon AS app_icon, a.icon_color AS app_icon_color, a.seq AS app_seq,
-               a.description AS app_description, a.enable_flag AS app_enable_flag,
+               a.description AS app_description, a.enabled AS app_enabled,
                a.create_time AS app_create_time, a.update_time AS app_update_time,
                b.id AS cloud_id, b.number AS cloud_number, b.name AS cloud_name
         FROM t_sys_app a
@@ -79,6 +80,15 @@
         INNER JOIN t_sys_role_perms d ON d.permission_id = c.permission_id
         INNER JOIN t_sys_user_role e ON e.role_id = d.role_id
         WHERE e.user_id = #{userId} AND a.number = #{appNumber}
+        LIMIT 1
+    </select>
+
+    <select id="selectAppByNumber" resultType="sm.domain.sys.base.app.model.vo.AppVO">
+        SELECT a.id, b.number AS cloud_number, a.number, a.name, a.icon,
+               a.icon_color, a.seq, a.description
+        FROM t_sys_app a
+        LEFT JOIN t_sys_cloud b ON b.id = a.cloud_id
+        WHERE a.number = #{appNumber}
         LIMIT 1
     </select>
 </mapper>

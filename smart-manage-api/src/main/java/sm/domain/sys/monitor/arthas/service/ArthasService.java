@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import sm.domain.sys.base.common.helper.UserHelper;
 import sm.domain.sys.monitor.arthas.model.vo.ArthasResultVO;
 import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
 import sm.system.aop.log.BizLog;
 
 import java.io.*;
@@ -51,14 +52,14 @@ public class ArthasService {
     /**
      * 执行一次性命令
      */
-    @BizLog("执行Arthas命令")
+    @BizLog(value = "执行Arthas命令", saveRequest = false, saveResponse = false)
     public ArthasResultVO execute(String command, String args) {
         UserHelper.checkAdmin();
         if (!ONE_SHOT_COMMANDS.contains(command)) {
             if (CONTINUOUS_COMMANDS.contains(command)) {
-                throw new BizException("命令 '" + command + "' 是持续命令，请使用 /start 端点");
+                throw new BizException(ResultEnum.PARAM_ERROR, "命令 '" + command + "' 是持续命令，请使用 /start 端点");
             }
-            throw new BizException("不支持的命令: " + command);
+            throw new BizException(ResultEnum.PARAM_ERROR, "不支持的命令: " + command);
         }
         String fullCmd = args != null && !args.isEmpty() ? command + " " + args : command;
         String output = execAndRead(fullCmd);
@@ -68,11 +69,11 @@ public class ArthasService {
     /**
      * 启动持续命令（trace/watch/stack/tt/monitor）
      */
-    @BizLog("启动Arthas会话")
+    @BizLog(value = "启动Arthas会话", saveRequest = false, saveResponse = false)
     public ArthasResultVO start(String command, String args) {
         UserHelper.checkAdmin();
         if (!CONTINUOUS_COMMANDS.contains(command)) {
-            throw new BizException("命令 '" + command + "' 不是持续命令，请使用 /execute 端点");
+            throw new BizException(ResultEnum.PARAM_ERROR, "命令 '" + command + "' 不是持续命令，请使用 /execute 端点");
         }
         String fullCmd = args != null && !args.isEmpty() ? command + " " + args : command;
         String sessionId = UUID.randomUUID().toString().substring(0, 8);
@@ -92,7 +93,7 @@ public class ArthasService {
         UserHelper.checkAdmin();
         ArthasSession session = sessions.remove(sessionId);
         if (session == null) {
-            throw new BizException("会话不存在或已结束: " + sessionId);
+            throw new BizException(ResultEnum.NOT_FOUND, "会话不存在或已结束: " + sessionId);
         }
         session.stop();
         return ArthasResultVO.ok(session.getOutput());
@@ -105,7 +106,7 @@ public class ArthasService {
         UserHelper.checkAdmin();
         ArthasSession session = sessions.get(sessionId);
         if (session == null) {
-            throw new BizException("会话不存在或已结束: " + sessionId);
+            throw new BizException(ResultEnum.NOT_FOUND, "会话不存在或已结束: " + sessionId);
         }
         String output = session.getOutput();
         boolean running = !session.isStopped();
@@ -138,7 +139,7 @@ public class ArthasService {
             return stripAnsi(result).trim();
         } catch (Exception e) {
             log.error("Arthas telnet 执行失败: {}", command, e);
-            throw new BizException("Arthas 命令执行失败: " + e.getMessage());
+            throw new BizException(ResultEnum.EXTERNAL_SERVICE_ERROR, "Arthas 命令执行失败");
         } finally {
             try {
                 client.disconnect();

@@ -24,6 +24,4 @@ public class BasicDataEntryForm {
     @Schema(description = "排序")
     private Integer sort;
 
-    @Schema(description = "是否启用")
-    private Boolean enableFlag;
 }

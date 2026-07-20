@@ -16,5 +16,5 @@ public class MenuSelectVO {
 	private String number;
 	private String name;
 	private MenuLevelEnum level;
-	private Boolean enableFlag;
+	private Boolean enabled;
 }

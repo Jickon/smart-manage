@@ -36,7 +36,9 @@ class ScriptTxService {
         entity.setRemark(form.getRemark());
 
         if (form.getId() == null) {
-            mapper.insert(entity);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
         } else if (mapper.updateById(entity) == 0) {
             throw new BizException(ResultEnum.DATA_CONFLICT, "脚本已被其他用户修改");
         }

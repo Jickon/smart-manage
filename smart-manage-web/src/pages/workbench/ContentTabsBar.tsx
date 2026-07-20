@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Modal } from 'antd';
+import { App } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { useWorkbenchStore } from '@/stores/workbench';
 import './ContentTabsBar.css';
@@ -9,6 +9,7 @@ interface Props {
 }
 
 const ContentTabsBar = ({ appNumber }: Props) => {
+  const { modal } = App.useApp();
   const ws = useWorkbenchStore((s) => s.workspaces[appNumber]);
   const activateContentTab = useWorkbenchStore((s) => s.activateContentTab);
   const removeContentTab = useWorkbenchStore((s) => s.removeContentTab);
@@ -47,7 +48,7 @@ const ContentTabsBar = ({ appNumber }: Props) => {
     const allKeys = contentTabs.filter((t) => t.closable).map((t) => t.key);
     if (allKeys.length === 0) return;
 
-    Modal.confirm({
+    modal.confirm({
       title: '关闭全部页签',
       content: `确定关闭全部 ${allKeys.length} 个页签吗？`,
       okText: '确定',

@@ -23,6 +23,8 @@ public interface AppMapper extends BaseMapper<AppEntity> {
 
     List<CloudAppRowVO> selectAllCloudApps();
 
+    AppVO selectAppByNumber(@Param("appNumber") String appNumber);
+
     AppVO selectUserAppByNumber(@Param("userId") Long userId, @Param("appNumber") String appNumber);
 }
 

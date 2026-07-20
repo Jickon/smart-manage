@@ -1,6 +1,5 @@
 package sm.domain.sys.base.sysparam.service;
 
-import com.alicp.jetcache.anno.CacheInvalidate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,13 +23,18 @@ class SysParamTxService {
     private final SysParamMapper mapper;
 
     /** 新增/编辑，清除缓存 */
-    @CacheInvalidate(name = "sys-params", key = "'all'")
     public Long save(SysParamSaveForm form) {
         SysParamEntity entity;
         if (form.getId() != null) {
             entity = mapper.selectById(form.getId());
             if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
+            }
+            if (form.getVersion() == null) {
+                throw new BizException(ResultEnum.PARAM_ERROR, "修改系统参数时乐观锁版本号不能为空");
+            }
+            if (!java.util.Objects.equals(entity.getVersion(), form.getVersion())) {
+                throw new BizException(ResultEnum.DATA_CONFLICT, "系统参数已被其他用户修改，请刷新后重试");
             }
             // 系统内置参数只允许修改 value
             if (Boolean.TRUE.equals(entity.getIsSystem())) {
@@ -51,7 +55,9 @@ class SysParamTxService {
             entity.setIsSystem(false);
         }
         if (form.getId() == null) {
-            mapper.insert(entity);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
         } else {
             if (mapper.updateById(entity) == 0) {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "系统参数已被其他用户修改，请刷新后重试");
@@ -61,7 +67,6 @@ class SysParamTxService {
     }
 
     /** 删除，清除缓存 */
-    @CacheInvalidate(name = "sys-params", key = "'all'")
     public void deleteById(Long id) {
         if (id == null) {
             throw new BizException(ResultEnum.PARAM_ERROR, "系统参数ID不能为空");
@@ -71,7 +76,7 @@ class SysParamTxService {
             throw new BizException(ResultEnum.NOT_FOUND, "系统参数不存在");
         }
         if (Boolean.TRUE.equals(entity.getIsSystem())) {
-            throw new BizException("系统内置参数不可删除");
+            throw new BizException(ResultEnum.BILL_STATUS_ERROR, "系统内置参数不可删除");
         }
         if (mapper.deleteById(id) == 0) {
             throw new BizException(ResultEnum.DATA_CONFLICT, "系统参数已被其他用户删除");

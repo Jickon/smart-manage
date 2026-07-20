@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react';
-import { message, Collapse, Checkbox, Spin, Empty } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { App, Collapse, Checkbox, Spin, Empty } from 'antd';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import EditPage from '@/domain/common/page/EditPage';
 import { OperationType } from '@/domain/common/page/types';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { userApi } from './api';
+import { userQueryKeys } from './queryKeys';
 import { roleApi } from '@/domain/sys/role/api';
+import { roleQueryKeys } from '@/domain/sys/role/queryKeys';
 import type { RoleListAllVO } from '@/domain/sys/role/types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
@@ -17,6 +19,8 @@ function deriveCheckedRoleIds(roleIds: string[] | undefined): Set<string> {
 
 /** 用户编辑页 — 全页 Tab，包含角色分配面板 */
 const UserEditPage = (props: PageComponentProps) => {
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const { appNumber, tabKey, operationType, billId } = props;
   const isAddNew = operationType === OperationType.ADDNEW;
   const replaceContentTab = useWorkbenchStore((s) => s.replaceContentTab);
@@ -24,14 +28,14 @@ const UserEditPage = (props: PageComponentProps) => {
 
   // 详情查询（仅编辑模式）
   const detailQuery = useQuery({
-    queryKey: ['user-detail', billId],
+    queryKey: userQueryKeys.detail(billId),
     queryFn: () => userApi.detail(billId!),
     enabled: !!billId,
   });
 
   // 全量角色（用于分配面板）
   const allRolesQuery = useQuery({
-    queryKey: ['role-list-all'],
+    queryKey: roleQueryKeys.listAll(),
     queryFn: () => roleApi.listAll(),
     staleTime: 5 * 60 * 1000,
   });
@@ -68,7 +72,6 @@ const UserEditPage = (props: PageComponentProps) => {
       { label: '手机号', dataIndex: 'phone', type: 'text' },
       { label: '头像URL', dataIndex: 'avatar', type: 'text' },
       { label: '主题色', dataIndex: 'themeColor', type: 'text', placeholder: '如 #1677ff' },
-      { label: '启用', dataIndex: 'enableFlag', type: 'switch' },
       { label: '创建时间', dataIndex: 'createTime', type: 'readonly' },
       { label: '更新时间', dataIndex: 'updateTime', type: 'readonly' },
     ];
@@ -85,7 +88,6 @@ const UserEditPage = (props: PageComponentProps) => {
       phone: detail.phone ?? '',
       avatar: detail.avatar ?? '',
       themeColor: detail.themeColor ?? '',
-      enableFlag: detail.enableFlag ?? true,
       createTime: detail.createTime ?? '',
       updateTime: detail.updateTime ?? '',
     };
@@ -99,7 +101,7 @@ const UserEditPage = (props: PageComponentProps) => {
     const username = (values.username as string).trim();
     const savedId = await userApi.save({
       id: billId ?? undefined,
-      mutex: detail?.mutex,
+      version: detail?.version,
       username,
       password: (values.password as string) || undefined,
       nickname: (values.nickname as string) ?? undefined,
@@ -107,7 +109,6 @@ const UserEditPage = (props: PageComponentProps) => {
       phone: (values.phone as string) ?? undefined,
       avatar: (values.avatar as string) ?? undefined,
       themeColor: (values.themeColor as string) ?? undefined,
-      enableFlag: values.enableFlag != null ? Boolean(values.enableFlag) : undefined,
       roleIds: [...displayCheckedIds],
     });
 
@@ -123,8 +124,16 @@ const UserEditPage = (props: PageComponentProps) => {
       });
       activateContentTab(appNumber, `bill:${props.componentKey}:${savedId}`);
     }
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: userQueryKeys.all }),
+      queryClient.invalidateQueries({ queryKey: roleQueryKeys.all }),
+    ]);
     message.success(isAddNew ? '新增成功' : '保存成功');
   };
+  const saveMutation = useMutation({
+    mutationFn: handleSave,
+    onError: (error) => message.error(error instanceof Error ? error.message : '保存失败'),
+  });
 
   const loading = detailQuery.isLoading || allRolesQuery.isLoading;
   const error = (detailQuery.error || allRolesQuery.error) as Error | null;
@@ -140,10 +149,11 @@ const UserEditPage = (props: PageComponentProps) => {
       loading={loading}
       error={error}
       onRetry={() => {
-        detailQuery.refetch();
-        allRolesQuery.refetch();
+        if (detailQuery.isError) detailQuery.refetch();
+        if (allRolesQuery.isError) allRolesQuery.refetch();
       }}
-      onSave={handleSave}
+      onSave={saveMutation.mutateAsync}
+      saving={saveMutation.isPending}
       onExit={() => {
         useWorkbenchStore.getState().removeContentTab(appNumber, tabKey);
       }}

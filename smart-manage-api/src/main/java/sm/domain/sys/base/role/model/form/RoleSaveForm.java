@@ -20,7 +20,7 @@ public class RoleSaveForm {
 	private Long id;
 
 	@Schema(description = "乐观锁版本号，修改时必传")
-	private Integer mutex;
+	private Integer version;
 
 	@Schema(description = "角色名称", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "角色名称不能为空")

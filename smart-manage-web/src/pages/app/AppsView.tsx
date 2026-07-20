@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { appQueryKeys } from '@/domain/sys/app/queryKeys';
 import { Empty, Spin } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import { fetchApps } from '@/domain/sys/app/api';
@@ -8,7 +9,7 @@ import './AppsView.css';
 
 const AppsView = () => {
   const { data, isLoading } = useQuery({
-    queryKey: ['cloud-apps'],
+    queryKey: appQueryKeys.cloudApps(),
     queryFn: fetchApps,
   });
 

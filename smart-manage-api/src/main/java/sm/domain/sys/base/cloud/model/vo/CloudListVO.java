@@ -12,7 +12,7 @@ public class CloudListVO {
 	private String name;
 	private String number;
 	private Integer seq;
-	private Boolean enableFlag;
+	private Boolean enabled;
 	private LocalDateTime createTime;
 	private LocalDateTime updateTime;
 }

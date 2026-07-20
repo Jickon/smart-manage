@@ -49,4 +49,9 @@ export const menuApi = {
 
   delete: (id: string) =>
     request.post<Result<string>>('/sys/base/menu/delete', { id }).then((res) => res.data.data),
+
+  setEnabled: (ids: string[], enabled: boolean) =>
+    request
+      .post<Result<string>>(enabled ? '/sys/base/menu/enable' : '/sys/base/menu/disable', { ids })
+      .then((res) => res.data.data),
 };

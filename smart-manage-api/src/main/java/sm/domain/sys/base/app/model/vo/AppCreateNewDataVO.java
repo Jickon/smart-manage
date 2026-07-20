@@ -20,6 +20,6 @@ public class AppCreateNewDataVO {
 	private Integer seq;
 
 	@Schema(description = "启用")
-	private Boolean enableFlag;
+	private Boolean enabled;
 }
 

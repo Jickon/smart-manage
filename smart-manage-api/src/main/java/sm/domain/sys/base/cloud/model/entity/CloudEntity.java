@@ -26,8 +26,8 @@ public class CloudEntity extends BaseEntity {
 
 	private Integer seq;
 
-	private Boolean enableFlag;
+	private Boolean enabled;
 
 	@Version
-	private Integer mutex;
+	private Integer version;
 }

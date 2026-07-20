@@ -35,7 +35,7 @@
             icon = #{icon},
             description = #{description},
             sort = #{sort},
-            enable_flag = #{enableFlag},
+            enabled = #{enabled},
             update_time = #{updateTime},
             update_user = #{updateUser}
         WHERE id = #{id}

@@ -31,7 +31,7 @@ export interface MenuTreeVO {
   component: string;
   sort: number;
   icon: string;
-  enableFlag: boolean;
+  enabled: boolean;
 }
 
 /** 菜单详情 */
@@ -47,7 +47,7 @@ export interface MenuDetailVO {
   icon: string;
   description: string;
   sort: number;
-  enableFlag: boolean;
+  enabled: boolean;
   createTime?: string;
   updateTime?: string;
   parent?: {
@@ -71,7 +71,6 @@ export interface MenuSaveForm {
   icon?: string;
   description?: string;
   sort?: number;
-  enableFlag?: boolean;
 }
 
 /** 菜单选择器列表项 */
@@ -80,5 +79,5 @@ export interface MenuSelectVO {
   number: string;
   name: string;
   level: number;
-  enableFlag: boolean;
+  enabled: boolean;
 }

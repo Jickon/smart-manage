@@ -16,7 +16,7 @@ import java.util.List;
 public class BasicDataCreateNewDataVO {
 
     @Schema(description = "启用")
-    private Boolean enableFlag;
+    private Boolean enabled;
 
     @Schema(description = "基础数据明细")
     private List<BasicDataEntryVO> entrys = new ArrayList<>();

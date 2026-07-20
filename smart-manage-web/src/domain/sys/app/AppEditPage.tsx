@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
-import { message } from 'antd';
-import { useQuery } from '@tanstack/react-query';
+import { App } from 'antd';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import EditPage from '@/domain/common/page/EditPage';
 import { OperationType } from '@/domain/common/page/types';
 import type { EditField } from '@/domain/common/page/EditPage';
+import { defineRefSelector } from '@/domain/common/page/defineRefSelector';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { appApi } from './api';
+import { appQueryKeys } from './queryKeys';
 import { cloudApi } from '@/domain/sys/cloud/api';
 import type { CloudSelectVO } from '@/domain/sys/cloud/types';
 import type { PageComponentProps } from '@/domain/common/page/types';
@@ -29,33 +31,36 @@ const fields: EditField[] = [
     dataIndex: 'cloud',
     type: 'ref-selector',
     rules: [{ required: true, message: '所属云不能为空' }],
-    refSelector: {
+    refSelector: defineRefSelector<CloudSelectVO>({
       selectorKey: 'sys-cloud',
       modalTitle: '选择所属云',
       // 使用专用的 select 接口（区别于列表页的 listPage）
       fetchFn: (params) =>
-        cloudApi
-          .select({ pageNum: params.pageNum, pageSize: params.pageSize, keyword: params.keyword })
-          .then((res) => res as unknown as { records: Record<string, unknown>[]; total: number }),
-      displayRender: (record) => (record as unknown as CloudSelectVO).name,
+        cloudApi.select({
+          pageNum: params.pageNum,
+          pageSize: params.pageSize,
+          keyword: params.keyword,
+        }),
+      displayRender: (record) => record.name,
       fieldNames: { key: 'id', label: 'name' },
       columns: [
         { title: '编码', dataIndex: 'number', width: 160 },
         { title: '名称', dataIndex: 'name', width: 200 },
       ],
-    },
+    }),
   },
   { label: '图标', dataIndex: 'icon', type: 'text' },
   { label: '图标颜色', dataIndex: 'iconColor', type: 'text', placeholder: '如 #1677ff' },
   { label: '排序', dataIndex: 'seq', type: 'number' },
   { label: '描述', dataIndex: 'description', type: 'textarea', fullWidth: true },
-  { label: '启用', dataIndex: 'enableFlag', type: 'switch' },
   { label: '创建时间', dataIndex: 'createTime', type: 'readonly' },
   { label: '更新时间', dataIndex: 'updateTime', type: 'readonly' },
 ];
 
 /** 应用编辑页 — 独立页形态，无单据状态 */
 const AppEditPage = (props: PageComponentProps) => {
+  const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const { appNumber, tabKey, operationType, billId } = props;
   const isAddNew = operationType === OperationType.ADDNEW;
   const replaceContentTab = useWorkbenchStore((s) => s.replaceContentTab);
@@ -63,7 +68,7 @@ const AppEditPage = (props: PageComponentProps) => {
 
   // 详情查询（仅编辑模式）
   const detailQuery = useQuery({
-    queryKey: ['app-detail', billId],
+    queryKey: appQueryKeys.detail(billId),
     queryFn: () => appApi.detail(billId!),
     enabled: !!billId,
   });
@@ -82,7 +87,6 @@ const AppEditPage = (props: PageComponentProps) => {
       iconColor: detail.iconColor ?? '',
       seq: detail.seq ?? undefined,
       description: detail.description ?? '',
-      enableFlag: detail.enableFlag ?? true,
       createTime: detail.createTime ?? '',
       updateTime: detail.updateTime ?? '',
     };
@@ -96,6 +100,7 @@ const AppEditPage = (props: PageComponentProps) => {
     if (!cloud?.id) throw new Error('所属云不能为空');
     const savedId = await appApi.save({
       id: billId ?? undefined,
+      version: detail?.version,
       name,
       number,
       icon: (values.icon as string) ?? '',
@@ -104,7 +109,6 @@ const AppEditPage = (props: PageComponentProps) => {
       description: (values.description as string) ?? '',
       // 雪花 ID 保持字符串，前端不转 Number
       cloudId: cloud.id,
-      enableFlag: Boolean(values.enableFlag),
     });
     // 新增成功后替换临时 tab key
     if (isAddNew && tabKey !== String(savedId)) {
@@ -119,8 +123,13 @@ const AppEditPage = (props: PageComponentProps) => {
       });
       activateContentTab(appNumber, `bill:${props.componentKey}:${savedId}`);
     }
+    await queryClient.invalidateQueries({ queryKey: appQueryKeys.all });
     message.success(isAddNew ? '新增成功' : '保存成功');
   };
+  const saveMutation = useMutation({
+    mutationFn: handleSave,
+    onError: (error) => message.error(error instanceof Error ? error.message : '保存失败'),
+  });
 
   return (
     <EditPage
@@ -131,7 +140,8 @@ const AppEditPage = (props: PageComponentProps) => {
       loading={detailQuery.isLoading}
       error={detailQuery.error as Error | null}
       onRetry={() => detailQuery.refetch()}
-      onSave={handleSave}
+      onSave={saveMutation.mutateAsync}
+      saving={saveMutation.isPending}
       onExit={() => {
         useWorkbenchStore.getState().removeContentTab(appNumber, tabKey);
       }}

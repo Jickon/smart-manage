@@ -16,6 +16,8 @@ import sm.domain.sys.base.common.constant.RedisKeyConstant;
 import sm.system.exception.BizException;
 import sm.system.helper.CacheHelper;
 import sm.system.response.ResultEnum;
+import sm.system.util.TransactionUtil;
+import sm.system.util.EnabledCommandUtil;
 
 import java.util.List;
 import java.util.Objects;
@@ -43,10 +45,10 @@ class BasicDataTxService {
             if (entity == null) {
                 throw new BizException(ResultEnum.NOT_FOUND, "基础数据不存在");
             }
-            if (form.getMutex() == null) {
+            if (form.getVersion() == null) {
                 throw new BizException(ResultEnum.PARAM_ERROR, "修改基础数据时乐观锁版本号不能为空");
             }
-            if (!Objects.equals(entity.getMutex(), form.getMutex())) {
+            if (!Objects.equals(entity.getVersion(), form.getVersion())) {
                 throw new BizException(ResultEnum.DATA_CONFLICT, "基础数据已被其他用户修改，请刷新后重试");
             }
             oldNumber = entity.getNumber();
@@ -55,9 +57,11 @@ class BasicDataTxService {
         entity.setNumber(form.getNumber());
         entity.setName(form.getName());
         entity.setRemark(form.getRemark());
-        entity.setEnableFlag(form.getEnableFlag() != null ? form.getEnableFlag() : true);
         if (form.getId() == null) {
-            mapper.insert(entity);
+            entity.setEnabled(true);
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "新增数据失败");
+            }
         } else if (mapper.updateById(entity) == 0) {
             throw new BizException(ResultEnum.DATA_CONFLICT, "基础数据已被其他用户修改，请刷新后重试");
         }
@@ -71,12 +75,18 @@ class BasicDataTxService {
             entry.setNumber(entryForm.getNumber());
             entry.setName(entryForm.getName());
             entry.setSort(entryForm.getSort() != null ? entryForm.getSort() : 99);
-            entry.setEnableFlag(entryForm.getEnableFlag() != null ? entryForm.getEnableFlag() : true);
-            entryMapper.insert(entry);
+            entry.setEnabled(true);
+            if (entryMapper.insert(entry) != 1) {
+                throw new BizException(sm.system.response.ResultEnum.PERSISTENCE_ERROR, "聚合明细写入失败");
+            }
         }
 
-        removeOptionsCache(oldNumber);
-        removeOptionsCache(entity.getNumber());
+        String previousNumber = oldNumber;
+        String currentNumber = entity.getNumber();
+        TransactionUtil.afterCommit(() -> {
+            removeOptionsCache(previousNumber);
+            removeOptionsCache(currentNumber);
+        });
         return entity.getId();
     }
 
@@ -95,7 +105,13 @@ class BasicDataTxService {
         if (mapper.deleteById(id) == 0) {
             throw new BizException(ResultEnum.DATA_CONFLICT, "基础数据已被其他用户删除");
         }
-        removeOptionsCache(entity.getNumber());
+        String deletedNumber = entity.getNumber();
+        TransactionUtil.afterCommit(() -> removeOptionsCache(deletedNumber));
+    }
+
+    public void updateEnabled(List<Long> ids, boolean enabled) {
+        EnabledCommandUtil.update(mapper, BasicDataEntity::getId, BasicDataEntity::getEnabled,
+                ids, enabled, "基础数据");
     }
 
     private void removeOptionsCache(String number) {

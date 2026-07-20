@@ -20,14 +20,14 @@ export interface RoleDetailVO {
   number: string;
   createTime?: string;
   updateTime?: string;
-  mutex: number;
+  version: number;
   permissionIds: string[];
 }
 
 /** 角色保存 */
 export interface RoleSaveForm {
   id?: string;
-  mutex?: number;
+  version?: number;
   name: string;
   number: string;
   remark?: string;

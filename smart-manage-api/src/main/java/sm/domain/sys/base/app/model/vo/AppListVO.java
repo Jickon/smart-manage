@@ -17,7 +17,7 @@ public class AppListVO {
 	private String description;
 	private Long cloudId;
 	private String cloudName;
-	private Boolean enableFlag;
+	private Boolean enabled;
 	private LocalDateTime createTime;
 	private LocalDateTime updateTime;
 }

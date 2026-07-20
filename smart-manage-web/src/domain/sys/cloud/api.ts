@@ -33,4 +33,9 @@ export const cloudApi = {
     request
       .post<Result<string>>('/sys/base/cloud/delete', { id: Number(id) })
       .then((res) => res.data.data),
+
+  setEnabled: (ids: string[], enabled: boolean) =>
+    request
+      .post<Result<string>>(enabled ? '/sys/base/cloud/enable' : '/sys/base/cloud/disable', { ids })
+      .then((res) => res.data.data),
 };

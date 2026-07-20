@@ -22,4 +22,9 @@ export const userApi = {
     request
       .post<Result<string>>('/sys/base/user/delete', { id })
       .then((response) => response.data.data),
+
+  setEnabled: (ids: string[], enabled: boolean) =>
+    request
+      .post<Result<string>>(enabled ? '/sys/base/user/enable' : '/sys/base/user/disable', { ids })
+      .then((response) => response.data.data),
 };

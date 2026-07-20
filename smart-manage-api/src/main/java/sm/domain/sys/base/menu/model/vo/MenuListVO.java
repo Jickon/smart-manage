@@ -36,4 +36,7 @@ public class MenuListVO {
 
 	@Schema(description = "图标")
 	private String icon;
+
+	@Schema(description = "启用状态")
+	private Boolean enabled;
 }

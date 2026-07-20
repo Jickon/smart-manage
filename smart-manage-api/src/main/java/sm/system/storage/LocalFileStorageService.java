@@ -76,18 +76,18 @@ public class LocalFileStorageService implements FileStorageService {
     }
 
     @Override
-    public String promote(String tempPath, String targetSubDir) throws IOException {
-        Path temp = Paths.get(tempPath);
-        if (!Files.exists(temp)) {
-            throw new IOException("临时文件不存在: " + tempPath);
+    public String move(String storedPath, String targetSubDir) throws IOException {
+        Path source = Paths.get(storedPath);
+        if (!Files.exists(source)) {
+            throw new IOException("待移动文件不存在: " + storedPath);
         }
         Path targetDir = Paths.get(getBaseDir(), targetSubDir);
         if (!Files.exists(targetDir)) {
             Files.createDirectories(targetDir);
         }
-        Path target = targetDir.resolve(temp.getFileName().toString());
-        Files.move(temp, target, StandardCopyOption.REPLACE_EXISTING);
-        log.info("临时文件提升: {} -> {}", tempPath, target);
+        Path target = targetDir.resolve(source.getFileName().toString());
+        Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        log.info("本地文件移动: {} -> {}", storedPath, target);
         return target.toString();
     }
 

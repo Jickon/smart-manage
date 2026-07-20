@@ -15,5 +15,5 @@ public class BasicDataEntryVO {
 
     private Integer sort;
 
-    private Boolean enableFlag;
+    private Boolean enabled;
 }
