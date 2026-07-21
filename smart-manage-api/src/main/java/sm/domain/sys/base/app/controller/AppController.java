@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import sm.domain.sys.base.app.constant.AppPermission;
 import sm.domain.sys.base.app.model.form.AppListForm;
 import sm.domain.sys.base.app.model.form.AppOpenByNumberForm;
 import sm.domain.sys.base.app.model.form.AppSaveForm;
@@ -33,49 +34,49 @@ public class AppController {
 
 	@Operation(summary = "应用列表", description = "获取应用分页列表数据")
 	@PostMapping("/sys/base/app/listPage")
-	@SaCheckPermission("sys:base:app:listPage")
+	@SaCheckPermission(AppPermission.LIST)
 	public Result<PageData<AppListVO>> listPage(@RequestBody AppListForm form) {
 		return Result.success(service.listPage(form));
 	}
 
 	@Operation(summary = "应用详情", description = "按ID查询应用")
 	@PostMapping("/sys/base/app/detail")
-	@SaCheckPermission("sys:base:app:detail")
+	@SaCheckPermission(AppPermission.DETAIL)
 	public Result<AppDetailVO> detail(@RequestBody @Valid IdForm form) {
 		return Result.success(service.detail(form.getId()));
 	}
 
 	@Operation(summary = "保存应用", description = "新增或更新应用")
 	@PostMapping("/sys/base/app/save")
-	@SaCheckPermission("sys:base:app:save")
+	@SaCheckPermission(AppPermission.SAVE)
 	public Result<Long> save(@Valid @RequestBody AppSaveForm form) {
 		return Result.success(service.save(form));
 	}
 
 	@GetMapping("/sys/base/app/createNewData")
 	@Operation(summary = "获取新增默认值", description = "获取应用新增时的默认初始数据")
-	@SaCheckPermission("sys:base:app:save")
+	@SaCheckPermission(AppPermission.SAVE)
 	public Result<AppCreateNewDataVO> createNewData() {
 		return Result.success(service.createNewData());
 	}
 
 	@Operation(summary = "删除应用", description = "按ID删除应用")
 	@PostMapping("/sys/base/app/delete")
-	@SaCheckPermission("sys:base:app:delete")
+	@SaCheckPermission(AppPermission.DELETE)
 	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}
 
 	@PostMapping("/sys/base/app/enable")
-	@SaCheckPermission("sys:base:app:enable")
+	@SaCheckPermission(AppPermission.ENABLE)
 	public Result<String> enable(@RequestBody @Valid IdsForm form) {
 		service.enable(form.getIds());
 		return Result.success();
 	}
 
 	@PostMapping("/sys/base/app/disable")
-	@SaCheckPermission("sys:base:app:disable")
+	@SaCheckPermission(AppPermission.DISABLE)
 	public Result<String> disable(@RequestBody @Valid IdsForm form) {
 		service.disable(form.getIds());
 		return Result.success();
@@ -89,6 +90,7 @@ public class AppController {
 
 	@Operation(summary = "云与应用列表（全量）", description = "获取所有云及其下应用（不按用户权限过滤）")
 	@GetMapping("/sys/base/app/appsAll")
+	@SaCheckPermission(AppPermission.LIST)
 	public Result<List<CloudAppsVO>> appsAll() {
 		return Result.success(service.getAllCloudApps());
 	}

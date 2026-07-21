@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import sm.domain.sys.base.menu.constant.MenuPermission;
 import sm.domain.sys.base.common.helper.UserHelper;
 import sm.domain.sys.base.menu.model.form.*;
 import sm.domain.sys.base.menu.model.vo.*;
@@ -33,21 +34,21 @@ public class MenuController {
 
 	@Operation(summary = "菜单列表", description = "获取菜单分页列表数据")
 	@PostMapping("/sys/base/menu/listPage")
-	@SaCheckPermission("sys:base:menu:listPage")
+	@SaCheckPermission(MenuPermission.LIST)
 	public Result<PageData<MenuListVO>> listPage(@RequestBody MenuListForm form) {
 		return Result.success(service.listPage(form));
 	}
 
 	@Operation(summary = "按应用查询菜单", description = "获取指定应用下用于构建管理树的全部菜单")
 	@PostMapping("/sys/base/menu/listByApp")
-	@SaCheckPermission("sys:base:menu:listPage")
+	@SaCheckPermission(MenuPermission.LIST)
 	public Result<List<MenuTreeVO>> listByApp(@RequestBody @Valid UserMenusByAppIdForm form) {
 		return Result.success(service.listByApp(form.getAppId()));
 	}
 
 	@Operation(summary = "菜单选择", description = "基础资料选择：获取菜单分页列表数据")
 	@PostMapping("/sys/base/menu/select")
-	@SaCheckPermission("sys:base:menu:select")
+	@SaCheckPermission(MenuPermission.SELECT)
 	public Result<PageData<MenuSelectVO>> select(@RequestBody MenuSelectForm form) {
 		return Result.success(service.select(form));
 	}
@@ -65,7 +66,7 @@ public class MenuController {
 	}
 
 	@Operation(summary = "菜单详情", description = "按ID查询菜单")
-	@SaCheckPermission("sys:base:menu:detail")
+	@SaCheckPermission(MenuPermission.DETAIL)
 	@PostMapping("/sys/base/menu/detail")
 	public Result<MenuDetailVO> detail(@RequestBody @Valid IdForm form) {
 		return Result.success(service.getDetail(form.getId()));
@@ -73,35 +74,35 @@ public class MenuController {
 
 	@PostMapping("/sys/base/menu/save")
 	@Operation(summary = "保存菜单", description = "新增或更新菜单")
-	@SaCheckPermission("sys:base:menu:save")
+	@SaCheckPermission(MenuPermission.SAVE)
 	public Result<Long> save(@Valid @RequestBody MenuSaveForm form) {
 		return Result.success(service.save(form));
 	}
 
 	@GetMapping("/sys/base/menu/createNewData")
 	@Operation(summary = "获取新增默认值", description = "获取菜单新增时的默认初始数据")
-	@SaCheckPermission("sys:base:menu:save")
+	@SaCheckPermission(MenuPermission.SAVE)
 	public Result<MenuCreateNewDataVO> createNewData() {
 		return Result.success(service.createNewData());
 	}
 
 	@PostMapping("/sys/base/menu/delete")
 	@Operation(summary = "删除菜单", description = "按ID删除菜单")
-	@SaCheckPermission("sys:base:menu:delete")
+	@SaCheckPermission(MenuPermission.DELETE)
 	public Result<String> delete(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}
 
 	@PostMapping("/sys/base/menu/enable")
-	@SaCheckPermission("sys:base:menu:enable")
+	@SaCheckPermission(MenuPermission.ENABLE)
 	public Result<String> enable(@RequestBody @Valid IdsForm form) {
 		service.enable(form.getIds());
 		return Result.success();
 	}
 
 	@PostMapping("/sys/base/menu/disable")
-	@SaCheckPermission("sys:base:menu:disable")
+	@SaCheckPermission(MenuPermission.DISABLE)
 	public Result<String> disable(@RequestBody @Valid IdsForm form) {
 		service.disable(form.getIds());
 		return Result.success();

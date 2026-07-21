@@ -9,6 +9,7 @@ import { cloudQueryKeys } from './queryKeys';
 import type { CloudListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 import CloudEditPage from './CloudEditPage';
+import { cloudAccess } from './permissions';
 
 /** 云管理列表页 */
 const CloudListPage = (props: PageComponentProps) => {
@@ -72,6 +73,7 @@ const CloudListPage = (props: PageComponentProps) => {
       <ListPage<CloudListVO>
         {...props}
         title="云管理"
+        access={cloudAccess}
         loading={query.isLoading}
         error={query.error as Error | null}
         onRetry={() => query.refetch()}

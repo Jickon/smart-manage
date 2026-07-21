@@ -15,10 +15,10 @@
 | 领域分层 | 不额外拆分 Application、Domain、Infrastructure 层 | 已确认 |
 | 租户模型 | 单租户系统，不考虑 SaaS 多租户 | 已确认 |
 | 组织模型 | 单租户内保留组织树和组织维度权限 | 已确认 |
-| 乐观锁命名 | `mutex` 统一改为 `version` | 待实施 |
+| 乐观锁命名 | `mutex` 统一改为 `version` | 已完成 |
 | 其他命名调整 | `entrys`、`ADDNEW`、`createNewData`、Service 的 `deleteById` 暂不修改 | 暂缓 |
 | 业务编码 | 继续使用 `number`，不改为 `code` | 已确认 |
-| 数据库迁移 | 引入 Flyway 管理数据库结构和必要初始化数据 | 待实施 |
+| 数据库迁移 | 引入 Flyway 管理数据库结构和必要初始化数据 | 已完成 |
 | 自动化测试 | 当前阶段不扩展测试体系，待部分基础代码稳定后再建设关键测试 | 暂缓 |
 | 配置文件职责 | `application.yml` 存放所有环境公共配置，环境配置文件只覆盖差异项 | 已确认 |
 | 开源许可证 | 使用 Apache License 2.0 | 已确认 |
@@ -73,6 +73,16 @@ PostgreSQL
 7. 关键设计应及时同步到 `AGENTS.md`，详细设计原因保留在 `docs/architecture`，避免 `AGENTS.md` 无限膨胀。
 
 ## 5. 分阶段优化计划
+
+### 当前实施基线（2026-07-21）
+
+- Flyway 已成为数据库结构和必要初始化数据的唯一权威来源，脚本位于项目根目录 `db/migration`。
+- 乐观锁已统一为 `version`，启用状态已统一为 `enabled`。
+- 用户、角色、权限、云、应用、菜单等核心资料已按公开 Service 与包级 TxService 分离事务。
+- 启停、角色分配、权限分配已从普通保存中拆为独立命令。
+- 前端已建立 ListPage、EditPage、AssignmentPage 和 CustomPage 页面边界。
+- 本轮继续完善授权变更后的会话失效、禁用资源导航过滤、统一命令反馈和页面错误边界。
+- 自动化测试体系仍按既定决策暂缓，不属于本轮范围。
 
 ### 阶段一：建立 Flyway 数据库迁移基线
 

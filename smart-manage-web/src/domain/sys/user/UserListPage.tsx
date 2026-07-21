@@ -11,6 +11,7 @@ import { userApi } from './api';
 import { userQueryKeys } from './queryKeys';
 import type { UserListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
+import { userAccess } from './permissions';
 
 /** 用户编辑页 componentKey */
 const USER_EDIT_KEY = 'sys/base/user/edit';
@@ -105,6 +106,7 @@ const UserListPage = (props: PageComponentProps) => {
     <ListPage<UserListVO>
       {...props}
       title="用户管理"
+      access={userAccess}
       loading={query.isLoading}
       error={query.error as Error | null}
       onRetry={() => query.refetch()}
@@ -119,11 +121,15 @@ const UserListPage = (props: PageComponentProps) => {
       onDisable={() => enabledMutation.mutate({ ids: selectedRowKeys.map(String), enabled: false })}
       enabledCommandLoading={enabledMutation.isPending}
       onRefresh={onRefresh}
-      toolbarActions={
-        <Button disabled={selectedRowKeys.length !== 1} onClick={handleAssignRoles}>
-          分配角色
-        </Button>
-      }
+      toolbarActions={[
+        {
+          key: 'assignRoles',
+          label: '分配角色',
+          permission: userAccess.permissions.assignRoles,
+          disabled: selectedRowKeys.length !== 1,
+          onClick: handleAssignRoles,
+        },
+      ]}
       onQuickSearch={onSearch}
       onPageChange={onPageChange}
       rowKey="id"

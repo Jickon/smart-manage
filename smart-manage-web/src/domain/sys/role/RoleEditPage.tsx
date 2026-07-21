@@ -6,6 +6,7 @@ import { OperationType } from '@/domain/common/page/types';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { roleApi } from './api';
+import { roleAccess } from './permissions';
 import { roleQueryKeys } from './queryKeys';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
@@ -71,6 +72,7 @@ const RoleEditPage = (props: PageComponentProps) => {
 
   return (
     <EditPage
+      access={roleAccess}
       title="角色管理"
       fields={fields}
       initialValues={initialValues}

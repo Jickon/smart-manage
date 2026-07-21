@@ -16,6 +16,7 @@ public interface MenuMapper extends BaseMapper<MenuEntity> {
     MenuAppInfoVO selectAppInfo(Long appId);
 
     List<MenuEntity> selectUserMenus(@Param("userId") Long userId,
+                                     @Param("orgId") Long orgId,
                                      @Param("appId") Long appId,
                                      @Param("admin") boolean admin);
 

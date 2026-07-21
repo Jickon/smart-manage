@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import sm.domain.sys.base.user.constant.UserPermission;
 import sm.domain.sys.base.user.model.form.UserListForm;
 import sm.domain.sys.base.user.model.form.UserPermissionsForm;
 import sm.domain.sys.base.user.model.form.UserSaveForm;
@@ -37,7 +38,7 @@ public class UserController {
 
 	@PostMapping("/sys/base/user/listPage")
 	@Operation(summary = "用户列表", description = "获取用户分页列表数据")
-	@SaCheckPermission("sys:base:user:listPage")
+	@SaCheckPermission(UserPermission.LIST)
 	public Result<PageData<UserListVO>> listPage(@RequestBody UserListForm form) {
 		return Result.success(service.listPage(form));
 	}
@@ -55,7 +56,7 @@ public class UserController {
 	}
 
 	@Operation(summary = "用户详情", description = "按ID查询用户")
-	@SaCheckPermission("sys:base:user:detail")
+	@SaCheckPermission(UserPermission.DETAIL)
 	@PostMapping("/sys/base/user/detail")
 	public Result<UserInfoVO> detail(@RequestBody @Valid IdForm form) {
 		return Result.success(service.detail(form.getId()));
@@ -63,28 +64,28 @@ public class UserController {
 
 	@PostMapping("/sys/base/user/save")
 	@Operation(summary = "保存用户", description = "新增或更新用户")
-	@SaCheckPermission("sys:base:user:save")
+	@SaCheckPermission(UserPermission.SAVE)
 	public Result<Long> saveUser(@RequestBody @Valid UserSaveForm form) {
 		return Result.success(service.save(form));
 	}
 
 	@PostMapping("/sys/base/user/delete")
 	@Operation(summary = "删除用户", description = "按ID删除用户")
-	@SaCheckPermission("sys:base:user:delete")
+	@SaCheckPermission(UserPermission.DELETE)
 	public Result<String> deleteUser(@RequestBody @Valid IdForm form) {
 		service.deleteById(form.getId());
 		return Result.success();
 	}
 
 	@PostMapping("/sys/base/user/enable")
-	@SaCheckPermission("sys:base:user:enable")
+	@SaCheckPermission(UserPermission.ENABLE)
 	public Result<String> enable(@RequestBody @Valid IdsForm form) {
 		service.enable(form.getIds());
 		return Result.success();
 	}
 
 	@PostMapping("/sys/base/user/disable")
-	@SaCheckPermission("sys:base:user:disable")
+	@SaCheckPermission(UserPermission.DISABLE)
 	public Result<String> disable(@RequestBody @Valid IdsForm form) {
 		service.disable(form.getIds());
 		return Result.success();
@@ -92,14 +93,14 @@ public class UserController {
 
 	@GetMapping("/sys/base/user/createNewData")
 	@Operation(summary = "获取新增默认值", description = "获取用户新增时的默认初始数据")
-	@SaCheckPermission("sys:base:user:save")
+	@SaCheckPermission(UserPermission.SAVE)
 	public Result<UserCreateNewDataVO> createNewData() {
 		return Result.success(service.createNewData());
 	}
 
 	@Operation(summary = "分配用户角色", description = "整体替换指定用户在当前组织下的角色关系")
 	@PostMapping("/sys/base/user/assignRoles")
-	@SaCheckPermission("sys:base:user:assignRoles")
+	@SaCheckPermission(UserPermission.ASSIGN_ROLES)
 	public Result<String> assignRoles(@RequestBody @Valid UserRoleAssignForm form) {
 		service.assignRoles(form);
 		return Result.success();

@@ -5,6 +5,7 @@ import ModalEditPage from '@/domain/common/page/ModalEditPage';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { defineRefSelector } from '@/domain/common/page/defineRefSelector';
 import { permissionApi } from './api';
+import { permissionAccess } from './permissions';
 import { permissionQueryKeys } from './queryKeys';
 import { appApi } from '@/domain/sys/app/api';
 import type { AppListVO } from '@/domain/sys/app/types';
@@ -101,6 +102,7 @@ const PermissionEditPage = ({ open, permissionId, onClose, onSaved }: Props) => 
 
   return (
     <ModalEditPage
+      access={permissionAccess}
       title={isAddNew ? '新增权限' : '编辑权限'}
       open={open}
       onClose={onClose}

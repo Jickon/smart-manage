@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { Spin, Modal } from 'antd';
+import { App, Spin } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { menuQueryKeys } from '@/domain/sys/menu/queryKeys';
 import { useWorkbenchStore } from '@/stores/workbench';
@@ -14,6 +14,7 @@ interface Props {
 }
 
 const Workbench = ({ appNumber }: Props) => {
+  const { modal } = App.useApp();
   const ws = useWorkbenchStore((s) => s.workspaces[appNumber]);
   const openListTab = useWorkbenchStore((s) => s.openListTab);
 
@@ -28,13 +29,13 @@ const Workbench = ({ appNumber }: Props) => {
       const componentKey = item.component?.trim() || item.path?.trim() || item.name;
       const result = openListTab(appNumber, componentKey, item.name);
       if (result === 'limit_reached') {
-        Modal.warning({
+        modal.warning({
           title: '页签数量已达上限',
           content: '请先关闭不再使用的页签后再打开新页面。',
         });
       }
     },
-    [appNumber, openListTab],
+    [appNumber, modal, openListTab],
   );
 
   if (!ws) return null;

@@ -7,6 +7,7 @@ import type { EditField } from '@/domain/common/page/EditPage';
 import { defineRefSelector } from '@/domain/common/page/defineRefSelector';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { appApi } from './api';
+import { appAccess } from './permissions';
 import { appQueryKeys } from './queryKeys';
 import { cloudApi } from '@/domain/sys/cloud/api';
 import type { CloudSelectVO } from '@/domain/sys/cloud/types';
@@ -133,6 +134,7 @@ const AppEditPage = (props: PageComponentProps) => {
 
   return (
     <EditPage
+      access={appAccess}
       title="应用管理"
       fields={fields}
       initialValues={initialValues}

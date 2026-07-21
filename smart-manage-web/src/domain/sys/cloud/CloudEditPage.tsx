@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import ModalEditPage from '@/domain/common/page/ModalEditPage';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { cloudApi } from './api';
+import { cloudAccess } from './permissions';
 import { cloudQueryKeys } from './queryKeys';
 
 interface Props {
@@ -74,6 +75,7 @@ const CloudEditPage = ({ open, cloudId, onClose, onSaved }: Props) => {
 
   return (
     <ModalEditPage
+      access={cloudAccess}
       title={isAddNew ? '新增云' : '编辑云'}
       open={open}
       onClose={onClose}

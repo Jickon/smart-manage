@@ -3,6 +3,8 @@ import { Spin, Button, Modal, Result, Form } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import type { EditField } from './EditPage';
 import { EditFormFields } from './EditFormFields';
+import type { AccessResource } from './access';
+import { PermissionActions } from './PermissionActions';
 import './EditPage.css';
 import './ModalEditPage.css';
 
@@ -20,6 +22,7 @@ interface ModalEditPageProps {
   error?: Error | null;
   onRetry?: () => void;
   width?: number;
+  access?: AccessResource<{ save: string }>;
 }
 
 /** 通用 Modal 编辑模板 — 三段式布局：标题栏 + 可滚动字段区 + 底部按钮，使用 antd Form 驱动校验 */
@@ -35,6 +38,7 @@ const ModalEditPage = ({
   error = null,
   onRetry,
   width = 700,
+  access,
 }: ModalEditPageProps) => {
   const [form] = Form.useForm();
 
@@ -85,12 +89,20 @@ const ModalEditPage = ({
       width={width}
       footer={
         <div className="sm-modal-footer-inner">
-          <Button onClick={onClose} disabled={saving}>
-            取消
-          </Button>
-          <Button type="primary" loading={saving} onClick={handleSave}>
-            保存
-          </Button>
+          <PermissionActions
+            prefix={access?.prefix}
+            actions={[
+              { key: 'cancel', label: '取消', disabled: saving, onClick: onClose },
+              {
+                key: 'save',
+                label: '保存',
+                permission: access?.permissions.save,
+                type: 'primary',
+                loading: saving,
+                onClick: handleSave,
+              },
+            ]}
+          />
         </div>
       }
     >

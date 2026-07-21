@@ -58,6 +58,10 @@
         INNER JOIN t_sys_role_perms d ON d.permission_id = c.permission_id
         INNER JOIN t_sys_user_role e ON e.role_id = d.role_id
         WHERE e.user_id = #{userId}
+          AND e.org_id = #{orgId}
+          AND a.enabled = true
+          AND b.enabled = true
+          AND c.enabled = true
         ORDER BY b.seq, a.seq
     </select>
 
@@ -79,7 +83,12 @@
         INNER JOIN t_sys_menu c ON c.app_id = a.id
         INNER JOIN t_sys_role_perms d ON d.permission_id = c.permission_id
         INNER JOIN t_sys_user_role e ON e.role_id = d.role_id
-        WHERE e.user_id = #{userId} AND a.number = #{appNumber}
+        WHERE e.user_id = #{userId}
+          AND e.org_id = #{orgId}
+          AND a.number = #{appNumber}
+          AND a.enabled = true
+          AND b.enabled = true
+          AND c.enabled = true
         LIMIT 1
     </select>
 
@@ -89,6 +98,8 @@
         FROM t_sys_app a
         LEFT JOIN t_sys_cloud b ON b.id = a.cloud_id
         WHERE a.number = #{appNumber}
+          AND a.enabled = true
+          AND b.enabled = true
         LIMIT 1
     </select>
 </mapper>

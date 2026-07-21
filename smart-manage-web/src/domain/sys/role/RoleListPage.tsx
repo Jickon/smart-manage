@@ -10,6 +10,7 @@ import { roleApi } from './api';
 import { roleQueryKeys } from './queryKeys';
 import type { RoleListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
+import { roleAccess } from './permissions';
 
 /** 角色编辑页 componentKey */
 const ROLE_EDIT_KEY = 'sys/base/role/edit';
@@ -88,6 +89,7 @@ const RoleListPage = (props: PageComponentProps) => {
     <ListPage<RoleListVO>
       {...props}
       title="角色管理"
+      access={roleAccess}
       loading={query.isLoading}
       error={query.error as Error | null}
       onRetry={() => query.refetch()}
@@ -99,11 +101,15 @@ const RoleListPage = (props: PageComponentProps) => {
       onAddNew={handleOpenAdd}
       onDelete={handleDelete}
       onRefresh={onRefresh}
-      toolbarActions={
-        <Button disabled={selectedRowKeys.length !== 1} onClick={handleAssignPermissions}>
-          分配权限
-        </Button>
-      }
+      toolbarActions={[
+        {
+          key: 'assignPermissions',
+          label: '分配权限',
+          permission: roleAccess.permissions.assignPermissions,
+          disabled: selectedRowKeys.length !== 1,
+          onClick: handleAssignPermissions,
+        },
+      ]}
       onQuickSearch={onSearch}
       onPageChange={onPageChange}
       rowKey="id"

@@ -12,6 +12,7 @@ import { fetchAppsAll, appApi } from './api';
 import { appQueryKeys } from './queryKeys';
 import type { AppListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
+import { appAccess } from './permissions';
 
 /** 应用编辑页 componentKey */
 const APP_EDIT_KEY = 'sys/base/app/edit';
@@ -118,6 +119,7 @@ const AppListPage = (props: PageComponentProps) => {
     <ListPage<AppListVO>
       {...props}
       title="应用管理"
+      access={appAccess}
       loading={query.isLoading}
       error={query.error as Error | null}
       onRetry={() => query.refetch()}

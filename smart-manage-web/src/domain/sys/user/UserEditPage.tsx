@@ -6,6 +6,7 @@ import { OperationType } from '@/domain/common/page/types';
 import type { EditField } from '@/domain/common/page/EditPage';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { userApi } from './api';
+import { userAccess } from './permissions';
 import { userQueryKeys } from './queryKeys';
 import type { PageComponentProps } from '@/domain/common/page/types';
 
@@ -98,6 +99,7 @@ const UserEditPage = (props: PageComponentProps) => {
 
   return (
     <EditPage
+      access={userAccess}
       title="用户管理"
       fields={fields}
       initialValues={initialValues}

@@ -1,5 +1,4 @@
-import { App } from 'antd';
-import { useMutation } from '@tanstack/react-query';
+import { useCommandMutation } from './useCommandMutation';
 
 interface EnabledCommand {
   ids: string[];
@@ -11,11 +10,10 @@ export function useEnabledMutation(
   command: (ids: string[], enabled: boolean) => Promise<unknown>,
   onSuccess: () => void | Promise<void>,
 ) {
-  const { message } = App.useApp();
-  return useMutation({
+  return useCommandMutation({
     mutationFn: ({ ids, enabled }: EnabledCommand) => command(ids, enabled),
-    onSuccess: async (_data, variables) => {
-      message.success(variables.enabled ? '启用成功' : '禁用成功');
+    successMessage: (variables) => (variables.enabled ? '启用成功' : '禁用成功'),
+    onSuccess: async (_data, _variables) => {
       await onSuccess();
     },
   });

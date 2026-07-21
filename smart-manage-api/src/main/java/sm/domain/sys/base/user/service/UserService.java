@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import sm.domain.sys.base.common.constant.UserConstant;
 import sm.domain.sys.base.common.helper.UserHelper;
+import sm.domain.sys.base.common.helper.AuthorizationStateHelper;
 import sm.domain.sys.base.login.model.vo.LoginVO;
 import sm.domain.sys.base.menu.service.MenuService;
 import sm.domain.sys.base.permission.service.PermissionService;
@@ -50,6 +51,7 @@ public class UserService {
 	private final UserTxService txService;
 	private final MenuService menuService;
 	private final PermissionService permissionService;
+	private final AuthorizationStateHelper authorizationStateHelper;
 
 	@Value("${smart-manage.org.default-id:1}")
 	private Long defaultOrgId;
@@ -91,16 +93,19 @@ public class UserService {
 	@BizLog("启用用户")
 	public void enable(List<Long> ids) {
 		txService.updateEnabled(ids, true);
+		authorizationStateHelper.invalidateUsers(ids);
 	}
 
 	@BizLog("禁用用户")
 	public void disable(List<Long> ids) {
 		txService.updateEnabled(ids, false);
+		authorizationStateHelper.invalidateUsers(ids);
 	}
 
 	@BizLog("分配用户角色")
 	public void assignRoles(UserRoleAssignForm form) {
 		txService.assignRoles(form);
+		authorizationStateHelper.invalidateUsers(List.of(form.getUserId()));
 	}
 
 	/** 查询用户及当前组织下的角色明细。 */

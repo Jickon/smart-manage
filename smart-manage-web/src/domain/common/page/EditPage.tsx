@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
-import { Spin, Button, Space, Result, Collapse, Form } from 'antd';
+import { Spin, Button, Result, Collapse, Form } from 'antd';
 import type { Rule } from 'antd/es/form';
 import type { ReactNode } from 'react';
 import { OperationType, BillStatus } from './types';
 import { EditFormFields } from './EditFormFields';
+import type { AccessResource, PermissionAction } from './access';
+import { PermissionActions } from './PermissionActions';
 import './EditPage.css';
 
 /** 编辑字段公共属性 */
@@ -81,8 +83,10 @@ interface EditPageProps {
   /** 提交回调，接收 Form 校验通过后的字段值 */
   onSubmit?: (values: Record<string, unknown>) => Promise<void>;
   onExit?: () => void;
-  /** 自定义头部操作区 */
-  headerExtra?: ReactNode;
+  /** 当前领域的编辑命令权限声明 */
+  access?: AccessResource<{ save: string; submit?: string }>;
+  /** 提交、审核、关闭等扩展业务命令 */
+  headerActions?: PermissionAction[];
 }
 
 /** 是否可编辑：暂存或新增时允许编辑 */
@@ -105,7 +109,8 @@ const EditPage = ({
   onSave,
   onSubmit,
   onExit,
-  headerExtra,
+  access,
+  headerActions,
 }: EditPageProps) => {
   const [form] = Form.useForm();
   const editable = isEditable(operationType, billStatus);
@@ -162,22 +167,37 @@ const EditPage = ({
       {/* 顶部操作区固定展示，单据内容在下方独立滚动 */}
       <div className="sm-edit-header">
         <div className="sm-edit-header-actions">
-          {headerExtra}
-          {editable && (
-            <Space>
-              {onSave && (
-                <Button type="primary" loading={saving} onClick={handleSave}>
-                  保存
-                </Button>
-              )}
-              {onSubmit && (
-                <Button type="primary" loading={saving} onClick={handleSubmit}>
-                  提交
-                </Button>
-              )}
-              {onExit && <Button onClick={onExit}>退出</Button>}
-            </Space>
-          )}
+          <PermissionActions
+            prefix={access?.prefix}
+            actions={[
+              ...(editable && onSave
+                ? [
+                    {
+                      key: 'save',
+                      label: '保存',
+                      permission: access?.permissions.save,
+                      type: 'primary' as const,
+                      loading: saving,
+                      onClick: handleSave,
+                    },
+                  ]
+                : []),
+              ...(editable && onSubmit
+                ? [
+                    {
+                      key: 'submit',
+                      label: '提交',
+                      permission: access?.permissions.submit,
+                      type: 'primary' as const,
+                      loading: saving,
+                      onClick: handleSubmit,
+                    },
+                  ]
+                : []),
+              ...(headerActions ?? []),
+              ...(onExit ? [{ key: 'exit', label: '退出', onClick: onExit }] : []),
+            ]}
+          />
         </div>
       </div>
 

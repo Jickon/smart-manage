@@ -10,6 +10,7 @@ import { ApiError } from '@/api/ApiError';
 import { useUserStore } from '@/stores/user';
 // 自动生成的组件注册表导入 — 由 pnpm gen:registry 生成
 import '@/domain/common/registry/registry.gen';
+import { AppErrorBoundary } from '@/pages/errors/AppErrorBoundary';
 
 const UNAUTHORIZED_CODE = 100401;
 
@@ -102,7 +103,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ConfigProvider theme={{ ...themeConfig, cssVar: {} }} locale={zhCN}>
         <AntApp>
-          <RouterProvider router={router} />
+          <AppErrorBoundary>
+            <RouterProvider router={router} />
+          </AppErrorBoundary>
         </AntApp>
       </ConfigProvider>
     </QueryClientProvider>

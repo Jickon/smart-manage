@@ -15,6 +15,7 @@ import { menuQueryKeys } from './queryKeys';
 import { appQueryKeys } from '@/domain/sys/app/queryKeys';
 import type { MenuListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
+import { menuAccess } from './permissions';
 
 /** 菜单编辑页 componentKey */
 const MENU_EDIT_KEY = 'sys/base/menu/edit';
@@ -183,6 +184,7 @@ const MenuListPage = (props: PageComponentProps) => {
     <ListPage<MenuListVO>
       {...props}
       title="菜单管理"
+      access={menuAccess}
       loading={loading ? true : false}
       error={error as Error | null}
       onRetry={() => {

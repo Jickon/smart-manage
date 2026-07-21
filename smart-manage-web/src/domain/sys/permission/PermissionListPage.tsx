@@ -3,16 +3,19 @@ import { App, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import ListPage from '@/domain/common/page/ListPage';
 import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
+import { usePermissionAccess } from '@/domain/common/page/usePermissionAccess';
 import { usePermissionDeleteMutation } from './usePermissionDeleteMutation';
 import { permissionApi } from './api';
 import { permissionQueryKeys } from './queryKeys';
 import type { PermissionListVO } from './types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 import PermissionEditPage from './PermissionEditPage';
+import { permissionAccess } from './permissions';
 
 /** 权限管理列表页 */
 const PermissionListPage = (props: PageComponentProps) => {
   const { modal } = App.useApp();
+  const { can } = usePermissionAccess(permissionAccess.prefix);
   const { records, total, pageNum, pageSize, keyword, query, onSearch, onPageChange, onRefresh } =
     useListPageQuery({
       queryKey: permissionQueryKeys.lists(),
@@ -62,11 +65,14 @@ const PermissionListPage = (props: PageComponentProps) => {
       title: '编码',
       dataIndex: 'number',
       width: 220,
-      render: (text, record) => (
-        <Button type="link" size="small" onClick={() => handleOpenEdit(record.id)}>
-          {text}
-        </Button>
-      ),
+      render: (text, record) =>
+        can(permissionAccess.permissions.detail) ? (
+          <Button type="link" size="small" onClick={() => handleOpenEdit(record.id)}>
+            {text}
+          </Button>
+        ) : (
+          text
+        ),
     },
     { title: '名称', dataIndex: 'name', width: 220 },
   ];
@@ -76,6 +82,7 @@ const PermissionListPage = (props: PageComponentProps) => {
       <ListPage<PermissionListVO>
         {...props}
         title="权限管理"
+        access={permissionAccess}
         loading={query.isLoading}
         error={query.error as Error | null}
         onRetry={() => query.refetch()}

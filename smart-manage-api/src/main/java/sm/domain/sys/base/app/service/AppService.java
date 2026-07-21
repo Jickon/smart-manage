@@ -93,7 +93,7 @@ public class AppService {
 		if (UserHelper.isAdmin()) {
 			return getAllCloudApps();
 		}
-		return toCloudApps(mapper.selectUserCloudApps(userId));
+		return toCloudApps(mapper.selectUserCloudApps(userId, UserHelper.getCurrentOrgId()));
 	}
 
 	public List<CloudAppsVO> getAllCloudApps() {
@@ -147,7 +147,7 @@ public class AppService {
 		// 超级管理员直接按应用编码查询，普通用户仍通过角色权限关系过滤。
 		AppVO vo = UserHelper.isAdmin()
 				? mapper.selectAppByNumber(appNumber)
-				: mapper.selectUserAppByNumber(userId, appNumber);
+				: mapper.selectUserAppByNumber(userId, UserHelper.getCurrentOrgId(), appNumber);
 		if (vo == null) {
 			throw new BizException(ResultEnum.NOT_FOUND, "应用不存在或无权访问");
 		}

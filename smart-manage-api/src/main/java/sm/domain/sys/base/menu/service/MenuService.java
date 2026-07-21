@@ -167,7 +167,8 @@ public class MenuService {
 			}
 		}
 
-		List<MenuEntity> entityList = mapper.selectUserMenus(userId, appId, UserHelper.isAdmin());
+		List<MenuEntity> entityList = mapper.selectUserMenus(
+				userId, UserHelper.getCurrentOrgId(), appId, UserHelper.isAdmin());
 		Map<Long, MenuVO> categories = new HashMap<>();
 		for (MenuEntity menuEntity : entityList) {
 			MenuVO menu = new MenuVO();
@@ -203,7 +204,8 @@ public class MenuService {
 			return empty;
 		}
 		AppEntity app = appMapper.selectOne(new LambdaQueryWrapper<AppEntity>()
-				.eq(AppEntity::getNumber, appNumber));
+				.eq(AppEntity::getNumber, appNumber)
+				.eq(AppEntity::getEnabled, true));
 		Long appId = app == null ? null : app.getId();
 		if (appId == null) {
 			MenuVO empty = new MenuVO();

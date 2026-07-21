@@ -7,6 +7,7 @@ import type { EditField } from '@/domain/common/page/EditPage';
 import { defineRefSelector } from '@/domain/common/page/defineRefSelector';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { menuApi } from './api';
+import { menuAccess } from './permissions';
 import { menuQueryKeys } from './queryKeys';
 import { appApi } from '@/domain/sys/app/api';
 import { permissionApi } from '@/domain/sys/permission/api';
@@ -194,6 +195,7 @@ const MenuEditPage = (props: PageComponentProps) => {
 
   return (
     <EditPage
+      access={menuAccess}
       title="菜单管理"
       fields={fields}
       initialValues={initialValues}

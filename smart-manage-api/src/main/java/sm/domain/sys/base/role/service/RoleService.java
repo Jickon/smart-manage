@@ -21,6 +21,7 @@ import sm.system.exception.BizException;
 import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
+import sm.domain.sys.base.common.helper.AuthorizationStateHelper;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +38,7 @@ public class RoleService {
 	private final RoleMapper mapper;
 	private final RolePermissionMapper permissionMapper;
 	private final RoleTxService txService;
+	private final AuthorizationStateHelper authorizationStateHelper;
 
 	public PageData<RoleListVO> listPage(RoleListForm form) {
 		LambdaQueryWrapper<RoleEntity> qw = new LambdaQueryWrapper<RoleEntity>()
@@ -146,5 +148,6 @@ public class RoleService {
 	@BizLog("分配角色权限")
 	public void assignPermissions(RolePermissionAssignForm form) {
 		txService.assignPermissions(form);
+		authorizationStateHelper.invalidateRoleUsers(form.getRoleId());
 	}
 }

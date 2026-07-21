@@ -19,12 +19,13 @@ public interface AppMapper extends BaseMapper<AppEntity> {
 
     AppDetailVO selectDetailById(Long id);
 
-    List<CloudAppRowVO> selectUserCloudApps(Long userId);
+    List<CloudAppRowVO> selectUserCloudApps(@Param("userId") Long userId, @Param("orgId") Long orgId);
 
     List<CloudAppRowVO> selectAllCloudApps();
 
     AppVO selectAppByNumber(@Param("appNumber") String appNumber);
 
-    AppVO selectUserAppByNumber(@Param("userId") Long userId, @Param("appNumber") String appNumber);
+    AppVO selectUserAppByNumber(@Param("userId") Long userId, @Param("orgId") Long orgId,
+                                @Param("appNumber") String appNumber);
 }
 

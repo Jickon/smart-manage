@@ -1,10 +1,20 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
-import { Button, Result, Space, Spin, Table } from 'antd';
+import { Button, Result, Spin, Table } from 'antd';
 import type { ColumnsType, TableRowSelection } from 'antd/es/table/interface';
 import ListFilterBar from './ListFilterBar';
 import ListTableShell from './ListTableShell';
+import type { AccessResource } from './access';
+import type { PermissionAction } from './access';
+import { PermissionActions } from './PermissionActions';
 import './ListPage.css';
+
+interface StandardListPermissions {
+  save: string;
+  delete?: string;
+  enable?: string;
+  disable?: string;
+}
 
 interface ListPageProps<T> {
   title: string;
@@ -13,7 +23,9 @@ interface ListPageProps<T> {
   /** 过滤摘要文案 */
   filterSummary?: ReactNode;
   /** 工具栏额外操作 */
-  toolbarActions?: ReactNode;
+  toolbarActions?: PermissionAction[];
+  /** 当前领域的标准列表权限声明 */
+  access?: AccessResource<StandardListPermissions>;
   /** 左侧树面板（左树右表布局） */
   treePanel?: ReactNode;
   /** 是否加载中 */
@@ -63,6 +75,7 @@ function ListPage<T>({
   filterContent,
   filterSummary,
   toolbarActions,
+  access,
   treePanel,
   loading = false,
   error = null,
@@ -184,42 +197,61 @@ function ListPage<T>({
           onQuickSearch={onQuickSearch}
         />
         <div className="sm-list-toolbar">
-          <Space size="medium">
-            {onAddNew && (
-              <Button type="primary" onClick={onAddNew}>
-                新增
-              </Button>
-            )}
-            {onDelete && (
-              <Button danger onClick={onDelete}>
-                删除
-              </Button>
-            )}
-            {onEnable && (
-              <Button
-                onClick={onEnable}
-                disabled={(selectedRowKeys?.length ?? 0) === 0}
-                loading={enabledCommandLoading}
-              >
-                启用
-              </Button>
-            )}
-            {onDisable && (
-              <Button
-                onClick={onDisable}
-                disabled={(selectedRowKeys?.length ?? 0) === 0}
-                loading={enabledCommandLoading}
-              >
-                禁用
-              </Button>
-            )}
-            {onRefresh && (
-              <Button type="primary" onClick={onRefresh}>
-                刷新
-              </Button>
-            )}
-            {toolbarActions}
-          </Space>
+          <PermissionActions
+            prefix={access?.prefix}
+            actions={[
+              ...(onAddNew
+                ? [
+                    {
+                      key: 'add',
+                      label: '新增',
+                      permission: access?.permissions.save,
+                      type: 'primary' as const,
+                      onClick: onAddNew,
+                    },
+                  ]
+                : []),
+              ...(onDelete
+                ? [
+                    {
+                      key: 'delete',
+                      label: '删除',
+                      permission: access?.permissions.delete,
+                      danger: true,
+                      onClick: onDelete,
+                    },
+                  ]
+                : []),
+              ...(onEnable
+                ? [
+                    {
+                      key: 'enable',
+                      label: '启用',
+                      permission: access?.permissions.enable,
+                      disabled: (selectedRowKeys?.length ?? 0) === 0,
+                      loading: enabledCommandLoading,
+                      onClick: onEnable,
+                    },
+                  ]
+                : []),
+              ...(onDisable
+                ? [
+                    {
+                      key: 'disable',
+                      label: '禁用',
+                      permission: access?.permissions.disable,
+                      disabled: (selectedRowKeys?.length ?? 0) === 0,
+                      loading: enabledCommandLoading,
+                      onClick: onDisable,
+                    },
+                  ]
+                : []),
+              ...(onRefresh
+                ? [{ key: 'refresh', label: '刷新', type: 'primary' as const, onClick: onRefresh }]
+                : []),
+              ...(toolbarActions ?? []),
+            ]}
+          />
         </div>
       </div>
 

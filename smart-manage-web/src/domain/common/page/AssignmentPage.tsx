@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import { Button, Result, Space, Spin } from 'antd';
+import { Button, Result, Spin } from 'antd';
+import type { AccessResource } from './access';
+import { PermissionActions } from './PermissionActions';
 import './EditPage.css';
 
 interface AssignmentPageProps {
@@ -10,6 +12,7 @@ interface AssignmentPageProps {
   onSave: () => void;
   onExit: () => void;
   onRetry: () => void;
+  access: AccessResource<{ save: string }>;
 }
 
 /** 关系分配专用页面框架，操作区与内容区严格分离。 */
@@ -21,6 +24,7 @@ export function AssignmentPage({
   onSave,
   onExit,
   onRetry,
+  access,
 }: AssignmentPageProps) {
   if (error) {
     return (
@@ -38,12 +42,20 @@ export function AssignmentPage({
     <section className="sm-common-page sm-edit-page">
       <div className="sm-edit-header">
         <div className="sm-edit-header-actions">
-          <Space>
-            <Button type="primary" loading={saving} onClick={onSave}>
-              保存
-            </Button>
-            <Button onClick={onExit}>退出</Button>
-          </Space>
+          <PermissionActions
+            prefix={access.prefix}
+            actions={[
+              {
+                key: 'save',
+                label: '保存',
+                permission: access.permissions.save,
+                type: 'primary',
+                loading: saving,
+                onClick: onSave,
+              },
+              { key: 'exit', label: '退出', onClick: onExit },
+            ]}
+          />
         </div>
       </div>
       <div className="sm-edit-body">

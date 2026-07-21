@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
-import { App, Checkbox, Collapse, Empty } from 'antd';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Checkbox, Collapse, Empty } from 'antd';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AssignmentPage } from '@/domain/common/page/AssignmentPage';
+import { useCommandMutation } from '@/domain/common/page/useCommandMutation';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { permissionApi } from '@/domain/sys/permission/api';
 import { permissionQueryKeys } from '@/domain/sys/permission/queryKeys';
 import type { PermissionListAllVO } from '@/domain/sys/permission/types';
 import type { PageComponentProps } from '@/domain/common/page/types';
 import { roleApi } from './api';
+import { roleAccess } from './permissions';
 import { roleQueryKeys } from './queryKeys';
 
 interface PermissionGroup {
@@ -17,7 +19,6 @@ interface PermissionGroup {
 
 /** 角色权限分配专用页面。 */
 const RolePermissionAssignmentPage = ({ appNumber, tabKey, billId }: PageComponentProps) => {
-  const { message } = App.useApp();
   const queryClient = useQueryClient();
   const [localIds, setLocalIds] = useState<string[] | null>(null);
   const detailQuery = useQuery({
@@ -39,18 +40,21 @@ const RolePermissionAssignmentPage = ({ appNumber, tabKey, billId }: PageCompone
     }
     return [...groupMap.values()];
   }, [permissionsQuery.data]);
-  const mutation = useMutation({
+  const mutation = useCommandMutation({
     mutationFn: () => roleApi.assignPermissions(billId!, checkedIds),
+    successMessage: '权限分配成功',
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: roleQueryKeys.detail(billId) });
-      message.success('权限分配成功');
     },
-    onError: (error) => message.error(error instanceof Error ? error.message : '权限分配失败'),
   });
   const close = () => useWorkbenchStore.getState().removeContentTab(appNumber, tabKey);
 
   return (
     <AssignmentPage
+      access={{
+        prefix: roleAccess.prefix,
+        permissions: { save: roleAccess.permissions.assignPermissions },
+      }}
       loading={detailQuery.isLoading || permissionsQuery.isLoading}
       saving={mutation.isPending}
       error={(detailQuery.error || permissionsQuery.error) as Error | null}
