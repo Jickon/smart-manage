@@ -1,5 +1,10 @@
 import { lazy } from 'react';
-import { definePageRegistration } from '@/domain/common/registry/componentRegistry';
+import { definePageRegistrations } from '@/domain/common/registry/componentRegistry';
 
-const PermissionListPage = lazy(() => import('./PermissionListPage'));
-export default definePageRegistration('sys/base/permission', 'LIST', PermissionListPage);
+export default definePageRegistrations([
+  {
+    componentKey: 'sys/base/permission',
+    pageType: 'LIST',
+    component: lazy(() => import('./PermissionListPage')),
+  },
+]);

@@ -1,12 +1,11 @@
 package sm.system.handler;
 
-import cn.dev33.satoken.exception.SaTokenContextException;
-import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
+import lombok.RequiredArgsConstructor;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.stereotype.Component;
-import sm.domain.sys.base.common.helper.UserHelper;
 import sm.system.entity.BaseEntity;
+import sm.system.helper.CurrentOperatorProvider;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +15,10 @@ import java.time.LocalDateTime;
  * @author Chekfu
  */
 @Component
+@RequiredArgsConstructor
 public class MyBatisPlusMetaObjectHandler implements MetaObjectHandler {
+
+    private final CurrentOperatorProvider currentOperatorProvider;
 
     @Override
     public void insertFill(MetaObject metaObject) {
@@ -25,7 +27,7 @@ public class MyBatisPlusMetaObjectHandler implements MetaObjectHandler {
             return;
         }
         setFieldValByName("createTime", LocalDateTime.now(), metaObject);
-        setFieldValByName("createUser", currentUserId(), metaObject);
+        setFieldValByName("createUser", currentOperatorProvider.getCurrentUserIdOrNull(), metaObject);
     }
 
     @Override
@@ -35,18 +37,6 @@ public class MyBatisPlusMetaObjectHandler implements MetaObjectHandler {
         }
         // 更新操作必须覆盖旧审计值，不能使用仅在字段为空时生效的 strictUpdateFill。
         setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
-        setFieldValByName("updateUser", currentUserId(), metaObject);
-    }
-
-    private Long currentUserId() {
-        // 异步日志和 Quartz 线程没有 Sa-Token 上下文，审计用户按约定留空。
-        try {
-            return StpUtil.isLogin() ? UserHelper.getCurrentUserId() : null;
-        } catch (SaTokenContextException e) {
-            return null;
-        } catch (Exception e) {
-            // 非预期异常兜底，不中断持久化流程。
-            return null;
-        }
+        setFieldValByName("updateUser", currentOperatorProvider.getCurrentUserIdOrNull(), metaObject);
     }
 }

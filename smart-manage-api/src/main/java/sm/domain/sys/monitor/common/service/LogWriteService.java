@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import sm.domain.sys.monitor.common.util.LogPayloadUtil;
+import sm.system.aop.log.LogPayloadUtil;
 import sm.domain.sys.monitor.loginlog.model.entity.LoginLogEntity;
 import sm.domain.sys.monitor.loginlog.mapper.LoginLogMapper;
 import sm.domain.sys.monitor.operatelog.model.entity.OperateLogEntity;

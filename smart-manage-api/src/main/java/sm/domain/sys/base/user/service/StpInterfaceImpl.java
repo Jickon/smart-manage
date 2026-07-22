@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import sm.domain.sys.base.common.helper.UserHelper;
 import sm.domain.sys.base.permission.service.PermissionService;
+import sm.domain.sys.base.role.service.RoleService;
 
 import java.util.List;
 
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StpInterfaceImpl implements StpInterface {
 	private final PermissionService permissionService;
+	private final RoleService roleService;
 
 	@Override
 	public List<String> getPermissionList(Object loginId, String loginType) {
@@ -30,6 +32,10 @@ public class StpInterfaceImpl implements StpInterface {
 
 	@Override
 	public List<String> getRoleList(Object loginId, String loginType) {
-		return List.of();
+		if (UserHelper.isAdmin()) {
+			return List.of("administrator");
+		}
+		long userId = Long.parseLong(String.valueOf(loginId));
+		return roleService.getUserRoleNumbers(userId, UserHelper.getCurrentOrgId());
 	}
 }

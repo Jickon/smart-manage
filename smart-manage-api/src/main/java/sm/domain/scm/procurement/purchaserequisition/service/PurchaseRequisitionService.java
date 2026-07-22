@@ -91,8 +91,8 @@ public class PurchaseRequisitionService {
     }
 
     @BizLog("删除采购申请")
-    public void deleteById(Long id) {
-        txService.deleteById(id);
+    public void deleteById(Long id, Integer version) {
+        txService.deleteById(id, version);
     }
 
     private PurchaseRequisitionEntity requireEntity(Long id) {
@@ -109,6 +109,7 @@ public class PurchaseRequisitionService {
     private PurchaseRequisitionListVO toListVO(PurchaseRequisitionEntity entity) {
         PurchaseRequisitionListVO listVO = new PurchaseRequisitionListVO();
         listVO.setId(entity.getId());
+        listVO.setVersion(entity.getVersion());
         listVO.setNumber(entity.getNumber());
         listVO.setSubject(entity.getSubject());
         listVO.setApplyDate(entity.getApplyDate());

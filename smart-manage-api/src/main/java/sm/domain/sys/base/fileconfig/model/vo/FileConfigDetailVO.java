@@ -22,7 +22,7 @@ public class FileConfigDetailVO {
 
     private String ftpUsername;
 
-    private String ftpPassword;
+    private Boolean ftpPasswordConfigured;
 
     private String ftpDir;
 

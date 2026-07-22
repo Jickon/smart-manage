@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import sm.domain.sys.base.fileconfig.service.FileConfigService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,12 +32,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LocalFileStorageService implements FileStorageService {
 
-    private final FileConfigService fileConfigService;
+    private final FileStorageConfigProvider configProvider;
 
     private static final String TEMP_DIR = "temp";
 
     private String getBaseDir() {
-        String dir = fileConfigService.getActiveConfig().getLocalDir();
+        String dir = configProvider.getFileStorageConfig().localDir();
         if (dir == null || dir.isBlank()) {
             dir = "E:/upload/";
         }

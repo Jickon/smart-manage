@@ -18,12 +18,18 @@ export interface PurchaseRequisitionListForm extends PageForm {
 
 export interface PurchaseRequisitionListVO {
   id: string;
+  version: number;
   number: string;
   subject: string;
   applyDate: string;
   requiredDate?: string;
   billStatus: string;
   createTime?: string;
+}
+
+export interface PurchaseRequisitionDeleteForm {
+  id: string;
+  version: number;
 }
 
 export interface PurchaseRequisitionDetailVO {

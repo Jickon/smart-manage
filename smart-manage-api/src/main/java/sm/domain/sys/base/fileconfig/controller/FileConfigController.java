@@ -1,7 +1,6 @@
 package sm.domain.sys.base.fileconfig.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import cn.dev33.satoken.annotation.SaIgnore;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -56,13 +55,6 @@ public class FileConfigController {
     public Result<String> delete(@RequestBody @Valid IdForm form) {
         service.deleteById(form.getId());
         return Result.success();
-    }
-
-    @PostMapping("/sys/base/file-config/active")
-    @Operation(summary = "获取活跃配置", description = "获取当前活跃的文件配置（无需登录）")
-    @SaIgnore
-    public Result<FileConfigDetailVO> active() {
-        return Result.success(service.getActiveConfig());
     }
 
     @PostMapping("/sys/base/file-config/test-ftp")

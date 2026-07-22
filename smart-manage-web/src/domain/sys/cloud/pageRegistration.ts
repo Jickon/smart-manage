@@ -1,5 +1,10 @@
 import { lazy } from 'react';
-import { definePageRegistration } from '@/domain/common/registry/componentRegistry';
+import { definePageRegistrations } from '@/domain/common/registry/componentRegistry';
 
-const CloudListPage = lazy(() => import('./CloudListPage'));
-export default definePageRegistration('sys/base/cloud', 'LIST', CloudListPage);
+export default definePageRegistrations([
+  {
+    componentKey: 'sys/base/cloud',
+    pageType: 'LIST',
+    component: lazy(() => import('./CloudListPage')),
+  },
+]);

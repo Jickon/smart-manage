@@ -10,6 +10,7 @@ import sm.domain.sys.base.fileconfig.model.form.FileConfigSaveForm;
 import sm.domain.sys.base.fileconfig.mapper.FileConfigMapper;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
+import sm.system.helper.SM4Helper;
 
 /**
  * 文件配置事务服务 —— 所有写操作在类级别事务中执行
@@ -22,6 +23,7 @@ import sm.system.response.ResultEnum;
 @Transactional(rollbackFor = Exception.class)
 class FileConfigTxService {
     private final FileConfigMapper mapper;
+    private final SM4Helper sm4Helper;
 
     public Long save(FileConfigSaveForm form) {
         FileConfigEntity entity;
@@ -38,7 +40,9 @@ class FileConfigTxService {
         entity.setFtpHost(form.getFtpHost());
         entity.setFtpPort(form.getFtpPort());
         entity.setFtpUsername(form.getFtpUsername());
-        entity.setFtpPassword(form.getFtpPassword());
+        if (form.getFtpPassword() != null && !form.getFtpPassword().isBlank()) {
+            entity.setFtpPasswordCipher(sm4Helper.encrypt(form.getFtpPassword()));
+        }
         entity.setFtpDir(form.getFtpDir());
         entity.setFtpPassiveMode(form.getFtpPassiveMode());
         if (form.getId() == null) {

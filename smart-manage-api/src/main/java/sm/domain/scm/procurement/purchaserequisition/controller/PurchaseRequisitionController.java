@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import sm.domain.scm.procurement.purchaserequisition.constant.PurchaseRequisitionPermission;
 import sm.domain.scm.procurement.purchaserequisition.model.form.PurchaseRequisitionListForm;
+import sm.domain.scm.procurement.purchaserequisition.model.form.PurchaseRequisitionDeleteForm;
 import sm.domain.scm.procurement.purchaserequisition.model.form.PurchaseRequisitionSaveForm;
 import sm.domain.scm.procurement.purchaserequisition.model.vo.PurchaseRequisitionCreateNewDataVO;
 import sm.domain.scm.procurement.purchaserequisition.model.vo.PurchaseRequisitionDetailVO;
@@ -60,8 +61,8 @@ public class PurchaseRequisitionController {
 
     @PostMapping("/scm/procurement/purchase-requisition/delete")
     @SaCheckPermission(PurchaseRequisitionPermission.DELETE)
-    public Result<String> delete(@RequestBody @Valid IdForm form) {
-        service.deleteById(form.getId());
+    public Result<String> delete(@RequestBody @Valid PurchaseRequisitionDeleteForm form) {
+        service.deleteById(form.getId(), form.getVersion());
         return Result.success();
     }
 }

@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class PurchaseRequisitionListVO {
     private Long id;
+    private Integer version;
     private String number;
     private String subject;
     private LocalDate applyDate;

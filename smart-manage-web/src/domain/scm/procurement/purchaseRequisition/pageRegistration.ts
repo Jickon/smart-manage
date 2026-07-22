@@ -1,12 +1,15 @@
 import { lazy } from 'react';
-import { definePageRegistration } from '@/domain/common/registry/componentRegistry';
+import { definePageRegistrations } from '@/domain/common/registry/componentRegistry';
 
-const PurchaseRequisitionListPage = lazy(() => import('./PurchaseRequisitionListPage'));
-const PurchaseRequisitionEditPage = lazy(() => import('./PurchaseRequisitionEditPage'));
-
-definePageRegistration('scm/procurement/purchase-requisition', 'LIST', PurchaseRequisitionListPage);
-definePageRegistration(
-  'scm/procurement/purchase-requisition/edit',
-  'EDIT',
-  PurchaseRequisitionEditPage,
-);
+export default definePageRegistrations([
+  {
+    componentKey: 'scm/procurement/purchase-requisition',
+    pageType: 'LIST',
+    component: lazy(() => import('./PurchaseRequisitionListPage')),
+  },
+  {
+    componentKey: 'scm/procurement/purchase-requisition/edit',
+    pageType: 'EDIT',
+    component: lazy(() => import('./PurchaseRequisitionEditPage')),
+  },
+]);

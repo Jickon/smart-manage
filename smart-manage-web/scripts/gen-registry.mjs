@@ -1,39 +1,30 @@
 /**
- * 自动生成组件注册表导入文件。
- *
- * 扫描 src/domain/**\/pageRegistration.ts，生成 src/domain/common/registry/registry.gen.ts。
- * 检测重复 componentKey 时直接中止构建。
- *
- * 用法：node scripts/gen-registry.mjs
+ * 自动发现 domain 目录下的 pageRegistration.ts(x)，生成模块页面清单导入文件。
+ * 页面键、类型和组件完全由清单显式声明，生成器不解析业务源码。
  */
-
-import { readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
-import { join, relative, dirname } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, '..');
-const SRC = join(ROOT, 'src');
-const OUTPUT = join(SRC, 'domain', 'common', 'registry', 'registry.gen.ts');
+const scriptDir = dirname(fileURLToPath(import.meta.url));
+const rootDir = join(scriptDir, '..');
+const sourceDir = join(rootDir, 'src');
+const outputFile = join(sourceDir, 'domain', 'common', 'registry', 'registry.gen.ts');
 
-const HEADER = `/**
- * 组件注册表导入文件 — 由 pnpm gen:registry 自动生成，禁止手动修改。
- * 每次构建前自动重新生成。
+const header = `/**
+ * 页面注册清单导入文件，由 pnpm gen:registry 自动生成，禁止手动修改。
  */
 `;
 
-/** 递归扫描目录，收集所有 pageRegistration 文件 */
-async function discoverRegistrations(dir) {
+async function discoverRegistrations(directory) {
   const results = [];
-  const entries = await readdir(dir, { withFileTypes: true });
+  const entries = await readdir(directory, { withFileTypes: true });
   for (const entry of entries) {
-    const fullPath = join(dir, entry.name);
+    const fullPath = join(directory, entry.name);
     if (entry.isDirectory()) {
-      // 跳过非业务目录
       if (entry.name === 'node_modules' || entry.name === 'common') continue;
-      const sub = await discoverRegistrations(fullPath);
-      results.push(...sub);
+      results.push(...(await discoverRegistrations(fullPath)));
     } else if (entry.name === 'pageRegistration.ts' || entry.name === 'pageRegistration.tsx') {
       results.push(fullPath);
     }
@@ -41,92 +32,46 @@ async function discoverRegistrations(dir) {
   return results;
 }
 
-/** 从 pageRegistration 文件中提取 componentKey */
-function extractComponentKey(filePath, content) {
-  // 匹配 definePageRegistration('componentKey', ...) 或 definePageRegistration("componentKey", ...)
-  const match = content.match(
-    /definePageRegistration\s*\(\s*['"]([^'"]+)['"]/,
-  );
-  return match ? match[1] : null;
-}
-
 async function main() {
-  console.log('[gen:registry] 扫描 pageRegistration 文件...');
-
-  const domainDir = join(SRC, 'domain');
-  const files = await discoverRegistrations(domainDir);
+  console.log('[gen:registry] 扫描模块页面注册清单...');
+  const files = await discoverRegistrations(join(sourceDir, 'domain'));
   files.sort();
 
   if (files.length === 0) {
-    console.log('[gen:registry] 未发现 pageRegistration 文件，生成空注册表。');
-    writeFileSync(OUTPUT, HEADER + '\n// 暂无注册页面\nexport {};\n', 'utf-8');
-    return;
+    throw new Error('未发现 pageRegistration.ts(x)，页面注册清单不能为空。');
   }
 
-  console.log(`[gen:registry] 发现 ${files.length} 个页面注册文件`);
-
-  // 提取 componentKey 并检测重复
-  const seen = new Map(); // componentKey → filePath
-  const imports = [];
-
-  for (const filePath of files) {
-    const content = readFileSync(filePath, 'utf-8');
-    const key = extractComponentKey(filePath, content);
-
-    if (!key) {
-      console.error(
-        `[gen:registry] 错误：${relative(ROOT, filePath)} 中未找到有效的 componentKey`,
-      );
-      process.exit(1);
-    }
-
-    if (seen.has(key)) {
-      console.error(
-        `[gen:registry] 错误：componentKey "${key}" 重复！\n` +
-          `  文件1: ${relative(ROOT, seen.get(key))}\n` +
-          `  文件2: ${relative(ROOT, filePath)}`,
-      );
-      process.exit(1);
-    }
-
-    seen.set(key, filePath);
-
-    const relativePath = relative(dirname(OUTPUT), filePath)
+  const lines = [header];
+  const moduleNames = [];
+  for (const [index, filePath] of files.entries()) {
+    const importPath = relative(dirname(outputFile), filePath)
       .replace(/\\/g, '/')
       .replace(/\.tsx?$/, '');
-
-    imports.push({
-      key,
-      path: relativePath,
-      file: relative(ROOT, filePath),
-    });
-  }
-
-  // 生成导入文件
-  const lines = [HEADER];
-  for (const imp of imports) {
-    lines.push(`// ${imp.file} → ${imp.key}`);
-    lines.push(`import '${imp.path}';`);
+    const normalizedImportPath = importPath.startsWith('.') ? importPath : `./${importPath}`;
+    const moduleName = `pageRegistrationModule${index + 1}`;
+    moduleNames.push(moduleName);
+    lines.push(`// ${relative(rootDir, filePath)}`);
+    lines.push(`import ${moduleName} from '${normalizedImportPath}';`);
     lines.push('');
   }
+  lines.push("import { registerPageRegistrationModules } from './componentRegistry';");
+  lines.push('');
+  lines.push('registerPageRegistrationModules([');
+  for (const moduleName of moduleNames) {
+    lines.push(`  ${moduleName},`);
+  }
+  lines.push(']);');
+  writeFileSync(outputFile, `${lines.join('\n')}\n`, 'utf-8');
 
-  // 生成运行时去重校验代码
-  lines.push('// 构建期已校验无重复 key，运行时二次确认');
-  lines.push("import { validateRegistry } from './componentRegistry';");
-  lines.push('validateRegistry();');
-
-  const output = lines.join('\n') + '\n';
-  writeFileSync(OUTPUT, output, 'utf-8');
-
-  console.log(`[gen:registry] 已生成 ${relative(ROOT, OUTPUT)} (${imports.length} 个注册项)`);
-
-  // 输出注册清单
-  for (const imp of imports) {
-    console.log(`  - ${imp.key} ← ${imp.file}`);
+  console.log(
+    `[gen:registry] 已生成 ${relative(rootDir, outputFile)}，共 ${files.length} 个模块清单`,
+  );
+  for (const filePath of files) {
+    console.log(`  - ${relative(rootDir, filePath)}`);
   }
 }
 
-main().catch((err) => {
-  console.error('[gen:registry] 错误：', err);
+main().catch((error) => {
+  console.error('[gen:registry] 错误：', error);
   process.exit(1);
 });

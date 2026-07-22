@@ -31,7 +31,12 @@ const PurchaseRequisitionListPage = (props: PageComponentProps) => {
     queryFn: purchaseRequisitionApi.listPage,
   });
   const deleteMutation = useCommandMutation({
-    mutationFn: (ids: string[]) => Promise.all(ids.map(purchaseRequisitionApi.delete)),
+    mutationFn: (records: PurchaseRequisitionListVO[]) =>
+      Promise.all(
+        records.map((record) =>
+          purchaseRequisitionApi.delete({ id: record.id, version: record.version }),
+        ),
+      ),
     successMessage: '删除成功',
     onSuccess: async () => {
       setSelectedRowKeys([]);
@@ -72,12 +77,13 @@ const PurchaseRequisitionListPage = (props: PageComponentProps) => {
   ];
 
   const confirmDelete = () => {
-    const ids = selectedRowKeys.map(String);
-    if (ids.length === 0) return;
+    const selectedIds = new Set(selectedRowKeys.map(String));
+    const records = listQuery.records.filter((record) => selectedIds.has(record.id));
+    if (records.length === 0) return;
     modal.confirm({
       title: '删除采购申请',
       content: '只有暂存状态的采购申请可以删除，是否继续？',
-      onOk: () => deleteMutation.mutateAsync(ids),
+      onOk: () => deleteMutation.mutateAsync(records),
     });
   };
 

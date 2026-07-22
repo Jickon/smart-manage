@@ -6,7 +6,6 @@ import cn.hutool.crypto.symmetric.SM4;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import sm.domain.sys.base.sysparam.service.SysParamService;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
 
@@ -24,10 +23,9 @@ import java.util.Base64;
 @RequiredArgsConstructor
 public class SM4Helper {
 
-    private static final String PARAM_SM4_KEY = "SM4_KEY";
     private static final int IV_LENGTH = 16;
 
-    private final SysParamService sysParamService;
+    private final Sm4KeyProvider sm4KeyProvider;
 
     /**
      * SM4/CBC 加密，随机 IV 拼接在密文前
@@ -83,7 +81,7 @@ public class SM4Helper {
 
     /** 从系统参数读取 SM4 密钥（Base64 → 16 字节） */
     private byte[] getKeyBytes() {
-        String keyBase64 = sysParamService.getString(PARAM_SM4_KEY);
+        String keyBase64 = sm4KeyProvider.getSm4KeyBase64();
         if (keyBase64 == null || keyBase64.isBlank()) {
             throw new BizException(ResultEnum.CONFIG_ERROR, "系统参数 SM4_KEY 未配置");
         }

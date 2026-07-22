@@ -1,29 +1,36 @@
 /**
- * 组件注册表导入文件 — 由 pnpm gen:registry 自动生成，禁止手动修改。
- * 每次构建前自动重新生成。
+ * 页面注册清单导入文件，由 pnpm gen:registry 自动生成，禁止手动修改。
  */
 
-// src\domain\scm\procurement\purchaseRequisition\pageRegistration.ts → scm/procurement/purchase-requisition
-import '../../scm/procurement/purchaseRequisition/pageRegistration';
+// src\domain\scm\procurement\purchaseRequisition\pageRegistration.ts
+import pageRegistrationModule1 from '../../scm/procurement/purchaseRequisition/pageRegistration';
 
-// src\domain\sys\app\pageRegistration.ts → sys/base/app
-import '../../sys/app/pageRegistration';
+// src\domain\sys\app\pageRegistration.ts
+import pageRegistrationModule2 from '../../sys/app/pageRegistration';
 
-// src\domain\sys\cloud\pageRegistration.ts → sys/base/cloud
-import '../../sys/cloud/pageRegistration';
+// src\domain\sys\cloud\pageRegistration.ts
+import pageRegistrationModule3 from '../../sys/cloud/pageRegistration';
 
-// src\domain\sys\menu\pageRegistration.ts → sys/base/menu
-import '../../sys/menu/pageRegistration';
+// src\domain\sys\menu\pageRegistration.ts
+import pageRegistrationModule4 from '../../sys/menu/pageRegistration';
 
-// src\domain\sys\permission\pageRegistration.ts → sys/base/permission
-import '../../sys/permission/pageRegistration';
+// src\domain\sys\permission\pageRegistration.ts
+import pageRegistrationModule5 from '../../sys/permission/pageRegistration';
 
-// src\domain\sys\role\pageRegistration.ts → sys/base/role
-import '../../sys/role/pageRegistration';
+// src\domain\sys\role\pageRegistration.ts
+import pageRegistrationModule6 from '../../sys/role/pageRegistration';
 
-// src\domain\sys\user\pageRegistration.ts → sys/base/user
-import '../../sys/user/pageRegistration';
+// src\domain\sys\user\pageRegistration.ts
+import pageRegistrationModule7 from '../../sys/user/pageRegistration';
 
-// 构建期已校验无重复 key，运行时二次确认
-import { validateRegistry } from './componentRegistry';
-validateRegistry();
+import { registerPageRegistrationModules } from './componentRegistry';
+
+registerPageRegistrationModules([
+  pageRegistrationModule1,
+  pageRegistrationModule2,
+  pageRegistrationModule3,
+  pageRegistrationModule4,
+  pageRegistrationModule5,
+  pageRegistrationModule6,
+  pageRegistrationModule7,
+]);

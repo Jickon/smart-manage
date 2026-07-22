@@ -150,4 +150,9 @@ public class RoleService {
 		txService.assignPermissions(form);
 		authorizationStateHelper.invalidateRoleUsers(form.getRoleId());
 	}
+
+	/** 查询用户在当前组织下拥有的稳定角色编码，供 Sa-Token 角色能力使用。 */
+	public List<String> getUserRoleNumbers(Long userId, Long orgId) {
+		return mapper.selectUserRoleNumbers(userId, orgId);
+	}
 }
