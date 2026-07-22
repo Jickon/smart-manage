@@ -24,7 +24,7 @@ try {
 
     # The generated database exists only while all migrations are verified from scratch.
     Get-ChildItem $migrationDirectory -Filter 'V*.sql' |
-        Sort-Object Name |
+        Sort-Object { [int]([regex]::Match($_.Name, '^V(\d+)__').Groups[1].Value) } |
         ForEach-Object {
             Write-Host "Applying $($_.Name)"
             Invoke-Psql $verifyDatabase @('-v', 'ON_ERROR_STOP=1', '-f', $_.FullName)

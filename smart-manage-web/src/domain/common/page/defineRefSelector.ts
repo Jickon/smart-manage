@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { RefSelectorFieldConfig } from './EditPage';
 
-type TypedRefSelectorFieldConfig<T> = Omit<
+type TypedRefSelectorFieldConfig<T extends object> = Omit<
   RefSelectorFieldConfig,
   'fetchFn' | 'displayRender' | 'columns'
 > & {
@@ -22,20 +22,20 @@ type TypedRefSelectorFieldConfig<T> = Omit<
  * 为业务页面保留完整记录泛型，在公共字段协议边界统一完成类型擦除。
  * 业务页面无需再通过双重断言连接 fetch、columns 与 displayRender。
  */
-export function defineRefSelector<T>(
+export function defineRefSelector<T extends object>(
   config: TypedRefSelectorFieldConfig<T>,
 ): RefSelectorFieldConfig {
   return {
     ...config,
     fetchFn: async (params) => {
       const result = await config.fetchFn(params);
-      return { ...result, records: result.records as unknown as Record<string, unknown>[] };
+      return { ...result, records: result.records as Record<string, unknown>[] };
     },
-    displayRender: (record) => config.displayRender(record as unknown as T),
+    displayRender: (record) => config.displayRender(record as T),
     columns: config.columns.map((column) => ({
       ...column,
       render: column.render
-        ? (text, record, index) => column.render!(text, record as unknown as T, index)
+        ? (text, record, index) => column.render!(text, record as T, index)
         : undefined,
     })),
   };

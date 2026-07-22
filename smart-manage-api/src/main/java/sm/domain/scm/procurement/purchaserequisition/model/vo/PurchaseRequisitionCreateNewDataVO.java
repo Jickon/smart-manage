@@ -1,0 +1,16 @@
+package sm.domain.scm.procurement.purchaserequisition.model.vo;
+
+import lombok.Data;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+public class PurchaseRequisitionCreateNewDataVO {
+    private Long applyOrgId;
+    private Long applicantId;
+    private LocalDate applyDate;
+    private String billStatus;
+    private List<PurchaseRequisitionEntryVO> entrys = new ArrayList<>();
+}

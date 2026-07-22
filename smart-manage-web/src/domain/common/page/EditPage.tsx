@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
-import { Spin, Button, Result, Collapse, Form } from 'antd';
+import { useEffect, useState } from 'react';
+import { App, Spin, Button, Result, Collapse, Form } from 'antd';
 import type { Rule } from 'antd/es/form';
 import type { ReactNode } from 'react';
 import { OperationType, BillStatus } from './types';
 import { EditFormFields } from './EditFormFields';
 import type { AccessResource, PermissionAction } from './access';
 import { PermissionActions } from './PermissionActions';
+import { useWorkbenchStore } from '@/stores/workbench';
 import './EditPage.css';
 
 /** 编辑字段公共属性 */
@@ -87,6 +88,10 @@ interface EditPageProps {
   access?: AccessResource<{ save: string; submit?: string }>;
   /** 提交、审核、关闭等扩展业务命令 */
   headerActions?: PermissionAction[];
+  /** 额外的聚合内容，仍处于同一个 Form 中，例如主从单据明细。 */
+  detailContent?: (editable: boolean) => ReactNode;
+  /** 注册页签关闭前的脏数据检查。 */
+  closeGuard?: { appNumber: string; tabKey: string };
 }
 
 /** 是否可编辑：暂存或新增时允许编辑 */
@@ -111,8 +116,12 @@ const EditPage = ({
   onExit,
   access,
   headerActions,
+  detailContent,
+  closeGuard,
 }: EditPageProps) => {
+  const { modal } = App.useApp();
   const [form] = Form.useForm();
+  const [dirty, setDirty] = useState(false);
   const editable = isEditable(operationType, billStatus);
 
   // 后端数据加载完成后同步到 Form
@@ -122,11 +131,31 @@ const EditPage = ({
     }
   }, [form, initialValues, loading]);
 
+  useEffect(() => {
+    if (!closeGuard) return;
+    const store = useWorkbenchStore.getState();
+    store.registerBeforeClose(closeGuard.appNumber, closeGuard.tabKey, async () => {
+      if (!dirty) return true;
+      return new Promise<boolean>((resolve) => {
+        modal.confirm({
+          title: '存在未保存的修改',
+          content: '关闭页面将丢失当前修改，是否继续？',
+          okText: '继续关闭',
+          cancelText: '留在页面',
+          onOk: () => resolve(true),
+          onCancel: () => resolve(false),
+        });
+      });
+    });
+    return () => store.unregisterBeforeClose(closeGuard.appNumber, closeGuard.tabKey);
+  }, [closeGuard, dirty, modal]);
+
   const handleSave = async () => {
     if (!onSave) return;
     try {
       const values = await form.validateFields();
       await onSave(values);
+      setDirty(false);
     } catch (err) {
       // 表单校验错误由 Form 展示，命令错误由领域 Mutation 统一处理。
       if ((err as { errorFields?: unknown[] }).errorFields) return;
@@ -138,6 +167,7 @@ const EditPage = ({
     try {
       const values = await form.validateFields();
       await onSubmit(values);
+      setDirty(false);
     } catch (err) {
       if ((err as { errorFields?: unknown[] }).errorFields) return;
     }
@@ -204,21 +234,27 @@ const EditPage = ({
       {/* 单据内容区 */}
       <div className="sm-edit-body">
         <Spin spinning={loading}>
-          <Collapse
-            className="sm-edit-collapse"
-            defaultActiveKey={['basic']}
-            items={[
-              {
-                key: 'basic',
-                label: '基本信息',
-                children: (
-                  <Form form={form} layout="vertical" className="sm-edit-form">
-                    <EditFormFields fields={fields} editable={editable} />
-                  </Form>
-                ),
-              },
-            ]}
-          />
+          <Form
+            form={form}
+            layout="vertical"
+            className="sm-edit-form"
+            onValuesChange={() => setDirty(true)}
+          >
+            <Collapse
+              className="sm-edit-collapse"
+              defaultActiveKey={detailContent ? ['basic', 'detail'] : ['basic']}
+              items={[
+                {
+                  key: 'basic',
+                  label: '基本信息',
+                  children: <EditFormFields fields={fields} editable={editable} />,
+                },
+                ...(detailContent
+                  ? [{ key: 'detail', label: '明细信息', children: detailContent(editable) }]
+                  : []),
+              ]}
+            />
+          </Form>
         </Spin>
       </div>
     </section>

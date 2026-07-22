@@ -1,0 +1,13 @@
+.sm-purchase-requisition-entrys {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sm-purchase-entry-add {
+  align-self: flex-start;
+}
+
+.sm-purchase-requisition-entrys .ant-form-item {
+  margin-bottom: 0;
+}

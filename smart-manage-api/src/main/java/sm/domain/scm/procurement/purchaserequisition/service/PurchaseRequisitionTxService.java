@@ -1,0 +1,114 @@
+package sm.domain.scm.procurement.purchaserequisition.service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import sm.domain.scm.procurement.purchaserequisition.mapper.PurchaseRequisitionEntryMapper;
+import sm.domain.scm.procurement.purchaserequisition.mapper.PurchaseRequisitionMapper;
+import sm.domain.scm.procurement.purchaserequisition.model.entity.PurchaseRequisitionEntity;
+import sm.domain.scm.procurement.purchaserequisition.model.entity.PurchaseRequisitionEntryEntity;
+import sm.domain.scm.procurement.purchaserequisition.model.form.PurchaseRequisitionEntryForm;
+import sm.domain.scm.procurement.purchaserequisition.model.form.PurchaseRequisitionSaveForm;
+import sm.domain.sys.base.common.helper.UserHelper;
+import sm.system.enums.BillStatusEnum;
+import sm.system.exception.BizException;
+import sm.system.response.ResultEnum;
+import sm.system.util.BillStatusUtil;
+
+import java.util.Objects;
+
+/** 采购申请包内事务实现，只允许公开 Service 委托调用。 */
+@Service
+@RequiredArgsConstructor
+@Transactional(rollbackFor = Exception.class)
+class PurchaseRequisitionTxService {
+    private final PurchaseRequisitionMapper mapper;
+    private final PurchaseRequisitionEntryMapper entryMapper;
+
+    public Long save(PurchaseRequisitionSaveForm form) {
+        PurchaseRequisitionEntity entity;
+        if (form.getId() == null) {
+            entity = new PurchaseRequisitionEntity();
+            entity.setApplyOrgId(UserHelper.getCurrentOrgId());
+            entity.setApplicantId(UserHelper.getCurrentUserId());
+            entity.setBillStatus(BillStatusEnum.SAVED.getValue());
+        } else {
+            entity = requireEntity(form.getId());
+            BillStatusUtil.requireCanSave(entity.getBillStatus());
+            requireVersion(entity, form.getVersion());
+        }
+        entity.setNumber(form.getNumber().trim());
+        entity.setSubject(form.getSubject().trim());
+        entity.setApplyDate(form.getApplyDate());
+        entity.setRequiredDate(form.getRequiredDate());
+        entity.setReason(form.getReason());
+
+        if (form.getId() == null) {
+            if (mapper.insert(entity) != 1) {
+                throw new BizException(ResultEnum.PERSISTENCE_ERROR, "新增采购申请失败");
+            }
+        } else if (mapper.updateById(entity) != 1) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "采购申请已被其他用户修改，请刷新后重试");
+        }
+
+        // 明细属于采购申请聚合，保存时按请求中的 entrys 整体替换。
+        entryMapper.delete(new LambdaQueryWrapper<PurchaseRequisitionEntryEntity>()
+                .eq(PurchaseRequisitionEntryEntity::getParentId, entity.getId()));
+        int sort = 1;
+        for (PurchaseRequisitionEntryForm entryForm : form.getEntrys()) {
+            PurchaseRequisitionEntryEntity entry = new PurchaseRequisitionEntryEntity();
+            entry.setParentId(entity.getId());
+            entry.setMaterialName(entryForm.getMaterialName().trim());
+            entry.setSpecification(entryForm.getSpecification());
+            entry.setUnit(entryForm.getUnit().trim());
+            entry.setQuantity(entryForm.getQuantity());
+            entry.setRequiredDate(entryForm.getRequiredDate());
+            entry.setRemark(entryForm.getRemark());
+            entry.setSort(entryForm.getSort() == null ? sort : entryForm.getSort());
+            if (entryMapper.insert(entry) != 1) {
+                throw new BizException(ResultEnum.PERSISTENCE_ERROR, "采购申请明细写入失败");
+            }
+            sort++;
+        }
+        return entity.getId();
+    }
+
+    public void submit(Long id) {
+        PurchaseRequisitionEntity entity = requireEntity(id);
+        entity.setBillStatus(BillStatusUtil.submit(entity.getBillStatus()));
+        if (mapper.updateById(entity) != 1) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "采购申请已被其他用户修改，请刷新后重试");
+        }
+    }
+
+    public void deleteById(Long id) {
+        PurchaseRequisitionEntity entity = requireEntity(id);
+        BillStatusUtil.requireCanSave(entity.getBillStatus());
+        entryMapper.delete(new LambdaQueryWrapper<PurchaseRequisitionEntryEntity>()
+                .eq(PurchaseRequisitionEntryEntity::getParentId, id));
+        if (mapper.deleteById(id) != 1) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "采购申请已被其他用户删除");
+        }
+    }
+
+    private PurchaseRequisitionEntity requireEntity(Long id) {
+        if (id == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "采购申请ID不能为空");
+        }
+        PurchaseRequisitionEntity entity = mapper.selectById(id);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "采购申请不存在");
+        }
+        return entity;
+    }
+
+    private void requireVersion(PurchaseRequisitionEntity entity, Integer version) {
+        if (version == null) {
+            throw new BizException(ResultEnum.PARAM_ERROR, "修改采购申请时乐观锁版本号不能为空");
+        }
+        if (!Objects.equals(entity.getVersion(), version)) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "采购申请已被其他用户修改，请刷新后重试");
+        }
+    }
+}

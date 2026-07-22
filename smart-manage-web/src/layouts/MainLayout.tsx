@@ -1,8 +1,9 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { Layout, Spin } from 'antd';
 import Header from './Header';
 import { useHeaderTabsStore } from '@/stores/headerTabs';
+import { openApp } from '@/services/navigationService';
 import './MainLayout.css';
 
 const { Content } = Layout;
@@ -25,9 +26,17 @@ const renderLazyPage = (node: ReactNode) => (
 );
 
 const MainLayout = () => {
+  const initialAppOpened = useRef(false);
   const tabs = useHeaderTabsStore((s) => s.tabs);
   const activeKey = useHeaderTabsStore((s) => s.activeKey);
   const appTabs = tabs.filter((tab) => tab.closable);
+
+  useEffect(() => {
+    if (initialAppOpened.current) return;
+    initialAppOpened.current = true;
+    const appNumber = new URLSearchParams(window.location.search).get('app')?.trim() || 'home';
+    void openApp(appNumber);
+  }, []);
 
   return (
     <Layout className="sm-layout">

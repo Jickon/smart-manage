@@ -60,6 +60,8 @@
 - **事务分离**：Service 禁止直接写 `@Transactional`。每个含写操作的 Service 必须搭配一个 `*TxService`，将 `@Transactional(rollbackFor = Exception.class)` 放在 TxService 类级别。Service 注入 TxService，写方法（`save`/`deleteById` 等）以委托方式调用 TxService。读写共用的私有辅助方法留在 Service；仅事务内使用的私有方法移入 TxService。TxService 内需要的前置读取（如唯一性校验、存在性检查）直接使用 Mapper，不走 Service 缓存方法。
   - 例：`RoleService`（只读 + 委托） → `RoleTxService`（类级别 @Transactional，包含 save/deleteById 全部逻辑）
 - **单据聚合边界**：每个单据只有一个对外公开的 `*Service`。对应 `*TxService` 是单据包内的事务实现类，使用包级可见性，只允许同一单据的 Service 委托调用；Controller 和其他单据禁止直接依赖 TxService。业务代码优先按单据归属组织，不额外拆分 Application/Domain/Infrastructure 层。
+- **可选业务模块边界**：非系统内核业务必须集中在独立领域目录，系统内核禁止反向依赖。模块的表、云、应用、菜单和权限初始化集中在独立 Flyway 版本中，并在 `docs/modules` 记录边界与移除方式；不得为了可选模块引入散落的功能开关或采购专属公共代码。
+- 采购申请是首个标准业务单据和架构纵向验收模块，归属 `scm` 供应链云、`procurement` 采购管理应用，后端目录为 `sm.domain.scm.procurement.purchaserequisition`。在该模块完成保存、提交、乐观锁、主从事务和前端页签生命周期验收前，不批量扩展业务模块。
 
 ### 命名规范
 

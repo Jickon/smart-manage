@@ -1,0 +1,112 @@
+import { useState } from 'react';
+import { App, Button, Tag } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import ListPage from '@/domain/common/page/ListPage';
+import { useCommandMutation } from '@/domain/common/page/useCommandMutation';
+import { useListPageQuery } from '@/domain/common/page/useListPageQuery';
+import { BillStatus, OperationType } from '@/domain/common/page/types';
+import type { PageComponentProps } from '@/domain/common/page/types';
+import { useWorkbenchStore } from '@/stores/workbench';
+import { purchaseRequisitionApi } from './api';
+import { purchaseRequisitionAccess } from './permissions';
+import { purchaseRequisitionQueryKeys } from './queryKeys';
+import type { PurchaseRequisitionListVO } from './types';
+
+const EDIT_COMPONENT_KEY = 'scm/procurement/purchase-requisition/edit';
+
+const statusView = {
+  [BillStatus.SAVED]: { label: '暂存', color: 'default' },
+  [BillStatus.SUBMITTED]: { label: '已提交', color: 'blue' },
+  [BillStatus.AUDITED]: { label: '审核通过', color: 'green' },
+  [BillStatus.CLOSED]: { label: '已关闭', color: 'default' },
+} as const;
+
+const PurchaseRequisitionListPage = (props: PageComponentProps) => {
+  const { modal } = App.useApp();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const openBillTab = useWorkbenchStore((state) => state.openBillTab);
+  const openAddNewTab = useWorkbenchStore((state) => state.openAddNewTab);
+  const listQuery = useListPageQuery({
+    queryKey: purchaseRequisitionQueryKeys.list({}),
+    queryFn: purchaseRequisitionApi.listPage,
+  });
+  const deleteMutation = useCommandMutation({
+    mutationFn: (ids: string[]) => Promise.all(ids.map(purchaseRequisitionApi.delete)),
+    successMessage: '删除成功',
+    onSuccess: async () => {
+      setSelectedRowKeys([]);
+      await listQuery.query.refetch();
+    },
+  });
+
+  const openDetail = (record: PurchaseRequisitionListVO) => {
+    const operationType =
+      record.billStatus === BillStatus.SAVED ? OperationType.EDIT : OperationType.VIEW;
+    openBillTab(props.appNumber, EDIT_COMPONENT_KEY, record.number, record.id, operationType);
+  };
+
+  const columns: ColumnsType<PurchaseRequisitionListVO> = [
+    {
+      title: '编码',
+      dataIndex: 'number',
+      width: 180,
+      render: (value, record) => (
+        <Button type="link" size="small" onClick={() => openDetail(record)}>
+          {value}
+        </Button>
+      ),
+    },
+    { title: '主题', dataIndex: 'subject', width: 240 },
+    { title: '申请日期', dataIndex: 'applyDate', width: 120 },
+    { title: '需求日期', dataIndex: 'requiredDate', width: 120 },
+    {
+      title: '单据状态',
+      dataIndex: 'billStatus',
+      width: 100,
+      render: (value: BillStatus) => {
+        const view = statusView[value];
+        return view ? <Tag color={view.color}>{view.label}</Tag> : value;
+      },
+    },
+    { title: '创建时间', dataIndex: 'createTime', width: 180 },
+  ];
+
+  const confirmDelete = () => {
+    const ids = selectedRowKeys.map(String);
+    if (ids.length === 0) return;
+    modal.confirm({
+      title: '删除采购申请',
+      content: '只有暂存状态的采购申请可以删除，是否继续？',
+      onOk: () => deleteMutation.mutateAsync(ids),
+    });
+  };
+
+  return (
+    <ListPage<PurchaseRequisitionListVO>
+      {...props}
+      title="采购申请"
+      access={purchaseRequisitionAccess}
+      loading={listQuery.query.isLoading}
+      error={listQuery.query.error as Error | null}
+      onRetry={() => listQuery.query.refetch()}
+      total={listQuery.total}
+      pageNum={listQuery.pageNum}
+      pageSize={listQuery.pageSize}
+      quickSearchPlaceholder="搜索编码/主题"
+      filterSummary={listQuery.keyword ? `关键字：${listQuery.keyword}` : undefined}
+      onAddNew={() => openAddNewTab(props.appNumber, EDIT_COMPONENT_KEY, '新增采购申请')}
+      onDelete={confirmDelete}
+      onRefresh={listQuery.onRefresh}
+      onQuickSearch={listQuery.onSearch}
+      onPageChange={listQuery.onPageChange}
+      rowKey="id"
+      columns={columns}
+      dataSource={listQuery.records}
+      selectMode="checkbox"
+      selectedRowKeys={selectedRowKeys}
+      onSelectChange={setSelectedRowKeys}
+    />
+  );
+};
+
+export default PurchaseRequisitionListPage;

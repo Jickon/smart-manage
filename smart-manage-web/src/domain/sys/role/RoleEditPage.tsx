@@ -77,6 +77,7 @@ const RoleEditPage = (props: PageComponentProps) => {
       fields={fields}
       initialValues={initialValues}
       operationType={operationType ?? OperationType.EDIT}
+      closeGuard={{ appNumber, tabKey }}
       loading={detailQuery.isLoading}
       error={detailQuery.error as Error | null}
       onRetry={() => detailQuery.refetch()}

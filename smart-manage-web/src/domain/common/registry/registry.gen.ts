@@ -3,6 +3,9 @@
  * 每次构建前自动重新生成。
  */
 
+// src\domain\scm\procurement\purchaseRequisition\pageRegistration.ts → scm/procurement/purchase-requisition
+import '../../scm/procurement/purchaseRequisition/pageRegistration';
+
 // src\domain\sys\app\pageRegistration.ts → sys/base/app
 import '../../sys/app/pageRegistration';
 
