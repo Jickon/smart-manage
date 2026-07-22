@@ -35,8 +35,8 @@ public class FileConfigEntity extends BaseEntity {
     /** FTP 用户名 */
     private String ftpUsername;
 
-    /** FTP 密码 */
-    private String ftpPassword;
+    /** FTP 密码密文 */
+    private String ftpPasswordCipher;
 
     /** FTP 远程目录 */
     private String ftpDir;

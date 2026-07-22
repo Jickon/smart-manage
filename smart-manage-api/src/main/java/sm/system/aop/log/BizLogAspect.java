@@ -10,8 +10,7 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import sm.domain.sys.base.common.helper.UserHelper;
-import sm.domain.sys.monitor.common.util.LogPayloadUtil;
+import sm.system.helper.CurrentOperatorProvider;
 import sm.system.util.ServletUtil;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
@@ -31,6 +30,7 @@ import java.lang.reflect.Method;
 public class BizLogAspect {
     private final JsonMapper jsonMapper;
     private final OperateLogWriter operateLogWriter;
+    private final CurrentOperatorProvider currentOperatorProvider;
 
     @Pointcut("@annotation(sm.system.aop.log.BizLog)")
     private void getLogPointCut() {
@@ -57,19 +57,8 @@ public class BizLogAspect {
             log.warn("获取请求元数据失败", e);
         }
 
-        Long userId = null;
-        String username = "未知";
-        try {
-            if (UserHelper.isLogin()) {
-                userId = UserHelper.getCurrentUserId();
-                var u = UserHelper.getCurrentUser();
-                if (u != null && u.getUsername() != null) {
-                    username = u.getUsername();
-                }
-            }
-        } catch (Exception e) {
-            log.warn("获取用户信息失败", e);
-        }
+        Long userId = currentOperatorProvider.getCurrentUserIdOrNull();
+        String username = currentOperatorProvider.getCurrentUsernameOrDefault("未知");
 
         String params = null;
         if (bizLog.saveRequest()) {

@@ -5,8 +5,6 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import sm.domain.sys.base.fileconfig.model.vo.FileConfigDetailVO;
-import sm.domain.sys.base.fileconfig.service.FileConfigService;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,29 +20,29 @@ import java.util.UUID;
 @Slf4j
 public class FtpFileStorageService implements FileStorageService {
 
-    private final FileConfigService fileConfigService;
+    private final FileStorageConfigProvider configProvider;
 
-    public FtpFileStorageService(FileConfigService fileConfigService) {
-        this.fileConfigService = fileConfigService;
+    public FtpFileStorageService(FileStorageConfigProvider configProvider) {
+        this.configProvider = configProvider;
     }
 
     private static final String TEMP_DIR = "temp";
 
-    private FileConfigDetailVO config() {
-        return fileConfigService.getActiveConfig();
+    private FileStorageConfig config() {
+        return configProvider.getFileStorageConfig();
     }
 
     private FTPClient connect() throws IOException {
-        FileConfigDetailVO cfg = config();
+        FileStorageConfig cfg = config();
         FTPClient ftp = new FTPClient();
-        ftp.connect(cfg.getFtpHost(), cfg.getFtpPort() != null ? cfg.getFtpPort() : 21);
-        ftp.login(cfg.getFtpUsername(), cfg.getFtpPassword());
-        if (cfg.getFtpPassiveMode() != null && cfg.getFtpPassiveMode()) {
+        ftp.connect(cfg.ftpHost(), cfg.ftpPort() != null ? cfg.ftpPort() : 21);
+        ftp.login(cfg.ftpUsername(), cfg.ftpPassword());
+        if (Boolean.TRUE.equals(cfg.ftpPassiveMode())) {
             ftp.enterLocalPassiveMode();
         }
         ftp.setFileType(FTP.BINARY_FILE_TYPE);
         ftp.setBufferSize(1024 * 1024);
-        String remoteDir = cfg.getFtpDir();
+        String remoteDir = cfg.ftpDir();
         if (remoteDir != null && !remoteDir.isBlank()) {
             createDirs(ftp, remoteDir);
             ftp.changeWorkingDirectory(remoteDir);

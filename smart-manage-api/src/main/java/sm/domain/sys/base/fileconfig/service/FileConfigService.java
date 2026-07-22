@@ -19,6 +19,10 @@ import sm.system.exception.BizException;
 import sm.system.aop.log.BizLog;
 import sm.system.response.PageData;
 import sm.system.response.ResultEnum;
+import sm.system.helper.SM4Helper;
+import sm.system.storage.FileStorageConfig;
+import sm.system.storage.FileStorageConfigProvider;
+import sm.domain.sys.base.common.helper.UserHelper;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -32,9 +36,10 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class FileConfigService {
+public class FileConfigService implements FileStorageConfigProvider {
     private final FileConfigMapper mapper;
     private final FileConfigTxService txService;
+    private final SM4Helper sm4Helper;
 
     public PageData<FileConfigDetailVO> listPage(FileConfigListForm form) {
         LambdaQueryWrapper<FileConfigEntity> qw = new LambdaQueryWrapper<FileConfigEntity>();
@@ -64,18 +69,20 @@ public class FileConfigService {
         return toDetailVo(entity);
     }
 
-    /** 获取活跃配置（Caffeine 本地缓存） */
+    /** 获取服务端内部使用的活跃配置，敏感字段不得通过 Controller 暴露。 */
+    @Override
     @Cached(cacheType = CacheType.LOCAL, name = "common", key = "'file:config'", expire = 30, timeUnit = TimeUnit.MINUTES)
-    public FileConfigDetailVO getActiveConfig() {
+    public FileStorageConfig getFileStorageConfig() {
         List<FileConfigEntity> entityList = mapper.selectList(null);
-        return entityList.isEmpty() ? defaultConfig() : toDetailVo(entityList.get(0));
-    }
-
-    private FileConfigDetailVO defaultConfig() {
-        FileConfigDetailVO vo = new FileConfigDetailVO();
-        vo.setStorageType("LOCAL");
-        vo.setLocalDir("E:/upload/");
-        return vo;
+        if (entityList.isEmpty()) {
+            return new FileStorageConfig("LOCAL", "E:/upload/", null, null, null, null, null, null);
+        }
+        FileConfigEntity entity = entityList.get(0);
+        String ftpPassword = entity.getFtpPasswordCipher() == null
+                ? null : sm4Helper.decrypt(entity.getFtpPasswordCipher());
+        return new FileStorageConfig(
+                entity.getStorageType(), entity.getLocalDir(), entity.getFtpHost(), entity.getFtpPort(),
+                entity.getFtpUsername(), ftpPassword, entity.getFtpDir(), entity.getFtpPassiveMode());
     }
 
     private FileConfigDetailVO toDetailVo(FileConfigEntity entity) {
@@ -86,7 +93,7 @@ public class FileConfigService {
         vo.setFtpHost(entity.getFtpHost());
         vo.setFtpPort(entity.getFtpPort());
         vo.setFtpUsername(entity.getFtpUsername());
-        vo.setFtpPassword(entity.getFtpPassword());
+        vo.setFtpPasswordConfigured(entity.getFtpPasswordCipher() != null);
         vo.setFtpDir(entity.getFtpDir());
         vo.setFtpPassiveMode(entity.getFtpPassiveMode());
         return vo;
@@ -109,6 +116,8 @@ public class FileConfigService {
      */
     @BizLog(value = "测试FTP连接", saveRequest = false)
     public String testFtp(FtpTestForm form) {
+        // FTP 连接可访问任意网络地址，除业务权限外还必须校验超级管理员账号身份。
+        UserHelper.checkAdmin();
         FTPClient ftpClient = new FTPClient();
         try {
             ftpClient.connect(form.getFtpHost(), form.getFtpPort());

@@ -2,6 +2,7 @@ package sm.system.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import org.quartz.spi.JobFactory;
+import org.quartz.JobListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.quartz.autoconfigure.QuartzDataSource;
 import org.springframework.boot.quartz.autoconfigure.SchedulerFactoryBeanCustomizer;
@@ -9,9 +10,9 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
-import sm.domain.sys.monitor.job.service.JobExecutionListener;
 
 import javax.sql.DataSource;
+import java.util.List;
 
 /**
  * Quartz 调度器配置
@@ -59,7 +60,7 @@ public class QuartzConfig {
      * 注册全局 Job 监听器（setDataSource 由 QuartzAutoConfiguration 自动完成）
      */
     @Bean
-    SchedulerFactoryBeanCustomizer quartzCustomizer(JobExecutionListener listener) {
-        return factoryBean -> factoryBean.setGlobalJobListeners(listener);
+    SchedulerFactoryBeanCustomizer quartzCustomizer(List<JobListener> listeners) {
+        return factoryBean -> factoryBean.setGlobalJobListeners(listeners.toArray(JobListener[]::new));
     }
 }

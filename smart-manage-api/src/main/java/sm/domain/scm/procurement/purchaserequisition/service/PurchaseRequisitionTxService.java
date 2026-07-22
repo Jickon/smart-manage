@@ -82,13 +82,18 @@ class PurchaseRequisitionTxService {
         }
     }
 
-    public void deleteById(Long id) {
+    public void deleteById(Long id, Integer version) {
         PurchaseRequisitionEntity entity = requireEntity(id);
         BillStatusUtil.requireCanSave(entity.getBillStatus());
+        requireVersion(entity, version);
         entryMapper.delete(new LambdaQueryWrapper<PurchaseRequisitionEntryEntity>()
                 .eq(PurchaseRequisitionEntryEntity::getParentId, id));
-        if (mapper.deleteById(id) != 1) {
-            throw new BizException(ResultEnum.DATA_CONFLICT, "采购申请已被其他用户删除");
+        int deleted = mapper.delete(new LambdaQueryWrapper<PurchaseRequisitionEntity>()
+                .eq(PurchaseRequisitionEntity::getId, id)
+                .eq(PurchaseRequisitionEntity::getVersion, version)
+                .eq(PurchaseRequisitionEntity::getBillStatus, BillStatusEnum.SAVED.getValue()));
+        if (deleted != 1) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "采购申请状态或版本已变化，请刷新后重试");
         }
     }
 

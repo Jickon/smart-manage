@@ -1,14 +1,20 @@
 import { lazy } from 'react';
-import { definePageRegistration } from '@/domain/common/registry/componentRegistry';
+import { definePageRegistrations } from '@/domain/common/registry/componentRegistry';
 
-const RoleListPage = lazy(() => import('./RoleListPage'));
-const RoleEditPage = lazy(() => import('./RoleEditPage'));
-const RolePermissionAssignmentPage = lazy(() => import('./RolePermissionAssignmentPage'));
-
-definePageRegistration('sys/base/role', 'LIST', RoleListPage);
-definePageRegistration('sys/base/role/edit', 'EDIT', RoleEditPage);
-definePageRegistration(
-  'sys/base/role/permission-assignment',
-  'CUSTOM',
-  RolePermissionAssignmentPage,
-);
+export default definePageRegistrations([
+  {
+    componentKey: 'sys/base/role',
+    pageType: 'LIST',
+    component: lazy(() => import('./RoleListPage')),
+  },
+  {
+    componentKey: 'sys/base/role/edit',
+    pageType: 'EDIT',
+    component: lazy(() => import('./RoleEditPage')),
+  },
+  {
+    componentKey: 'sys/base/role/permission-assignment',
+    pageType: 'CUSTOM',
+    component: lazy(() => import('./RolePermissionAssignmentPage')),
+  },
+]);

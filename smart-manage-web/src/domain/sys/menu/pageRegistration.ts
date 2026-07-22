@@ -1,8 +1,15 @@
 import { lazy } from 'react';
-import { definePageRegistration } from '@/domain/common/registry/componentRegistry';
+import { definePageRegistrations } from '@/domain/common/registry/componentRegistry';
 
-const MenuListPage = lazy(() => import('./MenuListPage'));
-const MenuEditPage = lazy(() => import('./MenuEditPage'));
-
-definePageRegistration('sys/base/menu', 'LIST', MenuListPage);
-definePageRegistration('sys/base/menu/edit', 'EDIT', MenuEditPage);
+export default definePageRegistrations([
+  {
+    componentKey: 'sys/base/menu',
+    pageType: 'LIST',
+    component: lazy(() => import('./MenuListPage')),
+  },
+  {
+    componentKey: 'sys/base/menu/edit',
+    pageType: 'EDIT',
+    component: lazy(() => import('./MenuEditPage')),
+  },
+]);

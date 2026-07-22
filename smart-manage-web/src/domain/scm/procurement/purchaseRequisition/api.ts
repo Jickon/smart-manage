@@ -2,6 +2,7 @@ import request from '@/api/request';
 import type { PageData, Result } from '@/types/api';
 import type {
   PurchaseRequisitionCreateNewDataVO,
+  PurchaseRequisitionDeleteForm,
   PurchaseRequisitionDetailVO,
   PurchaseRequisitionListForm,
   PurchaseRequisitionListVO,
@@ -29,8 +30,6 @@ export const purchaseRequisitionApi = {
     request
       .post<Result<string>>(`${baseUrl}/submit`, { id })
       .then((response) => response.data.data),
-  delete: (id: string) =>
-    request
-      .post<Result<string>>(`${baseUrl}/delete`, { id })
-      .then((response) => response.data.data),
+  delete: (form: PurchaseRequisitionDeleteForm) =>
+    request.post<Result<string>>(`${baseUrl}/delete`, form).then((response) => response.data.data),
 };
