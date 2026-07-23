@@ -7,12 +7,13 @@
   align-items: center;
   height: 48px;
   background: #fff;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .sm-header-logo {
   flex-shrink: 0;
-  margin: 0 24px;
-  font-size: 18px;
+  margin: 0 20px;
+  font-size: 16px;
   font-weight: 600;
   color: #000;
   white-space: nowrap;
@@ -42,9 +43,6 @@
   cursor: pointer;
   white-space: nowrap;
   user-select: none;
-  transition:
-    color 0.2s,
-    background-color 0.2s;
 }
 
 .sm-header-tab:hover {
@@ -100,11 +98,108 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-left: 16px;
-  margin-right: 16px;
+  gap: 8px;
+  margin-left: 12px;
+  margin-right: 12px;
 }
 
 .sm-header-avatar {
   cursor: pointer;
+}
+
+.sm-header-action-button {
+  color: #666;
+  font-size: 18px;
+}
+
+.sm-theme-picker {
+  width: 212px;
+}
+
+.sm-theme-picker-title {
+  margin-bottom: 10px;
+  color: #212121;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.sm-theme-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 28px);
+  gap: 8px;
+}
+
+.sm-theme-color {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 3px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.sm-theme-color:hover {
+  background: #f2f2f2;
+}
+
+.sm-theme-color--selected {
+  border-color: var(--ant-color-primary);
+}
+
+.sm-theme-color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 2px;
+}
+
+.sm-theme-color-swatch--pink {
+  background: #f90d58;
+}
+
+.sm-theme-color-swatch--red {
+  background: #fb2323;
+}
+
+.sm-theme-color-swatch--orange {
+  background: #ff5f1f;
+}
+
+.sm-theme-color-swatch--yellow {
+  background: #ff991c;
+}
+
+.sm-theme-color-swatch--cyan {
+  background: #16b8b1;
+}
+
+.sm-theme-color-swatch--green {
+  background: #1ba854;
+}
+
+.sm-theme-color-swatch--lime {
+  background: #77c404;
+}
+
+.sm-theme-color-swatch--gold {
+  background: #fdc200;
+}
+
+.sm-theme-color-swatch--lightBlue {
+  background: #16b0f1;
+}
+
+.sm-theme-color-swatch--blue {
+  background: #276ff5;
+}
+
+.sm-theme-color-swatch--deepBlue {
+  background: #0e5fd8;
+}
+
+.sm-theme-color-swatch--purple {
+  background: #701df0;
 }

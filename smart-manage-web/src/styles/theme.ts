@@ -1,73 +1,161 @@
-/** Ant Design ConfigProvider 主题配置 — 全局设计令牌 */
+import type { ThemeConfig } from 'antd';
+import { normalizeThemeColor, SM_SAFE_LINK_COLOR } from './themePalette';
 
-const themeConfig = {
-  token: {
-    // 品牌色
-    colorPrimary: '#1677ff',
-    colorSuccess: '#52c41a',
-    colorWarning: '#faad14',
-    colorError: '#ff4d4f',
-    colorInfo: '#1677ff',
-    colorTextBase: '#212121',
+const SM_FONT_FAMILY =
+    'Roboto, "San Francisco", "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB", "WenQuanYi Micro Hei", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif';
 
-    // 圆角
-    borderRadius: 2,
+/** 固定的视觉令牌。换肤时仅 colorPrimary 及其派生色发生变化。 */
+export function createThemeConfig(themeColor?: string | null): ThemeConfig {
+  return {
+    token: {
+      colorPrimary: normalizeThemeColor(themeColor),
+      colorLink: SM_SAFE_LINK_COLOR,
+      colorLinkHover: '#0041B0',
+      colorLinkActive: '#002D87',
+      colorSuccess: '#1BA854',
+      colorWarning: '#FF991C',
+      colorError: '#FB2323',
+      colorInfo: SM_SAFE_LINK_COLOR,
+      colorTextBase: '#212121',
+      fontFamily: SM_FONT_FAMILY,
 
-    // 中性色 — 表面/背景/边框/文字层级
-    colorBorder: '#999999',
+      borderRadius: 2,
 
-    colorBgLayout: '#f5f5f5',
-    colorBgContainer: '#ffffff',
-    colorBgElevated: '#ffffff',
-    colorBorderSecondary: '#d9d9d9',
-    colorText: '#333',
-    colorTextSecondary: '#666',
-    colorTextTertiary: '#999',
+      colorBorder: '#D9D9D9',
+      colorBgLayout: '#E2E7EF',
+      colorBgContainer: '#FFFFFF',
+      colorBgElevated: '#FFFFFF',
+      colorFillAlter: '#F5F5F5',
+      colorBorderSecondary: '#E5E5E5',
+      colorText: '#212121',
+      colorTextSecondary: '#666666',
+      colorTextTertiary: '#999999',
+      colorTextQuaternary: '#B2B2B2',
+      boxShadow: '0 3px 8px 1px rgb(0 0 0 / 6%)',
+      boxShadowSecondary: '0 6px 16px 3px rgb(0 0 0 / 8%)',
+      boxShadowTertiary: '0 9px 24px 9px rgb(0 0 0 / 6%)',
 
-    // 间距
-    paddingXS: 4,
-    paddingSM: 8,
-    padding: 12,
-    paddingMD: 16,
-    paddingLG: 20,
-    paddingXL: 24,
-    marginXS: 4,
-    marginSM: 8,
-    margin: 12,
-    marginMD: 16,
-    marginLG: 20,
-    marginXL: 24,
+      paddingXS: 4,
+      paddingSM: 8,
+      padding: 12,
+      paddingMD: 16,
+      paddingLG: 20,
+      paddingXL: 24,
+      marginXS: 4,
+      marginSM: 8,
+      margin: 12,
+      marginMD: 16,
+      marginLG: 20,
+      marginXL: 24,
 
-    // 高度规范
-    controlHeight: 32,
-    controlHeightSM: 24,
-    controlHeightLG: 40,
-    lineHeight: 1.5715,
+      controlHeight: 28,
+      controlHeightSM: 24,
+      controlHeightLG: 32,
+      lineHeight: 1.5,
 
-    // 字号
-    fontSize: 14,
-    fontSizeSM: 12,
-    fontSizeLG: 16,
-    fontSizeXL: 18,
-    fontSizeHeading1: 24,
-    fontSizeHeading2: 20,
-    fontSizeHeading3: 16,
-
-    // z-index 层级（注释标注使用场景，实际 z-index 由组件内部控制）
-    // zIndexPopupBase 由 antd 内部控制，此处仅列参考值
-  },
-  components: {
-    // 侧边栏菜单
-    Menu: {},
-    // 表格
-    Table: {
-      headerBg: '#f4f4f4',
+      fontSize: 14,
+      fontSizeSM: 12,
+      fontSizeLG: 16,
+      fontSizeXL: 18,
+      fontSizeHeading1: 24,
+      fontSizeHeading2: 20,
+      fontSizeHeading3: 16,
     },
-    Card: {
-      lineWidth: 0,
+    components: {
+      Button: {
+        contentFontSize: 12,
+        contentFontSizeSM: 12,
+        contentFontSizeLG: 12,
+        paddingInline: 12,
+        paddingInlineSM: 8,
+        paddingInlineLG: 16,
+        iconGap: 4,
+        defaultShadow: 'none',
+        primaryShadow: 'none',
+        dangerShadow: 'none',
+      },
+      Input: {
+        inputFontSize: 14,
+        inputFontSizeSM: 12,
+        inputFontSizeLG: 14,
+        activeShadow: 'none',
+        errorActiveShadow: 'none',
+        warningActiveShadow: 'none',
+        paddingInline: 8,
+        paddingInlineSM: 6,
+      },
+      Select: {
+        optionFontSize: 12,
+        optionHeight: 28,
+      },
+      Menu: {
+        darkItemBg: '#343848',
+        darkSubMenuItemBg: '#2D303E',
+        darkPopupBg: '#343848',
+        darkItemColor: '#D9D9D9',
+        darkItemHoverColor: '#FFFFFF',
+        darkItemHoverBg: 'rgb(255 255 255 / 8%)',
+        darkItemSelectedColor: '#FFFFFF',
+        itemHeight: 40,
+        itemBorderRadius: 0,
+        itemMarginBlock: 0,
+        itemMarginInline: 0,
+        iconSize: 16,
+        collapsedIconSize: 20,
+        collapsedWidth: 50,
+      },
+      Table: {
+        headerBg: '#F2F2F2',
+        headerColor: '#404040',
+        headerBorderRadius: 0,
+        borderColor: '#E5E5E5',
+        cellFontSize: 12,
+        cellFontSizeMD: 12,
+        cellFontSizeSM: 12,
+        cellPaddingBlock: 6,
+        cellPaddingBlockMD: 6,
+        cellPaddingBlockSM: 5,
+        cellPaddingInline: 12,
+        cellPaddingInlineMD: 12,
+        cellPaddingInlineSM: 8,
+        rowHoverBg: '#F5F8FC',
+        selectionColumnWidth: 40,
+      },
+      Tabs: {
+        titleFontSize: 12,
+        titleFontSizeSM: 12,
+        titleFontSizeLG: 14,
+        cardHeight: 32,
+        cardHeightSM: 28,
+        horizontalItemPadding: '8px 0',
+      },
+      Card: {
+        headerFontSize: 14,
+        headerHeight: 44,
+        headerPadding: 12,
+        bodyPadding: 12,
+        bodyPaddingSM: 10,
+      },
+      Collapse: {
+        headerBg: '#FFFFFF',
+        headerPadding: '10px 12px',
+        contentBg: '#FFFFFF',
+        contentPadding: '12px 48px 20px',
+      },
+      Modal: {
+        titleFontSize: 16,
+        titleLineHeight: 1.5,
+      },
+      Pagination: {
+        itemSize: 24,
+        itemSizeSM: 24,
+      },
+      Form: {
+        labelFontSize: 12,
+        labelColor: '#666666',
+        verticalLabelPadding: '0 0 2px',
+      },
     },
-  },
-  // algorithm: theme.compactAlgorithm,
-};
-
-export default themeConfig;
+    cssVar: {},
+  };
+}

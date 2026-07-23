@@ -1,13 +1,53 @@
 .sm-purchase-requisition-entrys {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 
-.sm-purchase-entry-add {
-  align-self: flex-start;
+.sm-purchase-entry-actions {
+  position: absolute;
+  z-index: 2;
+  top: -43px;
+  right: 0;
+  display: flex;
+  height: 42px;
+  padding-right: 12px;
+  align-items: center;
+  gap: 8px;
+}
+
+.sm-purchase-entry-error {
+  min-height: 30px;
+  padding: 6px 12px;
+  border-top: 1px solid #ffbec8;
+  color: var(--sm-danger);
+  background: #fff2f4;
+  font-size: 12px;
 }
 
 .sm-purchase-requisition-entrys .ant-form-item {
   margin-bottom: 0;
+}
+
+.sm-purchase-requisition-entrys .ant-table-tbody > tr > td {
+  padding: 0 4px !important;
+}
+
+.sm-purchase-requisition-entrys .ant-table-thead > tr > th {
+  padding-block: 5px !important;
+}
+
+.sm-purchase-requisition-entrys .ant-input,
+.sm-purchase-requisition-entrys .ant-input-number {
+  width: 100%;
+  border-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.sm-purchase-requisition-entrys .ant-input:hover,
+.sm-purchase-requisition-entrys .ant-input:focus,
+.sm-purchase-requisition-entrys .ant-input-number:hover,
+.sm-purchase-requisition-entrys .ant-input-number-focused {
+  border-color: var(--sm-primary);
 }

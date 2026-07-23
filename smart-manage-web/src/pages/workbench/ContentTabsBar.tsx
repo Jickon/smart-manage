@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { App } from 'antd';
-import { HomeOutlined } from '@ant-design/icons';
+import { CloseCircleOutlined, CompressOutlined, HomeOutlined } from '@ant-design/icons';
+import { Tooltip } from 'antd';
 import { useWorkbenchStore } from '@/stores/workbench';
 import './ContentTabsBar.css';
 
@@ -106,22 +107,26 @@ const ContentTabsBar = ({ appNumber }: Props) => {
         })}
       </div>
       <div className="sm-content-tabs-actions">
-        <button
-          className="sm-content-tabs-action-btn"
-          onClick={handleCloseOthers}
-          aria-label="关闭其他页签"
-          disabled={closing}
-        >
-          ⚡
-        </button>
-        <button
-          className="sm-content-tabs-action-btn"
-          onClick={handleCloseAll}
-          aria-label="关闭全部页签"
-          disabled={closing}
-        >
-          ?
-        </button>
+        <Tooltip title="关闭其他页签" placement="bottomRight" autoAdjustOverflow={false}>
+          <button
+            className="sm-content-tabs-action-btn"
+            onClick={handleCloseOthers}
+            aria-label="关闭其他页签"
+            disabled={closing}
+          >
+            <CompressOutlined />
+          </button>
+        </Tooltip>
+        <Tooltip title="关闭全部页签" placement="bottomRight" autoAdjustOverflow={false}>
+          <button
+            className="sm-content-tabs-action-btn"
+            onClick={handleCloseAll}
+            aria-label="关闭全部页签"
+            disabled={closing}
+          >
+            <CloseCircleOutlined />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

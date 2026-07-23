@@ -12,6 +12,7 @@ import sm.domain.sys.base.user.model.entity.UserEntity;
 import sm.domain.sys.base.user.model.entity.UserRoleEntity;
 import sm.domain.sys.base.user.model.form.UserSaveForm;
 import sm.domain.sys.base.user.model.form.UserRoleAssignForm;
+import sm.domain.sys.base.user.constant.UserThemeColor;
 import sm.system.exception.BizException;
 import sm.system.response.ResultEnum;
 import sm.system.helper.Argon2Helper;
@@ -80,7 +81,7 @@ class UserTxService {
             entity.setAvatar(form.getAvatar());
         }
         if (form.getThemeColor() != null) {
-            entity.setThemeColor(form.getThemeColor());
+            entity.setThemeColor(UserThemeColor.normalizeRequired(form.getThemeColor()));
         }
         if (form.getId() == null) {
             // 新增用户：密码必填
@@ -97,6 +98,18 @@ class UserTxService {
             }
         }
         return entity.getId();
+    }
+
+    /** 只更新当前用户的个人主题配置，不允许借此修改其他资料。 */
+    public void updateCurrentTheme(Long userId, String themeColor) {
+        UserEntity entity = mapper.selectById(userId);
+        if (entity == null) {
+            throw new BizException(ResultEnum.NOT_FOUND, "用户不存在");
+        }
+        entity.setThemeColor(UserThemeColor.normalizeRequired(themeColor));
+        if (mapper.updateById(entity) == 0) {
+            throw new BizException(ResultEnum.DATA_CONFLICT, "用户信息已变化，请刷新后重试");
+        }
     }
 
     public void updateEnabled(List<Long> ids, boolean enabled) {

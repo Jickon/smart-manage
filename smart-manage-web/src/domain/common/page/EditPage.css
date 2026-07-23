@@ -13,16 +13,16 @@
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  min-height: 52px;
-  padding: 8px 18px;
+  min-height: 44px;
+  padding: 8px 12px;
   background-color: #fff;
-  border-bottom: 1px solid #ebeff2;
+  border-bottom: 1px solid var(--sm-color-divider);
 }
 
 .sm-edit-header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* === 主体 === */
@@ -47,18 +47,19 @@
 
 .sm-edit-collapse > .ant-collapse-item {
   border: 0;
-  border-bottom: 8px solid #ebeff2;
+  border-bottom: 10px solid var(--sm-color-layout);
   background-color: #fff;
 }
 
 .sm-edit-collapse > .ant-collapse-item > .ant-collapse-header {
   align-items: center;
-  min-height: 24px;
+  min-height: 44px;
+  font-size: 14px;
   font-weight: 500;
 }
 
 .sm-edit-collapse .ant-collapse-content {
-  border-top: 1px solid #ebeff2;
+  border-top: 1px solid var(--sm-color-divider);
 }
 
 .sm-edit-collapse .ant-collapse-content-box {
@@ -76,12 +77,12 @@
 .sm-edit-fields {
   display: flex;
   flex-wrap: wrap;
-  column-gap: 64px;
-  margin-top: 16px;
+  column-gap: 48px;
+  margin-top: 8px;
 }
 
 .sm-edit-field {
-  width: 260px;
+  width: 230px;
   flex-shrink: 0;
 }
 
@@ -107,8 +108,8 @@
 .sm-edit-readonly {
   display: flex;
   align-items: center;
-  height: 32px;
-  color: #1d2129;
+  height: 28px;
+  color: var(--sm-color-text);
   font-size: 14px;
 }
 

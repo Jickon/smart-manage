@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { MenuProps } from 'antd';
 import { Empty, Menu, Skeleton } from 'antd';
-import { MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { FolderOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
 import type { MenuVO } from '@/types/api';
 import { resolveIcon } from '@/domain/common/page/iconResolver';
 import './AppSidebar.css';
@@ -32,7 +32,7 @@ function renderMenuTree(items: MenuVO[]): Required<MenuProps>['items'] {
       return {
         key,
         label: item.name,
-        icon: resolveIcon(item.icon),
+        icon: resolveIcon(item.icon) ?? <FolderOutlined />,
         children: renderMenuTree(item.routes),
       };
     }
@@ -64,11 +64,11 @@ const AppSidebar = ({ menuTree, loading, onItemClick }: Props) => {
             <Empty description="暂无菜单" />
           ) : (
             <Menu
-              mode="inline"
-              inlineCollapsed={collapsed}
+              mode="vertical"
               onClick={handleClick}
               items={renderMenuTree(menuTree.routes)}
               theme="dark"
+              triggerSubMenuAction="hover"
             />
           )}
         </div>

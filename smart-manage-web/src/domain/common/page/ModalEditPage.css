@@ -9,7 +9,8 @@
 .sm-modal .ant-modal-header {
   display: flex;
   align-items: center;
-  padding: 6px 18px;
+  min-height: 44px;
+  padding: 8px 16px;
   margin-bottom: 0;
 }
 
@@ -27,6 +28,7 @@
 
 .sm-modal-title-text {
   flex: 1;
+  font-weight: 400;
 }
 
 /* 主体 — 可滚动（仅 Modal 编辑页居中，RefSelector 等不生效） */
@@ -35,6 +37,7 @@
   flex-direction: column;
   align-items: center;
   max-height: 60vh;
+  padding: 18px 24px;
   overflow-y: auto;
   border-top: 1px solid var(--ant-color-border-secondary);
   border-bottom: 1px solid var(--ant-color-border-secondary);

@@ -12,3 +12,10 @@ export function getCurrentPermissions(prefix: string) {
     .post<Result<string[]>>('/sys/base/user/permissions', { prefix })
     .then((response) => response.data.data);
 }
+
+/** 保存当前用户的个人主题色。 */
+export function updateCurrentUserTheme(themeColor: string) {
+  return request
+    .post<Result<void>>('/sys/base/user/current/theme', { themeColor })
+    .then((response) => response.data);
+}

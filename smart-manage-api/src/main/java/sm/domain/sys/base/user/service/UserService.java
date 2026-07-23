@@ -162,6 +162,12 @@ public class UserService {
 		return BeanUtil.copyProperties(userEntity, UserInfoVO.class);
 	}
 
+	@BizLog("修改个人主题")
+	@CacheInvalidate(name = "userInfo", key = "T(sm.domain.sys.base.common.helper.UserHelper).getCurrentUserId()")
+	public void updateCurrentTheme(String themeColor) {
+		txService.updateCurrentTheme(UserHelper.getCurrentUserId(), themeColor);
+	}
+
 	/**
 	 * 按前缀获取当前用户的权限编码列表
 	 */

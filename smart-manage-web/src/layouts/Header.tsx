@@ -1,18 +1,24 @@
-import { App, Avatar, Dropdown } from 'antd';
+import { useState } from 'react';
+import { App, Avatar, Button, Dropdown, Popover, Tooltip } from 'antd';
 import type { MenuProps } from 'antd';
-import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, SkinOutlined } from '@ant-design/icons';
 import { useHeaderTabsStore } from '@/stores/headerTabs';
 import { useWorkbenchStore } from '@/stores/workbench';
 import { useUserStore } from '@/stores/user';
 import { openApp, closeAppAndRemove } from '@/services/navigationService';
+import { updateCurrentUserTheme } from '@/api/user';
+import { normalizeThemeColor, THEME_COLOR_OPTIONS } from '@/styles/themePalette';
 import './Header.css';
 
 const Header = () => {
-  const { modal } = App.useApp();
+  const { message, modal } = App.useApp();
+  const [themeOpen, setThemeOpen] = useState(false);
+  const [themeSaving, setThemeSaving] = useState(false);
   const tabs = useHeaderTabsStore((s) => s.tabs);
   const activeKey = useHeaderTabsStore((s) => s.activeKey);
   const userInfo = useUserStore((s) => s.userInfo);
   const clearUser = useUserStore((s) => s.clearUser);
+  const setThemeColor = useUserStore((s) => s.setThemeColor);
 
   const handleTabClick = (key: string) => {
     openApp(key);
@@ -51,6 +57,50 @@ const Header = () => {
       onClick: handleLogout,
     },
   ];
+
+  const handleThemeChange = async (themeColor: string) => {
+    if (
+      themeSaving ||
+      (userInfo?.themeColor && normalizeThemeColor(userInfo.themeColor) === themeColor)
+    ) {
+      setThemeOpen(false);
+      return;
+    }
+    setThemeSaving(true);
+    try {
+      await updateCurrentUserTheme(themeColor);
+      setThemeColor(themeColor);
+      setThemeOpen(false);
+      message.success('个人主题已更新');
+    } finally {
+      setThemeSaving(false);
+    }
+  };
+
+  const themePicker = (
+    <div className="sm-theme-picker">
+      <div className="sm-theme-picker-title">选择主题色</div>
+      <div className="sm-theme-picker-grid">
+        {THEME_COLOR_OPTIONS.map((option) => {
+          const selected = normalizeThemeColor(userInfo?.themeColor) === option.value;
+          return (
+            <Tooltip key={option.key} title={option.label}>
+              <button
+                type="button"
+                className={`sm-theme-color ${selected ? 'sm-theme-color--selected' : ''}`}
+                aria-label={option.label}
+                aria-pressed={selected}
+                disabled={themeSaving}
+                onClick={() => void handleThemeChange(option.value)}
+              >
+                <span className={`sm-theme-color-swatch sm-theme-color-swatch--${option.key}`} />
+              </button>
+            </Tooltip>
+          );
+        })}
+      </div>
+    </div>
+  );
 
   return (
     <header className="sm-header">
@@ -91,6 +141,20 @@ const Header = () => {
 
       {/* 右侧操作区 */}
       <div className="sm-header-actions">
+        <Popover
+          content={themePicker}
+          trigger="click"
+          placement="bottomRight"
+          open={themeOpen}
+          onOpenChange={setThemeOpen}
+        >
+          <Button
+            className="sm-header-action-button"
+            type="text"
+            icon={<SkinOutlined />}
+            aria-label="切换个人主题色"
+          />
+        </Popover>
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
           <Avatar size={32} className="sm-header-avatar" icon={<UserOutlined />}>
             {userInfo?.nickname?.[0]}

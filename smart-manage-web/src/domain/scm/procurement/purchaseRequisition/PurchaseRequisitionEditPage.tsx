@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { Key } from 'react';
 import { Button, Form, Input, InputNumber, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { FormListFieldData } from 'antd/es/form';
@@ -62,6 +63,7 @@ function isDetail(
 }
 
 const PurchaseRequisitionEditPage = (props: PageComponentProps) => {
+  const [selectedEntryKeys, setSelectedEntryKeys] = useState<Key[]>([]);
   const { appNumber, tabKey, billId, operationType } = props;
   const isAddNew = operationType === OperationType.ADDNEW;
   const queryClient = useQueryClient();
@@ -215,26 +217,26 @@ const PurchaseRequisitionEditPage = (props: PageComponentProps) => {
               </Form.Item>
             ),
           },
-          ...(editable
-            ? [
-                {
-                  title: '操作',
-                  width: 80,
-                  render: (_value: unknown, field: FormListFieldData) => (
-                    <Button danger type="link" onClick={() => remove(field.name)}>
-                      删除
-                    </Button>
-                  ),
-                },
-              ]
-            : []),
         ];
         return (
           <div className="sm-purchase-requisition-entrys">
             {editable && (
-              <Button onClick={() => add({ quantity: 1 })} className="sm-purchase-entry-add">
-                新增明细
-              </Button>
+              <div className="sm-purchase-entry-actions">
+                <Button onClick={() => add({ quantity: 1 })}>新增</Button>
+                <Button
+                  danger
+                  disabled={selectedEntryKeys.length === 0}
+                  onClick={() => {
+                    const selectedNames = entryFields
+                      .filter((field) => selectedEntryKeys.includes(field.key))
+                      .map((field) => field.name);
+                    remove(selectedNames);
+                    setSelectedEntryKeys([]);
+                  }}
+                >
+                  删除
+                </Button>
+              </div>
             )}
             <Table
               rowKey="key"
@@ -243,8 +245,20 @@ const PurchaseRequisitionEditPage = (props: PageComponentProps) => {
               pagination={false}
               size="small"
               scroll={{ x: 'max-content' }}
+              rowSelection={
+                editable
+                  ? {
+                      selectedRowKeys: selectedEntryKeys,
+                      onChange: setSelectedEntryKeys,
+                    }
+                  : undefined
+              }
             />
-            <Form.ErrorList errors={errors} />
+            {errors.length > 0 && (
+              <div className="sm-purchase-entry-error">
+                <Form.ErrorList errors={errors} />
+              </div>
+            )}
           </div>
         );
       }}

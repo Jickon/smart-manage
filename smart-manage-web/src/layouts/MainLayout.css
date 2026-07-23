@@ -40,5 +40,5 @@
   flex-direction: column;
   flex: 1;
   overflow: hidden;
-  background: rgb(226, 231, 239);
+  background: var(--sm-color-layout);
 }

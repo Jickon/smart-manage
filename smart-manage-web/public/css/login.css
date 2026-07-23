@@ -5,17 +5,22 @@
 }
 
 :root {
-  --sm-primary: #1677ff;
-  --sm-primary-hover: #4096ff;
-  --sm-primary-light: rgba(22, 119, 255, 0.08);
-  --sm-text: #343c4c;
-  --sm-text-secondary: #56688e;
-  --sm-text-placeholder: #939eb9;
-  --sm-border: #e5e6eb;
+  --sm-primary: #276ff5;
+  --sm-primary-hover: #5797ff;
+  --sm-primary-active: #104ccc;
+  --sm-link: #0e5fd8;
+  --sm-primary-light: #f2f9ff;
+  --sm-text: #212121;
+  --sm-text-secondary: #666666;
+  --sm-text-placeholder: #999999;
+  --sm-border: #d9d9d9;
+  --sm-divider: #e5e5e5;
   --sm-bg: #ffffff;
-  --sm-danger: #f53f3f;
-  --sm-danger-bg: #fff2f0;
-  --sm-danger-border: #ffccc7;
+  --sm-layout: #e2e7ef;
+  --sm-danger: #fb2323;
+  --sm-danger-bg: #fff2f4;
+  --sm-danger-border: #ffbec8;
+  --sm-shadow-low: 0 3px 8px 1px rgb(0 0 0 / 6%);
 }
 
 body {
@@ -23,15 +28,15 @@ body {
   overflow: hidden;
   color: var(--sm-text);
   font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", Roboto, "Helvetica Neue", Arial,
-    sans-serif;
+    Roboto, 'San Francisco', 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Hiragino Sans GB',
+    'WenQuanYi Micro Hei', 'Microsoft YaHei UI', 'Microsoft YaHei', sans-serif;
 }
 
 /* ===== 整体布局 ===== */
 .sm-login {
   display: flex;
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--sm-layout);
 }
 
 /* ===== 左侧 Banner ===== */
@@ -39,7 +44,7 @@ body {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
-  background: url("../default-login-banner.png") center / cover no-repeat;
+  background: url('../default-login-banner.png') center / cover no-repeat;
   overflow: hidden;
 }
 
@@ -50,11 +55,13 @@ body {
   position: relative;
   flex-grow: 0;
   flex-shrink: 0;
-  flex-basis: 480px;
-  width: 480px;
+  flex-basis: clamp(420px, 32vw, 480px);
+  width: clamp(420px, 32vw, 480px);
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
+  background: #ffffff;
+  border-left: 1px solid var(--sm-divider);
 }
 
 /* 语言切换 */
@@ -65,12 +72,14 @@ body {
   display: flex;
   align-items: center;
   cursor: default;
+  color: var(--sm-text-secondary);
+  font-size: 12px;
 }
 
 /* 表单卡片 */
 .sm-login-card {
   flex-grow: 1;
-  width: 400px;
+  width: 340px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -78,7 +87,7 @@ body {
   flex-shrink: 0;
 }
 
-.sm-login-card-item{
+.sm-login-card-item {
   box-sizing: border-box;
   display: flex;
   flex-shrink: 0;
@@ -86,14 +95,15 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: stretch;
-  padding: 0 30px;
+  padding: 0;
+  background: transparent;
 }
 
 /* ===== 品牌区域 ===== */
-.sm-logo-container{
+.sm-logo-container {
   width: 100%;
   height: 53px;
-  margin: 80px 0 30px 0;
+  margin: 72px 0 36px;
   user-select: none;
 }
 
@@ -107,11 +117,12 @@ body {
 
 .sm-login-title {
   display: flex;
-  max-height: 60px;
+  max-height: 48px;
+  margin-bottom: 93px;
   justify-content: center;
-  font-size: 18px;
-  color: #343E4C;
-  line-height: 30px;
+  font-size: 16px;
+  color: var(--sm-text);
+  line-height: 24px;
   overflow: hidden;
   text-align: center;
 }
@@ -120,7 +131,7 @@ body {
 .sm-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0;
 }
 
 /* 输入框外层 */
@@ -130,12 +141,22 @@ body {
   align-items: center;
   height: 44px;
   border: 1px solid var(--sm-border);
-  border-radius: 4px;
-  transition: border-color 0.2s ease;
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sm-input-wrap + .sm-input-wrap {
+  margin-top: 30px;
 }
 
 .sm-input-wrap:focus-within {
   border-color: var(--sm-primary);
+  box-shadow:
+    0 0 0 2px rgb(39 111 245 / 10%),
+    0 3px 10px rgb(0 0 0 / 10%);
 }
 
 /* 输入框内图标 */
@@ -173,6 +194,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0;
+  margin-top: 30px;
 }
 
 .sm-captcha-row {
@@ -190,7 +212,7 @@ body {
   width: 100px;
   height: 44px;
   border: 1px solid var(--sm-border);
-  border-radius: 4px;
+  border-radius: 2px;
   object-fit: cover;
   cursor: pointer;
   background: #f7f9fc;
@@ -201,9 +223,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: -6px;
+  margin-top: 24px;
   color: var(--sm-text-secondary);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .sm-checkbox {
@@ -222,33 +244,33 @@ body {
 
 .sm-link-button {
   border: 0;
-  color: var(--sm-text-secondary);
+  color: var(--sm-link);
   background: transparent;
   font: inherit;
   cursor: pointer;
 }
 
 .sm-link-button:hover {
-  color: var(--sm-primary);
+  color: #0041b0;
 }
 
 /* ===== 登录按钮 ===== */
 .sm-login-btn {
   width: 100%;
   height: 45px;
-  margin-top: 0;
+  margin-top: 10px;
   border: none;
-  border-radius: 4px;
+  border-radius: 2px;
   color: #ffffff;
-  background: linear-gradient(135deg, #4096ff, #1677ff);
-  font-size: 14px;
+  background: var(--sm-primary);
+  font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }
 
 .sm-login-btn:hover {
-  opacity: 0.9;
+  background: var(--sm-primary-hover);
 }
 
 .sm-login-btn:disabled {
@@ -260,22 +282,30 @@ body {
 .sm-error-msg {
   display: flex;
   align-items: center;
-  min-height: 36px;
-  margin-bottom: 24px;
-  padding: 8px 10px;
-  border: 1px solid var(--sm-danger-border);
-  border-radius: 4px;
+  min-height: 0;
+  max-height: 0;
+  margin-bottom: 0;
+  padding: 0 10px;
+  border: 0 solid var(--sm-danger-border);
+  border-radius: 2px;
   color: var(--sm-danger);
   background: var(--sm-danger-bg);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
 }
 
 .sm-error-msg.is-visible {
+  min-height: 36px;
+  max-height: 80px;
+  margin-bottom: 18px;
+  padding: 8px 10px;
+  border-width: 1px;
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
@@ -309,7 +339,7 @@ body {
   color: var(--sm-danger);
 }
 
-.sm-psv{
+.sm-psv {
   display: flex;
   flex-direction: column;
   height: 24px;
@@ -318,7 +348,7 @@ body {
   flex-shrink: 0;
 }
 
-.sm-footer{
+.sm-footer {
   justify-content: space-around;
   font-size: 12px;
   width: 340px;
@@ -341,6 +371,7 @@ body {
   .sm-login-panel {
     flex: 1 1 auto;
     padding: 64px 24px 40px;
+    background: var(--sm-layout);
   }
 
   .sm-login-card {

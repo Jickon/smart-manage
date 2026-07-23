@@ -25,10 +25,14 @@ const renderLazyPage = (node: ReactNode) => (
   </Suspense>
 );
 
+const PersistentView = ({ appKey, children }: { appKey: string; children: ReactNode }) => {
+  const active = useHeaderTabsStore((state) => state.activeKey === appKey);
+  return <li className={`sm-view ${active ? 'sm-view--active' : ''}`}>{children}</li>;
+};
+
 const MainLayout = () => {
   const initialAppOpened = useRef(false);
   const tabs = useHeaderTabsStore((s) => s.tabs);
-  const activeKey = useHeaderTabsStore((s) => s.activeKey);
   const appTabs = tabs.filter((tab) => tab.closable);
 
   useEffect(() => {
@@ -44,23 +48,16 @@ const MainLayout = () => {
       <Content className="sm-layout-content">
         <ol className="sm-views">
           {/* 首页 */}
-          <li className={`sm-view ${activeKey === 'home' ? 'sm-view--active' : ''}`}>
-            {renderLazyPage(<Home />)}
-          </li>
+          <PersistentView appKey="home">{renderLazyPage(<Home />)}</PersistentView>
 
           {/* 应用选择页 */}
-          <li className={`sm-view ${activeKey === 'apps' ? 'sm-view--active' : ''}`}>
-            {renderLazyPage(<AppsView />)}
-          </li>
+          <PersistentView appKey="apps">{renderLazyPage(<AppsView />)}</PersistentView>
 
           {/* 动态应用工作台 — 每个已打开的应用一个 li */}
           {appTabs.map((tab) => (
-            <li
-              key={tab.key}
-              className={`sm-view ${activeKey === tab.key ? 'sm-view--active' : ''}`}
-            >
+            <PersistentView key={tab.key} appKey={tab.key}>
               {renderLazyPage(<Workbench appNumber={tab.key} />)}
-            </li>
+            </PersistentView>
           ))}
         </ol>
       </Content>

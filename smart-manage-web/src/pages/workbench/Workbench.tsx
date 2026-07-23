@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { memo, useCallback } from 'react';
 import { App, Spin } from 'antd';
 import { useQuery } from '@tanstack/react-query';
 import { menuQueryKeys } from '@/domain/sys/menu/queryKeys';
@@ -7,6 +7,7 @@ import { getUserMenusByAppNumber } from '@/domain/sys/menu/api';
 import AppSidebar from './AppSidebar';
 import ContentTabsBar from './ContentTabsBar';
 import PageRenderer from './PageRenderer';
+import ApplicationHome from './ApplicationHome';
 import './Workbench.css';
 
 interface Props {
@@ -59,7 +60,7 @@ const Workbench = ({ appNumber }: Props) => {
                   className={`sm-content-pane ${isActive ? 'sm-content-pane--active' : ''}`}
                 >
                   {tab.key === '__home__' ? (
-                    <div className="sm-page-renderer-empty">欢迎使用 {ws.appInfo.name}</div>
+                    <ApplicationHome appNumber={appNumber} appName={ws.appInfo.name} />
                   ) : (
                     <PageRenderer
                       appNumber={appNumber}
@@ -83,4 +84,4 @@ const Workbench = ({ appNumber }: Props) => {
   );
 };
 
-export default Workbench;
+export default memo(Workbench);

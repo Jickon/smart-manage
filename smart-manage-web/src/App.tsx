@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider, App as AntApp, Button, Result, Spin } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import routes from '@/router';
-import themeConfig from '@/styles/theme';
+import { createThemeConfig } from '@/styles/theme';
 import { getCurrentUser } from '@/api/user';
 import { ApiError } from '@/api/ApiError';
 import { useUserStore } from '@/stores/user';
@@ -29,7 +29,9 @@ const queryClient = new QueryClient({
 export default function App() {
   const router = useMemo(() => createMemoryRouter(routes), []);
   const setUserInfo = useUserStore((s) => s.setUserInfo);
+  const themeColor = useUserStore((s) => s.userInfo?.themeColor);
   const [authState, setAuthState] = useState<AuthState>('loading');
+  const themeConfig = useMemo(() => createThemeConfig(themeColor), [themeColor]);
 
   /** 处理认证 API 响应 — 成功存用户信息，失败区分 401 与网络错误 */
   const handleAuthResult = useCallback(
@@ -101,7 +103,7 @@ export default function App() {
   // 认证通过 — 正常渲染应用
   return (
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider theme={{ ...themeConfig, cssVar: {} }} locale={zhCN}>
+      <ConfigProvider theme={themeConfig} locale={zhCN}>
         <AntApp>
           <AppErrorBoundary>
             <RouterProvider router={router} />

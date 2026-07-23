@@ -9,6 +9,7 @@ import { userApi } from './api';
 import { userAccess } from './permissions';
 import { userQueryKeys } from './queryKeys';
 import type { PageComponentProps } from '@/domain/common/page/types';
+import { THEME_COLOR_OPTIONS } from '@/styles/themePalette';
 
 /** 用户编辑页只维护用户资料，角色关系由专用分配页面处理。 */
 const UserEditPage = (props: PageComponentProps) => {
@@ -43,7 +44,15 @@ const UserEditPage = (props: PageComponentProps) => {
       { label: '邮箱', dataIndex: 'email', type: 'text' },
       { label: '手机号', dataIndex: 'phone', type: 'text' },
       { label: '头像URL', dataIndex: 'avatar', type: 'text' },
-      { label: '主题色', dataIndex: 'themeColor', type: 'text', placeholder: '如 #1677ff' },
+      {
+        label: '主题色',
+        dataIndex: 'themeColor',
+        type: 'select',
+        options: THEME_COLOR_OPTIONS.map((option) => ({
+          label: option.label,
+          value: option.value,
+        })),
+      },
       { label: '创建时间', dataIndex: 'createTime', type: 'readonly' },
       { label: '更新时间', dataIndex: 'updateTime', type: 'readonly' },
     ],

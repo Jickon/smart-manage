@@ -37,7 +37,7 @@ const ModalEditPage = ({
   saving = false,
   error = null,
   onRetry,
-  width = 700,
+  width = 600,
   access,
 }: ModalEditPageProps) => {
   const [form] = Form.useForm();
@@ -50,12 +50,6 @@ const ModalEditPage = ({
   }, [form, initialValues, loading, open]);
 
   // Modal 关闭时重置 Form（处理新增场景，避免旧数据残留）
-  useEffect(() => {
-    if (!open) {
-      form.resetFields();
-    }
-  }, [form, open]);
-
   const handleClose = () => {
     if (saving) return;
     onClose();
@@ -82,6 +76,11 @@ const ModalEditPage = ({
       closeIcon={null}
       open={open}
       onCancel={handleClose}
+      afterOpenChange={(visible) => {
+        if (!visible) {
+          form.resetFields();
+        }
+      }}
       centered
       mask={{ closable: false }}
       className="sm-modal sm-modal-edit"

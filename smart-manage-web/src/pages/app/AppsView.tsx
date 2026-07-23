@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { appQueryKeys } from '@/domain/sys/app/queryKeys';
 import { Empty, Spin } from 'antd';
@@ -48,4 +49,4 @@ const AppsView = () => {
   );
 };
 
-export default AppsView;
+export default memo(AppsView);

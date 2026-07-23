@@ -14,6 +14,7 @@ import sm.domain.sys.base.user.model.form.UserListForm;
 import sm.domain.sys.base.user.model.form.UserPermissionsForm;
 import sm.domain.sys.base.user.model.form.UserSaveForm;
 import sm.domain.sys.base.user.model.form.UserRoleAssignForm;
+import sm.domain.sys.base.user.model.form.CurrentUserThemeForm;
 import sm.domain.sys.base.user.model.vo.UserCreateNewDataVO;
 import sm.domain.sys.base.user.model.vo.UserInfoVO;
 import sm.domain.sys.base.user.model.vo.UserListVO;
@@ -47,6 +48,13 @@ public class UserController {
 	@Operation(summary = "用户信息", description = "获取当前登录用户信息")
 	public Result<UserInfoVO> current() {
 		return Result.success(service.current());
+	}
+
+	@PostMapping("/sys/base/user/current/theme")
+	@Operation(summary = "保存个人主题", description = "保存当前登录用户选择的预置主题色")
+	public Result<String> updateCurrentTheme(@RequestBody @Valid CurrentUserThemeForm form) {
+		service.updateCurrentTheme(form.getThemeColor());
+		return Result.success();
 	}
 
 	@PostMapping("/sys/base/user/permissions")
