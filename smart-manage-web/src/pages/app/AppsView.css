@@ -3,7 +3,7 @@
 .sm-apps {
   flex: 1;
   min-height: 0;
-  margin-top: 24px;
+  padding-top: 24px;
   padding-left: 32px;
   padding-right: 32px;
   overflow-y: auto;
@@ -14,7 +14,7 @@
   display: flex;
   flex-wrap: nowrap;
   width: 100%;
-  margin-bottom: 28px;
+  margin-bottom: 12px;
 }
 
 .sm-cloud-name {

@@ -3,8 +3,10 @@
 ## 基本约定
 
 - 使用简体中文沟通。
-- 如果有不明确的地方必须停下来问我。
+- 如果不明确之处会影响架构方向、数据安全、外部状态或产生明显不同的实现结果，必须停下来问我；可以从代码和现有约定中确认的问题应先自行核实，低风险细节可以采用明确说明的合理假设。
 - 代码改动应从全局架构考虑，不能偷懒而破坏项目架构设计。
+- 实现前必须确认需求边界、现有设计和可验证的完成标准。改动应保持最小充分范围，不擅自扩展功能、重构无关代码或增加未经需求验证的抽象；发现无关问题时应记录或说明，不得顺手修改。
+- 每项代码任务都应执行与改动风险相匹配的编译、自动化测试、静态检查或构建验证。
 - 当前架构基础要持续演进为可实际使用、可长期维护、符合主流社区习惯的企业级项目。
 - 当前阶段以架构内核和工程质量为重点，不以快速扩展业务模块、制作开源展示材料或完成示范单据为目标。
 - 本项目最终将开源在GitHub上，要保证项目质量，避免往GitHub上“投屎”。
@@ -40,23 +42,23 @@
 **请求加密（可选）：** `@EncryptApi` / `@DecryptApi` 标注 Controller 或方法后，`EncryptApiFilter` 通过 SM4/CBC 加解密请求/响应体。
 **操作日志：** `@BizLog("创建用户")` 只标注在公开 Service 的业务命令方法上，Controller 和包内 TxService 禁止标注，同一业务调用链只能记录一次。保存、提交、审核、删除、启停和高风险执行等命令需要记录；普通列表、详情、选择和默认值查询不记录。登录、退出使用独立认证日志。AOP 自动记录操作人、IP、请求参数、响应体、耗时，通过 `LogWriteService` 异步落库。
 **实体自动填充：** `MyBatisPlusMetaObjectHandler` 自动设置 `createTime` / `createUser` / `updateTime` / `updateUser`。
-**文件存储：** `FileStorageService` 接口抽象，工厂 `FileStorageServiceFactory` 根据 `FileConfigEntity` 的配置选择 Local / FTP 实现。
+**文件存储：** `FileStorageService` 抽象 Local / FTP 等存储实现。`sm.system.storage` 只能通过 `FileStorageConfigProvider` 获取存储配置，禁止依赖 `sm.domain.sys` 的实体或 Service；系统领域负责实现配置提供器和敏感字段解密。
 
 
 ### 关键约定
 
-- 项目处于架构搭建阶段，不写测试，不考虑向后兼容
+- 项目处于架构搭建阶段，不考虑向后兼容。核心架构边界、安全逻辑、状态流转、事务和并发控制必须编写自动化测试；普通 CRUD 和纯展示代码不强求覆盖率，不以追求测试数量为目标。
 - 超级管理员用户（`administrator`）拥有 `*` 通配权限，跳过普通权限校验。脚本控制台、SQL 控制台和 Arthas 等高风险能力还必须在公开 Service 入口校验当前账号确实为 `administrator`，不能只依赖可配置的业务权限码。
 - 主键使用雪花 ID（MyBatis-Plus 的 `IdType.ASSIGN_ID`），乐观锁字段 `version`（通过 `@Version` 注解 +
   `OptimisticLockerInnerInterceptor` 实现）
-- 数据库结构和必要初始化数据以项目根目录 `db/migration` 下的 Flyway 版本脚本为唯一权威来源；Maven 构建时将其复制到后端类路径，已执行的迁移禁止修改，结构调整必须新增版本脚本
+- 数据库结构定义和必要初始化数据以项目根目录 `db/migration` 下的 Flyway 版本脚本为唯一权威来源；Maven 构建时将其复制到后端类路径。排查运行问题和核实迁移执行结果时，以当前连接数据库的实际状态为事实依据；禁止绕过 Flyway 修改数据库结构后不补迁移脚本，已执行的迁移禁止修改，结构调整必须新增版本脚本。
 - 接口访问级别统一按注解判定：`@SaIgnore` 为公开接口，`@SaCheckPermission` 为权限接口，其余接口由全局过滤器执行登录校验
 - **禁止**在查询中使用裸表名/字段名字符串（如 `"t_sys_user"`、`"username"`），必须使用 MyBatis-Plus 的 `LambdaQueryWrapper` + 方法引用（如 `UserEntity::getUsername`）
 - **XML Mapper 表别名**：所有 SQL 中 FROM 主表别名为 `a`，JOIN 表按出现顺序依次为 `b, c, d...`。不使用语义化别名（如 `app`、`user`），保持 SQL 紧凑统一。
 - Service 的公开业务方法禁止用 `return null` 表达业务失败。资源不存在、状态非法、无权限、参数不合法等场景必须抛出明确异常，让 `GlobalExceptionHandler` 统一返回。内部辅助方法确实允许缺省值时，方法命名和注释必须明确可空语义。
 - JSON 反序列化、ID 转换等基础设施禁止静默吞错。比如 Long 解析失败不能返回 `null`，应暴露为参数异常。
 - 标准业务接口语义：`listPage` 返回分页；`detail` 找不到应抛异常；`createNewData` 只返回新增默认值且不返回 id；`save` 负责新增和暂存修改；`submit` 负责提交并推进单据状态；`delete` 负责删除或作废，具体语义由单据类型明确。
-- 修改后端代码后至少执行 `mvn compile`。如果涉及实体、Mapper 或配置变更，也需要确认 MyBatis-Plus 相关代码可正常编译。
+- 修改后端代码后至少执行 `mvn test`；只有文档修改或确认不影响测试代码的简单改动才可以仅执行 `mvn compile`。如果涉及实体、Mapper 或配置变更，也需要确认 MyBatis-Plus 相关代码可以正常编译。
 - **事务分离**：Service 禁止直接写 `@Transactional`。每个含写操作的 Service 必须搭配一个 `*TxService`，将 `@Transactional(rollbackFor = Exception.class)` 放在 TxService 类级别。Service 注入 TxService，写方法（`save`/`deleteById` 等）以委托方式调用 TxService。读写共用的私有辅助方法留在 Service；仅事务内使用的私有方法移入 TxService。TxService 内需要的前置读取（如唯一性校验、存在性检查）直接使用 Mapper，不走 Service 缓存方法。
   - 例：`RoleService`（只读 + 委托） → `RoleTxService`（类级别 @Transactional，包含 save/deleteById 全部逻辑）
 - **单据聚合边界**：每个单据只有一个对外公开的 `*Service`。对应 `*TxService` 是单据包内的事务实现类，使用包级可见性，只允许同一单据的 Service 委托调用；Controller 和其他单据禁止直接依赖 TxService。业务代码优先按单据归属组织，不额外拆分 Application/Domain/Infrastructure 层。
@@ -76,10 +78,10 @@
 - `*TxService` — 事务服务，`@Service` + 类级别 `@Transactional(rollbackFor = Exception.class)`，包含所有写操作逻辑。对应读 Service 注入并委托写方法给它
 
 ### SQL执行
-- 由于本项目处于框架搭建阶段，随时可能修改数据库表结构，所以要以数据库实际数据为准
-- 如果你需要执行SQL，可以使用psql命令直接执行，但是要附带密码，不然命令会卡在让你输入密码，psql命令在
+- 数据库结构定义以 Flyway 迁移为唯一权威来源；查询数据库实际状态用于排查运行问题和核实迁移结果，不能替代迁移脚本。
+- 如果需要执行 SQL，可以使用 psql 命令直接执行。必须使用当前环境已有的安全凭据方式，例如临时设置 `PGPASSWORD` 或使用受控连接配置；禁止把数据库密码写入代码、文档、提交记录或最终回复。psql 命令在
   `D:\Programs\PostgreSQL\16\bin`
-- 根据以往经验，查询数据要指定字符集为GBK，插入或更新数据数据要指定字符集为UTF8，具体原因不知
+- 客户端和数据库写入默认使用 UTF-8。只有确认 Windows 终端查询结果乱码时，才可以临时调整查询输出的客户端编码；数据库写入不得依赖 GBK。
 - **创建表时必须加上表备注和字段备注**，使用 PostgreSQL `COMMENT ON` 语法。字段注释规范：
   - `id` → `ID`
   - `number` → `编码`
@@ -92,7 +94,7 @@
 
 ## 前端约定 (smart-manage-web)
 
-- 当前前端项目处于从零开始重构阶段，以下的说明是以前的，可能与已有的代码不匹配。
+- 以下约定必须与当前代码保持一致。如果代码实现与本文档冲突，应先核实实际设计并修正文档或实现，不得长期保留两套口径。
 
 ### 构建与运行
 
@@ -158,7 +160,7 @@ src/
 
 - 前端业务页面目录与后端保持一致，按 `src/domain/{领域}/{应用}/{单据}` 分层，例如 `src/domain/sys/base/user`。
 - 菜单表中的 `component` 使用稳定业务键，例如 `sys/base/user/list`、`sys/base/file-config/custom`。后端只存菜单元数据，前端通过组件注册表把 `component` 映射为真实组件。
-- 组件注册表是前端白名单，由 `pnpm gen:registry` 扫描 `src/domain/**/pageRegistration.ts` 或 `.tsx` 生成。新增业务页面时在页面目录新增 `pageRegistration.ts` 并默认导出 `definePageRegistration(...)` 的结果，禁止根据后端字符串任意动态加载组件。
+- 组件注册表是前端白名单，由 `pnpm gen:registry` 发现并导入 `src/domain/**/pageRegistration.ts` 或 `.tsx` 注册清单，禁止根据页面文件名、目录结构或后端字符串推断并任意动态加载组件。每个业务模块或单据目录维护一个 `pageRegistration.ts`，默认导出 `definePageRegistrations([...])` 的结果；一个注册清单可以声明该模块的多个页面，但一个页面组件文件原则上只实现一个页面组件，业务键重复时必须在生成或注册阶段直接报错。
 - 标准页面类型：
   - `ListPage`：列表页，负责查询、分页、过滤、行操作、打开单据页。
   - `EditPage`：单据新增、编辑、查看页，由 `OperationType` 控制页面能力。
